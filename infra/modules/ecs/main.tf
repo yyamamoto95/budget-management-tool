@@ -96,7 +96,8 @@ resource "aws_ecs_task_definition" "web" {
       }
 
       healthCheck = {
-        command     = ["CMD-SHELL", "wget -qO- http://localhost:3000/ || exit 1"]
+        # / はServer ComponentでAPIを呼び出すため重い。/health は軽量なRoute Handlerを使用する
+        command     = ["CMD-SHELL", "wget -qO- http://localhost:3000/health || exit 1"]
         interval    = 30
         timeout     = 5
         retries     = 3
