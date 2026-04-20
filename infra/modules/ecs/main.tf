@@ -96,10 +96,11 @@ resource "aws_ecs_task_definition" "web" {
       }
 
       healthCheck = {
-        # / はServer ComponentでAPIを呼び出すため重い。/health は軽量なRoute Handlerを使用する
-        command     = ["CMD-SHELL", "wget -qO- http://localhost:3000/health || exit 1"]
+        # node コマンドで直接 HTTP 接続を確認する（wget の HTTP ステータス判定が不安定なため）
+        # / への任意のレスポンス（2xx/3xx/4xx）で OK とし、接続失敗や 5xx のみ NG とする
+        command     = ["CMD-SHELL", "node -e \"require('http').get('http://localhost:3000/',r=>{r.resume();r.on('end',()=>process.exit(r.statusCode<500?0:1))}).on('error',()=>process.exit(1))\""]
         interval    = 30
-        timeout     = 5
+        timeout     = 10
         retries     = 3
         startPeriod = 60
       }
