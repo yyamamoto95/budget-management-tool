@@ -35,7 +35,7 @@ export async function middleware(request: NextRequest) {
   // リフレッシュトークンがあれば /api/refresh を試みる
   if (refreshToken) {
     try {
-      const apiBase = process.env.API_URL ?? "http://localhost:3001";
+      const apiBase = process.env.INTERNAL_API_URL ?? "http://localhost:5000";
       const refreshRes = await fetch(`${apiBase}/api/refresh`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },

@@ -10,7 +10,7 @@ import { prisma } from './infrastructure/persistence/prisma-client';
 import { buildDeps } from './container';
 import { createApp } from './app';
 
-const port = Number(process.env.PORT ?? 3001);
+const port = Number(process.env.PORT ?? 5000);
 
 async function main(): Promise<void> {
     // Prisma 接続確認（DB に疎通できなければ早期終了）

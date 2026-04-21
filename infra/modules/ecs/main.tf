@@ -44,7 +44,7 @@ resource "aws_cloudwatch_log_group" "api" {
 #
 # web と api を同一 Fargate タスクに同居させ、localhost で通信する。
 # - web (Next.js)  : port 3000 — CloudFront がオリジンとして参照
-# - api (Hono)     : port 3001 — web から http://localhost:3001 で呼び出す
+# - api (Hono)     : port 5000 — web から http://localhost:5000 で呼び出す（タスク内部通信）
 #
 # deploy.yml の deploy-ecs ジョブが CI/CD でイメージを差し替えるため、
 # lifecycle.ignore_changes = [task_definition] で Terraform 側の上書きを防ぐ。
@@ -75,14 +75,10 @@ resource "aws_ecs_task_definition" "web" {
         {
           name  = "NODE_ENV"
           value = "production"
-        }
-      ]
-
-      # NEXT_PUBLIC_API_URL は同一タスク内 localhost を指す
-      secrets = [
+        },
         {
-          name      = "NEXT_PUBLIC_API_URL"
-          valueFrom = "${var.ssm_prefix}/api_url"
+          name  = "INTERNAL_API_URL"
+          value = "http://localhost:5000"
         }
       ]
 
@@ -96,11 +92,9 @@ resource "aws_ecs_task_definition" "web" {
       }
 
       healthCheck = {
-        # node コマンドで直接 HTTP 接続を確認する（wget の HTTP ステータス判定が不安定なため）
-        # / への任意のレスポンス（2xx/3xx/4xx）で OK とし、接続失敗や 5xx のみ NG とする
-        command     = ["CMD-SHELL", "node -e \"require('http').get('http://localhost:3000/',r=>{r.resume();r.on('end',()=>process.exit(r.statusCode<500?0:1))}).on('error',()=>process.exit(1))\""]
+        command     = ["CMD-SHELL", "wget -qO- http://localhost:3000/health || exit 1"]
         interval    = 30
-        timeout     = 10
+        timeout     = 5
         retries     = 3
         startPeriod = 60
       }
@@ -114,7 +108,7 @@ resource "aws_ecs_task_definition" "web" {
 
       portMappings = [
         {
-          containerPort = 3001
+          containerPort = 5000
           protocol      = "tcp"
         }
       ]
@@ -126,7 +120,7 @@ resource "aws_ecs_task_definition" "web" {
         },
         {
           name  = "PORT"
-          value = "3001"
+          value = "5000"
         }
       ]
 
@@ -138,10 +132,6 @@ resource "aws_ecs_task_definition" "web" {
         {
           name      = "JWT_SECRET"
           valueFrom = "${var.ssm_prefix}/jwt_secret"
-        },
-        {
-          name      = "CF_ORIGIN_SECRET"
-          valueFrom = "${var.ssm_prefix}/cf_origin_secret"
         }
       ]
 
@@ -155,7 +145,7 @@ resource "aws_ecs_task_definition" "web" {
       }
 
       healthCheck = {
-        command     = ["CMD-SHELL", "wget -qO- http://localhost:3001/api/health || exit 1"]
+        command     = ["CMD-SHELL", "wget -qO- http://localhost:5000/api/health || exit 1"]
         interval    = 30
         timeout     = 5
         retries     = 3
@@ -183,7 +173,7 @@ resource "aws_ecs_task_definition" "api" {
 
       portMappings = [
         {
-          containerPort = 3001
+          containerPort = 5000
           protocol      = "tcp"
         }
       ]
@@ -195,7 +185,7 @@ resource "aws_ecs_task_definition" "api" {
         },
         {
           name  = "PORT"
-          value = "3001"
+          value = "5000"
         }
       ]
 
@@ -208,12 +198,6 @@ resource "aws_ecs_task_definition" "api" {
         {
           name      = "JWT_SECRET"
           valueFrom = "${var.ssm_prefix}/jwt_secret"
-        },
-        # Layer 2: Origin Shield 検証用シークレット
-        # CloudFront が X-CF-Origin-Secret ヘッダーで送出する値と一致した場合のみリクエストを通過させる
-        {
-          name      = "CF_ORIGIN_SECRET"
-          valueFrom = "${var.ssm_prefix}/cf_origin_secret"
         }
       ]
 
@@ -227,7 +211,7 @@ resource "aws_ecs_task_definition" "api" {
       }
 
       healthCheck = {
-        command     = ["CMD-SHELL", "wget -qO- http://localhost:3001/api/health || exit 1"]
+        command     = ["CMD-SHELL", "wget -qO- http://localhost:5000/api/health || exit 1"]
         interval    = 30
         timeout     = 5
         retries     = 3

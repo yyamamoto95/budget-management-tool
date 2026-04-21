@@ -43,26 +43,6 @@ export function createApp(deps: AppDeps) {
     // X-Content-Type-Options, X-Frame-Options, Referrer-Policy 等を付与
     app.use('*', secureHeaders());
 
-    // ─── Layer 2: Origin Shield 検証 ─────────────────────────────────────────────
-    // CloudFront がカスタムヘッダー X-CF-Origin-Secret を付与して転送する。
-    // ヘッダーが存在しない（= ECS タスク IP への直接アクセス）場合は 403 で遮断する。
-    // 本番環境のみ適用（ローカル開発・テストは環境変数未設定のため無効）
-    const cfOriginSecret = process.env.CF_ORIGIN_SECRET;
-    if (cfOriginSecret) {
-        app.use('*', async (c, next) => {
-            // ECS ヘルスチェック（wget からの内部アクセス）は X-CF-Origin-Secret を持たないためスキップ
-            if (c.req.path === '/api/health') {
-                await next();
-                return;
-            }
-            const receivedSecret = c.req.header('X-CF-Origin-Secret');
-            if (receivedSecret !== cfOriginSecret) {
-                return c.json({ result: 'error', message: 'Forbidden' }, 403);
-            }
-            await next();
-        });
-    }
-
     // JWT Bearer 認証スキームをレジストリに登録（createRoute の security: [{ bearerAuth: [] }] と対応）
     app.openAPIRegistry.registerComponent('securitySchemes', 'bearerAuth', {
         type: 'http',
