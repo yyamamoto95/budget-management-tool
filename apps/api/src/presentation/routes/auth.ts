@@ -1,5 +1,6 @@
 import { createRoute } from '@hono/zod-openapi';
 import { createOpenAPIApp } from '../../lib/openapi-app';
+import { createAuthMiddleware } from '../middleware/auth';
 import type { TokenService } from '../../application/auth/TokenService';
 import type { AppDeps } from '../../app';
 import {
@@ -122,6 +123,10 @@ const logoutRoute = createRoute({
 export function createAuthRoutes(deps: AppDeps, tokenService: TokenService) {
     const { userRepository } = deps;
     const app = createOpenAPIApp();
+    const auth = createAuthMiddleware(tokenService);
+
+    // ログアウトは認証済みユーザーのみ（OpenAPI の security 宣言と一致させる）
+    app.use('/logout', auth);
 
     /** ログイン成功時にトークンペアをレスポンスする共通処理 */
     async function respondWithTokens(userId: string) {

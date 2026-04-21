@@ -159,14 +159,15 @@ describeIf('Auth 統合テスト（実 DB）', () => {
             expect(res.status).toBe(401);
         });
 
-        it('正常系: ログアウト後は認証が必要なエンドポイントに 401 で弾かれる', async () => {
+        it('正常系: ログアウト後にアクセストークンを持たないリクエストは 401 で弾かれる', async () => {
             const { users } = await seedTestData({ pattern: 'minimal' });
             const client = new TestAgent(app);
 
             await client.login(API_PATHS.LOGIN, { userId: users[0].userId, password: 'password123' });
             await client.post(API_PATHS.LOGOUT, { refreshToken: client.getRefreshToken() });
 
-            const res = await client.get(API_PATHS.EXPENSE);
+            // JWT はログアウト後も有効期限まで有効なため、トークンなしでのアクセスを検証する
+            const res = await testRequest(app, API_PATHS.EXPENSE);
             expect(res.status).toBe(401);
         });
     });
