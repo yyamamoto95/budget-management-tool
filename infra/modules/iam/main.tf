@@ -110,9 +110,9 @@ data "aws_iam_policy_document" "github_actions_policy" {
       "ecs:DescribeTaskDefinition",
       "ecs:ListTaskDefinitions",
       "ecs:ListClusters",
-      "ecs:RunTask",      # DB マイグレーション用 ECS Run Task
+      "ecs:RunTask",       # DB マイグレーション用 ECS Run Task
       "ecs:DescribeTasks", # マイグレーションタスクの完了確認・CloudFront 更新時の IP 取得
-      "ecs:ListTasks",    # CloudFront 更新時のタスク一覧取得
+      "ecs:ListTasks",     # CloudFront 更新時のタスク一覧取得
     ]
     resources = ["*"]
   }

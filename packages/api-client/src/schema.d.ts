@@ -1264,6 +1264,107 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/xday": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Xデー（資産枯渇日）の算出
+         * @description 総資産・収入・実績支出データから資産が底をつく日を計算する。
+         */
+        get: {
+            parameters: {
+                query?: {
+                    totalAssets?: number | null;
+                    monthlyIncome?: number | null;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Xデー算出結果 */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["XDayResponse"];
+                    };
+                };
+                /** @description 未認証 */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/xday/analysis": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 支出解剖（断罪UI）
+         * @description 今月のカテゴリ別支出と統計偏差値・Xデーへの影響日数を返す。
+         */
+        get: {
+            parameters: {
+                query?: {
+                    netDailyExpense?: number | null;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description 支出解剖データ */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ExpenditureAnalysisResponse"];
+                    };
+                };
+                /** @description 未認証 */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1636,6 +1737,56 @@ export interface components {
             resetToken: string;
             /** @description 新しいパスワード（平文） */
             newPassword: string;
+        };
+        XDayResponse: {
+            /** @example 2031-09-14T00:00:00.000Z */
+            xDate: string | null;
+            /** @example 1978 */
+            daysRemaining: number | null;
+            /** @example 4067 */
+            effectiveDailyExpense: number;
+            /** @example 4067 */
+            netDailyExpense: number;
+            /** @example 0.5 */
+            trustWeight: number;
+            /** @example 0.354 */
+            minutesPerYen: number;
+            /** @example 4999812 */
+            realtimeAssets: number;
+            /** @example 45 */
+            recordedDays: number;
+            /** @example 3200 */
+            avgDailyExpense: number;
+            /** @example 2026-04-14T10:00:00.000Z */
+            snapshotAt: string;
+        };
+        CategoryAnalysis: {
+            /** @example food */
+            category: string;
+            /** @example 食費 */
+            label: string;
+            /** @example 62400 */
+            monthlyAmount: number;
+            /** @example 78 */
+            deviation: number;
+            /**
+             * @example danger
+             * @enum {string}
+             */
+            level: "surplus" | "normal" | "caution" | "danger";
+            /** @example #FF0000 */
+            color: string;
+            /** @example 64 */
+            xDayImpactDays: number;
+        };
+        ExpenditureAnalysisResponse: {
+            /** @example 2026-04 */
+            month: string;
+            categories: components["schemas"]["CategoryAnalysis"][];
+            /** @example 71 */
+            totalDeviation: number;
+            /** @example 141500 */
+            totalMonthlyAmount: number;
         };
     };
     responses: never;

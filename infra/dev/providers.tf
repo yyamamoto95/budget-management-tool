@@ -18,12 +18,12 @@ provider "aws" {
 
   default_tags {
     tags = {
-      Project     = var.project
+      Project = var.project
       # var.env が環境識別子（dev / stg / prod）の単一の起点。
       # prod 環境を立ち上げた場合、このタグ値が変わるだけで全リソースに伝播する。
-      Environment    = var.env
-      ManagedBy      = "terraform"
-      Owner          = "yamamoto-yudai"
+      Environment = var.env
+      ManagedBy   = "terraform"
+      Owner       = "yamamoto-yudai"
       # AWS myApplications ダッシュボードとの連携用タグ。
       # 環境ごとに一意のアプリケーション識別子を付与し、コスト・セキュリティ分析を環境単位で行う。
       awsApplication = "budget-app-${var.env}"

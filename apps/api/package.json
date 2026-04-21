@@ -3,7 +3,7 @@
   "private": true,
   "type": "commonjs",
   "scripts": {
-    "dev": "wait-on tcp:${DB_HOSTNAME:-127.0.0.1}:${DB_PORT:-3306} && PORT=3001 tsx src/index.ts",
+    "dev": "wait-on tcp:${DB_HOSTNAME:-127.0.0.1}:${DB_PORT:-3306} && PORT=5000 tsx src/index.ts",
     "build": "tsc",
     "start": "node build/index.js",
     "type-check": "tsc --noEmit",
