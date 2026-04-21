@@ -7,7 +7,7 @@
  * ```ts
  * import { createApiClient } from '@budget/api-client';
  *
- * const client = createApiClient('http://localhost:3001');
+ * const client = createApiClient('http://localhost:5000');
  * const { data } = await client.GET('/api/expense');
  * // data は { expense: ExpenseResponse[] } として型付けされる
  * ```
@@ -28,7 +28,7 @@ export const API_PATHS = {
 /**
  * openapi-fetch ベースの型安全 API クライアントを生成する。
  *
- * @param baseUrl - API のベース URL（例: 'http://localhost:3001'）
+ * @param baseUrl - API のベース URL（例: 'http://localhost:5000'）
  * @param init - fetch のデフォルトオプション（Cookie などを追加する場合）
  */
 export function createApiClient(baseUrl: string, init?: RequestInit) {

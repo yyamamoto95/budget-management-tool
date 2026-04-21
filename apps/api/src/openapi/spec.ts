@@ -27,6 +27,6 @@ export function generateOpenAPIDocument(): any {
             title: '家計簿管理ツール API',
             description: '支出（Expense）の登録・管理を行う REST API。JWT Bearer 認証が必要。',
         },
-        servers: [{ url: 'http://localhost:3001', description: 'ローカル開発' }],
+        servers: [{ url: 'http://localhost:5000', description: 'ローカル開発' }],
     });
 }

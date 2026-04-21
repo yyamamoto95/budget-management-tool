@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 
-const API_BASE = process.env.API_URL ?? "http://localhost:3001";
+const API_BASE = process.env.INTERNAL_API_URL ?? "http://localhost:5000";
 
 export class ApiError extends Error {
   constructor(
