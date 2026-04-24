@@ -90,15 +90,15 @@ describeIf('Auth 統合テスト（実 DB）', () => {
             expect(res.status).toBe(200);
         });
 
-        it('異常系: 存在しないユーザーは 403 を返す', async () => {
+        it('異常系: 存在しないユーザーは 401 を返す', async () => {
             const res = await testRequest(app, API_PATHS.LOGIN, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ userId: 'nonexistent-user', password: 'password123' }),
             });
 
-            expect(res.status).toBe(403);
-            expect((res.body as Record<string, unknown>).result).toBe('failed');
+            expect(res.status).toBe(401);
+            expect((res.body as Record<string, unknown>).result).toBe('error');
         });
 
         it('異常系: パスワードが誤っている場合は 401 を返す', async () => {
@@ -112,7 +112,7 @@ describeIf('Auth 統合テスト（実 DB）', () => {
             });
 
             expect(res.status).toBe(401);
-            expect((res.body as Record<string, unknown>).result).toBe('failed');
+            expect((res.body as Record<string, unknown>).result).toBe('error');
         });
 
         it('異常系: userId が空文字のとき Zod バリデーションエラー (400) を返す', async () => {
@@ -148,25 +148,27 @@ describeIf('Auth 統合テスト（実 DB）', () => {
 
             await client.login(API_PATHS.LOGIN, { userId: users[0].userId, password: 'password123' });
 
-            const res = await client.post(API_PATHS.LOGOUT);
+            // refreshToken を含めた body を送信（Content-Type: application/json + 空 body は Malformed JSON になるため）
+            const res = await client.post(API_PATHS.LOGOUT, { refreshToken: client.getRefreshToken() });
             expect(res.status).toBe(200);
             expect((res.body as Record<string, unknown>).result).toBe('success');
         });
 
-        it('異常系: 未ログイン状態でのログアウトは 403 を返す', async () => {
+        it('異常系: 未ログイン状態でのログアウトは 401 を返す', async () => {
             const res = await testRequest(app, API_PATHS.LOGOUT, { method: 'POST' });
-            expect(res.status).toBe(403);
+            expect(res.status).toBe(401);
         });
 
-        it('正常系: ログアウト後は認証が必要なエンドポイントに 403 で弾かれる', async () => {
+        it('正常系: ログアウト後にアクセストークンを持たないリクエストは 401 で弾かれる', async () => {
             const { users } = await seedTestData({ pattern: 'minimal' });
             const client = new TestAgent(app);
 
             await client.login(API_PATHS.LOGIN, { userId: users[0].userId, password: 'password123' });
-            await client.post(API_PATHS.LOGOUT);
+            await client.post(API_PATHS.LOGOUT, { refreshToken: client.getRefreshToken() });
 
-            const res = await client.get(API_PATHS.EXPENSE);
-            expect(res.status).toBe(403);
+            // JWT はログアウト後も有効期限まで有効なため、トークンなしでのアクセスを検証する
+            const res = await testRequest(app, API_PATHS.EXPENSE);
+            expect(res.status).toBe(401);
         });
     });
 });

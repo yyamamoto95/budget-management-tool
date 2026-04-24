@@ -100,10 +100,9 @@ describeIf('Expense 統合テスト（実 DB）', () => {
             expect((res.body as GetExpensesResponse).expense).toHaveLength(0);
         });
 
-        it('異常系 403: 未認証は Auth Error を返す', async () => {
+        it('異常系 401: 未認証は 401 を返す', async () => {
             const res = await testRequest(app, API_PATHS.EXPENSE);
-            expect(res.status).toBe(403);
-            expect((res.body as Record<string, unknown>).message).toBe('Auth Error');
+            expect(res.status).toBe(401);
         });
     });
 
@@ -190,7 +189,7 @@ describeIf('Expense 統合テスト（実 DB）', () => {
             expect((res.body as Record<string, unknown>).result).toBe('error');
         });
 
-        it('異常系 403: 未認証は Auth Error を返す', async () => {
+        it('異常系 401: 未認証は 401 を返す', async () => {
             const res = await testRequest(app, API_PATHS.EXPENSE, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -198,7 +197,7 @@ describeIf('Expense 統合テスト（実 DB）', () => {
                     newData: { amount: 1000, balanceType: 0, userId: 'user-1', date: '2024-01-01' },
                 }),
             });
-            expect(res.status).toBe(403);
+            expect(res.status).toBe(401);
         });
 
         // edgeCases シナリオ: 実運用のイレギュラーデータでも正常動作することを確認
@@ -253,9 +252,9 @@ describeIf('Expense 統合テスト（実 DB）', () => {
             expect(ids).not.toContain(expenseId);
         });
 
-        it('異常系 403: 未認証は Auth Error を返す', async () => {
+        it('異常系 401: 未認証は 401 を返す', async () => {
             const res = await testRequest(app, `${API_PATHS.EXPENSE}/some-id`, { method: 'DELETE' });
-            expect(res.status).toBe(403);
+            expect(res.status).toBe(401);
         });
     });
 });

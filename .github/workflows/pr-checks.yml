@@ -181,6 +181,10 @@ jobs:
         run: pnpm install --frozen-lockfile --ignore-scripts
 
       - name: Validate Prisma schema
+        env:
+          # prisma validate はスキーマの静的検証のみ（DB 接続不要）だが、
+          # Prisma CLI が DATABASE_URL の存在を要求するためダミー値を設定する
+          DATABASE_URL: "mysql://user:pass@localhost:3306/dummy"
         run: pnpm --filter @budget/api exec prisma validate
 
       - name: Check for destructive migrations
