@@ -60,6 +60,9 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
+# curl: ECS ヘルスチェック用（wget は Alpine で IPv6 解決問題が生じる場合があるため curl を使用）
+RUN apk add --no-cache curl
+
 # セキュリティ: 非 root ユーザーで実行
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nextjs
