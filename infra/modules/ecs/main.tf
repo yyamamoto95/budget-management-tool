@@ -101,8 +101,9 @@ resource "aws_ecs_task_definition" "web" {
 
       healthCheck = {
         # curl -sf: -s(silent) -f(fail on HTTP error)
-        # 127.0.0.1 を明示して IPv4 強制（localhost は Alpine で ::1 に解決される場合がある）
-        command     = ["CMD-SHELL", "curl -sf http://127.0.0.1:3000/health"]
+        # Next.js 16 standalone は HOSTNAME=0.0.0.0 でもコンテナ実 IP (eth0) にのみ bind するため、
+        # 127.0.0.1 では接続不可。hostname -i でコンテナの実 IP を取得して使用する。
+        command     = ["CMD-SHELL", "curl -sf http://$(hostname -i):3000/health"]
         interval    = 30
         timeout     = 10
         retries     = 3
