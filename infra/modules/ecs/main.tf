@@ -82,6 +82,14 @@ resource "aws_ecs_task_definition" "web" {
         }
       ]
 
+      # middleware.ts が JWT_PUBLIC_KEY を使ってアクセストークンを検証するため注入
+      secrets = [
+        {
+          name      = "JWT_PUBLIC_KEY"
+          valueFrom = "${var.ssm_prefix}/jwt_public_key"
+        }
+      ]
+
       logConfiguration = {
         logDriver = "awslogs"
         options = {
@@ -92,9 +100,11 @@ resource "aws_ecs_task_definition" "web" {
       }
 
       healthCheck = {
-        command     = ["CMD-SHELL", "wget -qO- http://localhost:3000/health || exit 1"]
+        # curl -sf: -s(silent) -f(fail on HTTP error)
+        # 127.0.0.1 を明示して IPv4 強制（localhost は Alpine で ::1 に解決される場合がある）
+        command     = ["CMD-SHELL", "curl -sf http://127.0.0.1:3000/health"]
         interval    = 30
-        timeout     = 5
+        timeout     = 10
         retries     = 3
         startPeriod = 60
       }
@@ -130,8 +140,12 @@ resource "aws_ecs_task_definition" "web" {
           valueFrom = "${var.ssm_prefix}/database_url"
         },
         {
-          name      = "JWT_SECRET"
-          valueFrom = "${var.ssm_prefix}/jwt_secret"
+          name      = "JWT_PRIVATE_KEY"
+          valueFrom = "${var.ssm_prefix}/jwt_private_key"
+        },
+        {
+          name      = "JWT_PUBLIC_KEY"
+          valueFrom = "${var.ssm_prefix}/jwt_public_key"
         }
       ]
 
@@ -145,9 +159,9 @@ resource "aws_ecs_task_definition" "web" {
       }
 
       healthCheck = {
-        command     = ["CMD-SHELL", "wget -qO- http://localhost:5000/api/health || exit 1"]
+        command     = ["CMD", "node", "-e", "require('http').get({host:'127.0.0.1',port:5000,path:'/api/health'},(r)=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))"]
         interval    = 30
-        timeout     = 5
+        timeout     = 10
         retries     = 3
         startPeriod = 60
       }
@@ -196,8 +210,12 @@ resource "aws_ecs_task_definition" "api" {
           valueFrom = "${var.ssm_prefix}/database_url"
         },
         {
-          name      = "JWT_SECRET"
-          valueFrom = "${var.ssm_prefix}/jwt_secret"
+          name      = "JWT_PRIVATE_KEY"
+          valueFrom = "${var.ssm_prefix}/jwt_private_key"
+        },
+        {
+          name      = "JWT_PUBLIC_KEY"
+          valueFrom = "${var.ssm_prefix}/jwt_public_key"
         }
       ]
 
@@ -211,9 +229,9 @@ resource "aws_ecs_task_definition" "api" {
       }
 
       healthCheck = {
-        command     = ["CMD-SHELL", "wget -qO- http://localhost:5000/api/health || exit 1"]
+        command     = ["CMD", "node", "-e", "require('http').get({host:'127.0.0.1',port:5000,path:'/api/health'},(r)=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))"]
         interval    = 30
-        timeout     = 5
+        timeout     = 10
         retries     = 3
         startPeriod = 60
       }
