@@ -6,5 +6,11 @@
     "editor.codeActionsOnSave": {
         "source.fixAll.eslint": "never",
         "source.organizeImports": "explicit"
-    }
+    },
+    "github.copilot.chat.commitMessageGeneration.instructions": [
+        { "file": ".github/commit-message-instructions.md" }
+    ],
+    "github.copilot.chat.pullRequestDescriptionGeneration.instructions": [
+        { "file": ".github/pull-request-instructions.md" }
+    ]
 }
