@@ -151,6 +151,8 @@ jobs:
           exit-code: "1"
           ignore-unfixed: true
           trivyignores: .trivyignore
+          # CI ランナーのシステム npm 内部依存はプロジェクト管理外のため除外
+          skip-dirs: usr/local/lib/node_modules/npm
 
       - name: Upload scan results to GitHub Security
         if: always()
