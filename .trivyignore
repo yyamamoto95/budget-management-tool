@@ -5,40 +5,9 @@
 #   このファイルに記載する CVE は「修正不可 or 実際には悪用不可」であることを
 #   確認した上で、根拠コメントと合わせて管理する。
 #   定期的に見直し、修正版が利用可能になり次第 override に移行すること。
+#
+# ノート:
+#   CI ランナーのシステム npm 内部依存（usr/local/lib/node_modules/npm）は
+#   pr-checks.yml の Trivy skip-dirs で除外済み。
+#   プロジェクト依存の脆弱性は pnpm.overrides（package.json）で対処すること。
 # ============================================================
-
-# ─── tar (node-tar) — Node.js 同梱の npm 内部依存 ────────────────────────────
-#
-# 影響パッケージ : tar@6.2.1（npm に同梱。プロジェクトの直接/推移的依存ではない）
-# 修正バージョン : 7.5.x（メジャーバージョンアップ。npm 側の対応待ち）
-# 悪用条件       : 攻撃者が制御する tar アーカイブを本アプリが展開する必要がある
-# 判断           : 家計管理ツールは tar アーカイブを扱わないため実質的な攻撃面なし
-#
-CVE-2026-31802
-CVE-2026-29786
-CVE-2026-26960
-CVE-2026-24842
-CVE-2026-23950
-CVE-2026-23745
-
-# ─── minimatch / glob / diff / cross-spawn / brace-expansion — npm 内部依存 ──
-#
-# 影響パッケージ : 以下はすべて usr/local/lib/node_modules/npm/node_modules/ 配下
-#                 （Node.js に同梱された npm CLI の内部依存。プロジェクトの直接/推移的依存ではない）
-# 修正方法       : npm 本体のバージョンアップが必要。プロジェクト側では対応不可
-# 悪用条件       : 攻撃者が制御する glob パターン・diff・ファイル名を npm CLI が処理する必要がある
-# 判断           : 本アプリは npm CLI を実行時に使用しない（ビルド時のみ）。実質的な攻撃面なし
-#
-# minimatch — ReDoS (CVE-2026-27904, CVE-2026-27903, CVE-2026-26996)
-CVE-2026-27904
-CVE-2026-27903
-CVE-2026-26996
-# glob — Command Injection via malicious filenames (CVE-2025-64756)
-CVE-2025-64756
-# diff (jsdiff) — DoS in parsePatch/applyPatch (CVE-2026-24001)
-CVE-2026-24001
-# cross-spawn — ReDoS (CVE-2024-21538)
-CVE-2024-21538
-# brace-expansion — ReDoS / zero-step DoS (CVE-2025-5889, CVE-2026-33750)
-CVE-2025-5889
-CVE-2026-33750
