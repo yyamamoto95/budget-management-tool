@@ -220,16 +220,95 @@ jobs:
 
           echo "Migration completed successfully"
 
-  # ─── ECS サービス更新 ────────────────────────────────────────────────────────
-  deploy-ecs:
-    name: Deploy ECS
+  # ─── DB シード ───────────────────────────────────────────────────────────────
+  db-seed:
+    name: DB Seed
     runs-on: ubuntu-latest
     needs: [build-and-push, db-migrate]
-    # db-migrate がスキップ（API 変更なし）の場合も実行する
+    # 冪等なため毎デプロイ実行する（build-and-push が成功し、migrate が成功 or スキップなら実行）
     if: |
       always() &&
       needs.build-and-push.result == 'success' &&
       (needs.db-migrate.result == 'success' || needs.db-migrate.result == 'skipped')
+    steps:
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Run seed via ECS Run Task
+        env:
+          CLUSTER: ${{ secrets.ECS_CLUSTER }}
+          TASK_FAMILY: ${{ secrets.ECS_TASK_FAMILY_API }}
+          SUBNETS: ${{ secrets.ECS_SUBNETS }}
+          SG_API: ${{ secrets.SG_API_ID }}
+        run: |
+          TASK_DEF=$(aws ecs describe-task-definition \
+            --task-definition "${TASK_FAMILY}" \
+            --query 'taskDefinition.taskDefinitionArn' \
+            --output text)
+
+          echo "Using task definition: ${TASK_DEF}"
+
+          TASK_ARN=$(aws ecs run-task \
+            --cluster "${CLUSTER}" \
+            --task-definition "${TASK_DEF}" \
+            --launch-type FARGATE \
+            --network-configuration "awsvpcConfiguration={subnets=[${SUBNETS}],securityGroups=[${SG_API}],assignPublicIp=ENABLED}" \
+            --overrides '{"containerOverrides":[{"name":"api","command":["node","scripts/run-seed.js"]}]}' \
+            --query 'tasks[0].taskArn' \
+            --output text)
+
+          echo "Seed task ARN: ${TASK_ARN}"
+
+          aws ecs wait tasks-stopped \
+            --cluster "${CLUSTER}" \
+            --tasks "${TASK_ARN}"
+
+          TASK_INFO=$(aws ecs describe-tasks \
+            --cluster "${CLUSTER}" \
+            --tasks "${TASK_ARN}" \
+            --output json)
+
+          EXIT_CODE=$(echo "${TASK_INFO}" | jq -r '.tasks[0].containers[0].exitCode // "null"')
+          STOP_REASON=$(echo "${TASK_INFO}" | jq -r '.tasks[0].stoppedReason // "N/A"')
+
+          echo "Stopped reason : ${STOP_REASON}"
+          echo "Exit code      : ${EXIT_CODE}"
+
+          TASK_ID=$(echo "${TASK_ARN}" | sed 's|.*/||')
+          NAME_PREFIX="${TASK_FAMILY%-api}"
+          LOG_GROUP="/ecs/${NAME_PREFIX}/api"
+          LOG_STREAM="ecs/api/${TASK_ID}"
+          echo ""
+          echo "=== CloudWatch Logs: ${LOG_GROUP}/${LOG_STREAM} ==="
+          sleep 5
+          aws logs get-log-events \
+            --log-group-name "${LOG_GROUP}" \
+            --log-stream-name "${LOG_STREAM}" \
+            --query 'events[].message' \
+            --output text 2>/dev/null || echo "(ログの取得に失敗しました)"
+          echo "============================================================"
+
+          if [ "${EXIT_CODE}" != "0" ]; then
+            echo "Seed failed with exit code ${EXIT_CODE}"
+            exit 1
+          fi
+
+          echo "Seed completed successfully"
+
+  # ─── ECS サービス更新 ────────────────────────────────────────────────────────
+  deploy-ecs:
+    name: Deploy ECS
+    runs-on: ubuntu-latest
+    needs: [build-and-push, db-migrate, db-seed]
+    # db-migrate / db-seed がスキップの場合も実行する
+    if: |
+      always() &&
+      needs.build-and-push.result == 'success' &&
+      (needs.db-migrate.result == 'success' || needs.db-migrate.result == 'skipped') &&
+      (needs.db-seed.result == 'success' || needs.db-seed.result == 'skipped')
     steps:
       - uses: actions/checkout@v4
 
