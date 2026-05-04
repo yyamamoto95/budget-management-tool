@@ -1,3 +1,18 @@
+# SSOT: AI ツール共通規約の参照先
+
+このリポジトリのコミット・PR 生成に関するルールは `.github/` に一元管理されています。
+コミットメッセージや PR を生成・レビューするタスクでは、**必ず以下のファイルをコンテキストに含めて読み込んでください。**
+
+| タスク | 参照ファイル |
+|--------|-------------|
+| コミットメッセージの生成 | `.github/commit-message-instructions.md` |
+| PR 説明文の生成 | `.github/pull-request-instructions.md` |
+| PR 本文のフォーマット | `.github/PULL_REQUEST_TEMPLATE.md` |
+
+> これらのファイルが `.cursorrules` 内の詳細プロトコルと競合する場合は、`.github/` の内容を優先してください。
+
+---
+
 # Multi-agent workflow & Serena (Project System Architect)
 
 このリポジトリでは、役割に応じたマルチエージェント運用と Serena MCP による知識同期を前提にする。
