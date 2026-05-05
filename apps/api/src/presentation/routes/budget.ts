@@ -1,9 +1,8 @@
 import { createRoute, z } from '@hono/zod-openapi';
 import { createAuthMiddleware } from '../middleware/auth';
 import { createOpenAPIApp } from '../../lib/openapi-app';
-import type { TokenService } from '../../application/auth/TokenService';
 import type { Budget } from '../../domain/models/Budget';
-import type { AppDeps } from '../../app';
+import type { RouteServices } from '../../app';
 import {
     BudgetResponseSchema,
     CreateBudgetBodySchema,
@@ -148,8 +147,7 @@ const deleteBudgetRoute = createRoute({
 
 // ─── Handler 実装 ────────────────────────────────────────────────
 
-export function createBudgetRoutes(deps: AppDeps, tokenService: TokenService) {
-    const { budgetRepository } = deps;
+export function createBudgetRoutes({ tokenService, budgetRepository }: RouteServices) {
     const auth = createAuthMiddleware(tokenService);
     const app = createOpenAPIApp();
 

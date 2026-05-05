@@ -1,14 +1,8 @@
 import { createRoute, z } from '@hono/zod-openapi';
 import { createAuthMiddleware } from '../middleware/auth';
 import { createOpenAPIApp } from '../../lib/openapi-app';
-import type { TokenService } from '../../application/auth/TokenService';
 import type { User } from '../../domain/models/User';
-import type { AppDeps } from '../../app';
-import { CreateUserUseCase } from '../../application/use-cases/user/CreateUserUseCase';
-import { GetUsersUseCase } from '../../application/use-cases/user/GetUsersUseCase';
-import { GetUserByIdUseCase } from '../../application/use-cases/user/GetUserByIdUseCase';
-import { UpdateUserUseCase } from '../../application/use-cases/user/UpdateUserUseCase';
-import { DeleteUserUseCase } from '../../application/use-cases/user/DeleteUserUseCase';
+import type { RouteServices } from '../../app';
 import {
     CreateUserBodySchema,
     ErrorResponseSchema,
@@ -162,17 +156,16 @@ function serializeUser(user: User) {
 
 // ─── Handler 実装 ────────────────────────────────────────────────
 
-export function createUserRoutes(deps: AppDeps, tokenService: TokenService) {
-    const { userRepository } = deps;
+export function createUserRoutes({
+    tokenService,
+    getUsersUseCase,
+    getUserByIdUseCase,
+    createUserUseCase,
+    updateUserUseCase,
+    deleteUserUseCase,
+}: RouteServices) {
     const auth = createAuthMiddleware(tokenService);
     const app = createOpenAPIApp();
-
-    // UseCase のインスタンスを生成（すべての操作は UseCase 経由）
-    const getUsersUseCase = new GetUsersUseCase(userRepository);
-    const getUserByIdUseCase = new GetUserByIdUseCase(userRepository);
-    const createUserUseCase = new CreateUserUseCase(userRepository);
-    const updateUserUseCase = new UpdateUserUseCase(userRepository);
-    const deleteUserUseCase = new DeleteUserUseCase(userRepository);
 
     // 全 User ルートに Bearer 認証を適用
     app.use('/user', auth);
