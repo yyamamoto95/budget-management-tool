@@ -49,18 +49,22 @@ pre-commit:
       run: pnpm turbo run test:unit
       fail_text: "ユニットテストが失敗しました。`pnpm test:unit` を実行して確認してください。新規コードには対応するテストを追加してください。"
 
-# pre-push フック: 統合テスト（テスト用 DB が起動中の場合のみ実行）
+# pre-push フック: 統合テスト（テスト用 DB を自動起動して実行）
 # push 前に実 DB を使った API ↔ DB 貫通テストを検証する
 pre-push:
   parallel: false
   commands:
     integration-test:
       run: |
-        if docker compose -f docker-compose.test.yml ps 2>/dev/null | grep -q "healthy"; then
-          echo "テスト用 DB が起動中です。統合テストを実行します..."
-          pnpm test:integration
-        else
-          echo "テスト用 DB が未起動のため統合テストをスキップします。"
-          echo "統合テストを実行するには: docker compose -f docker-compose.test.yml up -d"
+        # テスト用 DB コンテナが起動済みか確認（コンテナ名で厳密に判定）
+        if ! docker ps --filter "name=budget_db_test" --filter "health=healthy" 2>/dev/null | grep -q "budget_db_test"; then
+          echo "テスト用 DB を起動します..."
+          docker compose -f docker-compose.test.yml up -d
+          echo "DB の起動を待機中..."
+          timeout 60 sh -c 'until docker ps --filter "name=budget_db_test" --filter "health=healthy" | grep -q "budget_db_test"; do sleep 2; done'
         fi
+        echo "スキーマを適用します..."
+        DATABASE_URL="mysql://Admin:password@127.0.0.1:3307/budgetdb_test" pnpm --filter @budget/api exec prisma db push --skip-generate --accept-data-loss
+        echo "統合テストを実行します..."
+        pnpm test:integration
       fail_text: "統合テストが失敗しました。`pnpm test:integration` を確認してください。"
