@@ -64,7 +64,7 @@ pre-push:
           timeout 60 sh -c 'until docker ps --filter "name=budget_db_test" --filter "health=healthy" | grep -q "budget_db_test"; do sleep 2; done'
         fi
         echo "スキーマを適用します..."
-        DATABASE_URL="mysql://Admin:password@127.0.0.1:3307/budgetdb_test" pnpm --filter @budget/api exec prisma db push --skip-generate
+        DATABASE_URL="mysql://Admin:password@127.0.0.1:3307/budgetdb_test" pnpm --filter @budget/api exec prisma db push --skip-generate --accept-data-loss
         echo "統合テストを実行します..."
         pnpm test:integration
       fail_text: "統合テストが失敗しました。`pnpm test:integration` を確認してください。"
