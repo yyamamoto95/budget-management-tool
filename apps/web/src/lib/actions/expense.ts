@@ -51,6 +51,8 @@ export async function createExpenseAction(
     return { error: "支出の登録に失敗しました", success: false };
   }
 
+  // ホームページの XDayDisplay も再計算するため "/" も revalidate する
+  revalidatePath("/");
   revalidatePath("/expenses");
   return { error: null, success: true };
 }
@@ -58,5 +60,6 @@ export async function createExpenseAction(
 /** 支出を削除する Server Action */
 export async function deleteExpenseAction(id: string): Promise<void> {
   await serverFetch(`/api/expense/${id}`, { method: "DELETE" });
+  revalidatePath("/");
   revalidatePath("/expenses");
 }
