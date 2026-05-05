@@ -57,11 +57,11 @@ pre-push:
     integration-test:
       run: |
         # テスト用 DB コンテナが起動済みか確認（コンテナ名で厳密に判定）
-        if ! docker ps --filter "name=budget_db_test" --filter "health=healthy" --format "{{.Names}}" 2>/dev/null | grep -q "budget_db_test"; then
+        if ! docker ps --filter "name=budget_db_test" --filter "health=healthy" 2>/dev/null | grep -q "budget_db_test"; then
           echo "テスト用 DB を起動します..."
           docker compose -f docker-compose.test.yml up -d
           echo "DB の起動を待機中..."
-          timeout 60 bash -c 'until docker ps --filter "name=budget_db_test" --filter "health=healthy" --format "{{.Names}}" | grep -q "budget_db_test"; do sleep 2; done'
+          timeout 60 sh -c 'until docker ps --filter "name=budget_db_test" --filter "health=healthy" | grep -q "budget_db_test"; do sleep 2; done'
         fi
         echo "スキーマを適用します..."
         DATABASE_URL="mysql://Admin:password@127.0.0.1:3307/budgetdb_test" pnpm --filter @budget/api exec prisma db push --skip-generate
