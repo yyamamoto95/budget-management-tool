@@ -13,9 +13,10 @@ export interface IUserRepository {
 
     /**
      * 新規ユーザーを作成する。
-     * plaintextPassword は平文 — ハッシュ化はインフラ層が担う。
+     * user.password にはハッシュ済みパスワードがセットされていること。
+     * ハッシュ化はアプリケーション層（UseCase）の責務。
      */
-    create(user: User, plaintextPassword: string): Promise<User>;
+    create(user: User): Promise<User>;
 
     /**
      * ユーザー情報を更新する。

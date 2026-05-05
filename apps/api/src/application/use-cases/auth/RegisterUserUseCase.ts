@@ -1,4 +1,5 @@
 import { User } from '../../../domain/models/User';
+import type { IPasswordHasher } from '../../../domain/services/IPasswordHasher';
 import type { IUserRepository } from '../../../domain/repositories/IUserRepository';
 import type { ISecurityAnswerRepository } from '../../../domain/repositories/ISecurityAnswerRepository';
 import { ValidationError } from '../../../shared/errors/DomainException';
@@ -19,7 +20,8 @@ interface RegisterInput {
 export class RegisterUserUseCase {
     constructor(
         private readonly userRepository: IUserRepository,
-        private readonly securityAnswerRepository: ISecurityAnswerRepository
+        private readonly securityAnswerRepository: ISecurityAnswerRepository,
+        private readonly passwordHasher: IPasswordHasher
     ) {}
 
     async execute(input: RegisterInput): Promise<User> {
@@ -35,8 +37,9 @@ export class RegisterUserUseCase {
             userName: input.displayName ?? input.userId,
         });
 
-        // インフラ層でパスワードハッシュ化・永続化
-        const saved = await this.userRepository.create(user, input.password);
+        // アプリケーション層でハッシュ化してからリポジトリに渡す
+        const hashedPassword = await this.passwordHasher.hash(input.password);
+        const saved = await this.userRepository.create(user.withPassword(hashedPassword));
 
         // 秘密の質問と回答を保存
         await this.securityAnswerRepository.save(input.userId, input.securityQuestionId, input.securityAnswer);

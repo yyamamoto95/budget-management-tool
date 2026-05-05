@@ -43,14 +43,13 @@ export class PrismaUserRepository implements IUserRepository {
         return record ? toDomain(record) : null;
     }
 
-    async create(user: User, plaintextPassword: string): Promise<User> {
-        const hashed = await bcrypt.hash(plaintextPassword, 10);
+    async create(user: User): Promise<User> {
         const record = await this.prisma.userList.create({
             data: {
                 userId: user.userId,
                 userName: user.userName,
                 email: user.email,
-                password: hashed,
+                password: user.password,
                 role: user.role,
                 status: user.status,
             },
