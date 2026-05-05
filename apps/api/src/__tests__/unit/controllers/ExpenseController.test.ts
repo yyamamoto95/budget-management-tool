@@ -24,27 +24,35 @@ const mockExpense: Expense = {
     createdDate: new Date('2024-01-01'),
     updatedDate: new Date('2024-01-01'),
     deletedDate: null,
-};
+} as unknown as Expense;
 
 const mockUser: User = {
     userId: 'user-1',
     userName: 'テストユーザー',
     password: 'hash',
-};
+    email: null,
+    role: 'USER',
+    status: 'ACTIVE',
+    createdAt: new Date('2024-01-01'),
+    updatedAt: new Date('2024-01-01'),
+} as unknown as User;
 
 const mockExpenseRepository: IExpenseRepository = {
     findAll: vi.fn().mockResolvedValue([mockExpense]),
+    findByUserId: vi.fn().mockResolvedValue([mockExpense]),
     findById: vi.fn().mockResolvedValue(mockExpense),
     save: vi.fn().mockResolvedValue(mockExpense),
     remove: vi.fn().mockResolvedValue(undefined),
 };
 
 const mockUserRepository: IUserRepository = {
-    all: vi.fn(),
-    one: vi.fn().mockResolvedValue(mockUser),
-    save: vi.fn(),
-    remove: vi.fn(),
-    login: vi.fn(),
+    findAll: vi.fn().mockResolvedValue([mockUser]),
+    findById: vi.fn().mockResolvedValue(mockUser),
+    findByEmail: vi.fn().mockResolvedValue(null),
+    create: vi.fn().mockResolvedValue(mockUser),
+    update: vi.fn().mockResolvedValue(mockUser),
+    remove: vi.fn().mockResolvedValue(undefined),
+    verifyPassword: vi.fn().mockResolvedValue(true),
 };
 
 describe('CreateExpenseUseCase', () => {
@@ -54,10 +62,11 @@ describe('CreateExpenseUseCase', () => {
         vi.clearAllMocks();
         // clearAllMocks はコール履歴のみリセットするため、実装は明示的に再設定する
         vi.mocked(mockExpenseRepository.findAll).mockResolvedValue([mockExpense]);
+        vi.mocked(mockExpenseRepository.findByUserId).mockResolvedValue([mockExpense]);
         vi.mocked(mockExpenseRepository.findById).mockResolvedValue(mockExpense);
         vi.mocked(mockExpenseRepository.save).mockResolvedValue(mockExpense);
         vi.mocked(mockExpenseRepository.remove).mockResolvedValue(undefined);
-        vi.mocked(mockUserRepository.one).mockResolvedValue(mockUser);
+        vi.mocked(mockUserRepository.findById).mockResolvedValue(mockUser);
         useCase = new CreateExpenseUseCase(mockExpenseRepository, mockUserRepository);
     });
 
@@ -73,7 +82,7 @@ describe('CreateExpenseUseCase', () => {
         it('正常系: 有効なデータで支出を作成する', async () => {
             const result = await useCase.execute(validInput);
             expect(result).toEqual(mockExpense);
-            expect(mockUserRepository.one).toHaveBeenCalledWith('user-1');
+            expect(mockUserRepository.findById).toHaveBeenCalledWith('user-1');
             expect(mockExpenseRepository.save).toHaveBeenCalledTimes(1);
         });
 
@@ -83,7 +92,7 @@ describe('CreateExpenseUseCase', () => {
         });
 
         it('異常系: 存在しないユーザーIDは Error をthrow', async () => {
-            vi.mocked(mockUserRepository.one).mockResolvedValue(null);
+            vi.mocked(mockUserRepository.findById).mockResolvedValue(null);
             await expect(useCase.execute(validInput)).rejects.toThrow('ユーザーが見つかりません');
         });
 
