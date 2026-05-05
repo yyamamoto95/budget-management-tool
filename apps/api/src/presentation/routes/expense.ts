@@ -1,15 +1,16 @@
+import type { CreateExpenseInput, UpdateExpenseInput } from '@budget/common';
 import { createRoute, z } from '@hono/zod-openapi';
-import type { CreateExpenseInput } from '@budget/common';
-import { createAuthMiddleware } from '../middleware/auth';
-import { createOpenAPIApp } from '../../lib/openapi-app';
-import type { Expense } from '../../domain/models/Expense';
 import type { RouteServices } from '../../app';
+import type { Expense } from '../../domain/models/Expense';
+import { createOpenAPIApp } from '../../lib/openapi-app';
 import {
     CreateExpenseBodySchema,
     ErrorResponseSchema,
     ExpenseResponseSchema,
     IdParamSchema,
+    UpdateExpenseBodySchema,
 } from '../../openapi/schemas';
+import { createAuthMiddleware } from '../middleware/auth';
 
 /** Date フィールドを ISO 文字列に変換してレスポンス用 DTO を生成する */
 function serializeExpense(e: Expense) {
@@ -109,7 +110,7 @@ const updateExpenseRoute = createRoute({
     security: [{ bearerAuth: [] }],
     request: {
         params: IdParamSchema,
-        body: { content: { 'application/json': { schema: CreateExpenseBodySchema } }, required: true },
+        body: { content: { 'application/json': { schema: UpdateExpenseBodySchema } }, required: true },
     },
     responses: {
         200: {
@@ -148,7 +149,12 @@ const deleteExpenseRoute = createRoute({
 
 // ─── Handler 実装 ────────────────────────────────────────────────
 
-export function createExpenseRoutes({ tokenService, expenseRepository, createExpenseUseCase }: RouteServices) {
+export function createExpenseRoutes({
+    tokenService,
+    expenseRepository,
+    createExpenseUseCase,
+    updateExpenseUseCase,
+}: RouteServices) {
     const auth = createAuthMiddleware(tokenService);
     const app = createOpenAPIApp();
 
@@ -177,8 +183,9 @@ export function createExpenseRoutes({ tokenService, expenseRepository, createExp
     });
 
     app.openapi(updateExpenseRoute, async (c) => {
-        const { newData } = c.req.valid('json');
-        const expense = await createExpenseUseCase.execute(newData as CreateExpenseInput);
+        const { id } = c.req.valid('param');
+        const { updateData } = c.req.valid('json');
+        const expense = await updateExpenseUseCase.execute(id, updateData as UpdateExpenseInput);
         return c.json({ expense: serializeExpense(expense) }, 200);
     });
 

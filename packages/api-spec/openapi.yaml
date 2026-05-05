@@ -214,6 +214,44 @@ components:
           description: 支出データ
       required:
         - newData
+    UpdateExpenseBody:
+      type: object
+      properties:
+        updateData:
+          type: object
+          properties:
+            amount:
+              type: integer
+              minimum: 1
+              description: 金額（円）
+              example: 1500
+            balanceType:
+              anyOf:
+                - type: number
+                  enum:
+                    - 0
+                - type: number
+                  enum:
+                    - 1
+              description: "収支区分: 0=支出, 1=収入"
+              example: 0
+            date:
+              type: string
+              minLength: 1
+              description: 日付 (YYYY-MM-DD)
+              example: 2024-03-15
+            content:
+              type: string
+              nullable: true
+              description: 備考
+              example: 昼食代
+          required:
+            - amount
+            - balanceType
+            - date
+          description: 更新データ
+      required:
+        - updateData
     BudgetResponse:
       type: object
       properties:
@@ -896,7 +934,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/CreateExpenseBody"
+              $ref: "#/components/schemas/UpdateExpenseBody"
       responses:
         "200":
           description: 更新成功

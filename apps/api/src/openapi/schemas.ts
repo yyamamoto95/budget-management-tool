@@ -113,6 +113,30 @@ export const CreateExpenseBodySchema = z
     })
     .openapi('CreateExpenseBody');
 
+export const UpdateExpenseBodySchema = z
+    .object({
+        updateData: z
+            .object({
+                amount: z
+                    .number({ invalid_type_error: '金額は数値で入力してください' })
+                    .int('金額は整数で入力してください')
+                    .min(1, '金額は1以上の値を入力してください')
+                    .openapi({ description: '金額（円）', example: 1500 }),
+                balanceType: z
+                    .union([z.literal(0), z.literal(1)], {
+                        errorMap: () => ({ message: '種別を選択してください' }),
+                    })
+                    .openapi({ description: '収支区分: 0=支出, 1=収入', example: 0 }),
+                date: z.string().min(1, '日付を入力してください').openapi({
+                    description: '日付 (YYYY-MM-DD)',
+                    example: '2024-03-15',
+                }),
+                content: z.string().nullable().optional().openapi({ description: '備考', example: '昼食代' }),
+            })
+            .openapi({ description: '更新データ' }),
+    })
+    .openapi('UpdateExpenseBody');
+
 export const IdParamSchema = z.object({
     id: z.string().openapi({ description: 'リソース ID (ULID)', example: '01ARZ3NDEKTSV4RRFFQ69G5FAV' }),
 });

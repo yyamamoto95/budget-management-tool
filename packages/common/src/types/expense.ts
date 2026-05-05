@@ -32,3 +32,12 @@ export interface CreateExpenseInput {
     content?: string | null
     date: string
 }
+
+/** UpdateExpenseUseCase への入力 DTO */
+export interface UpdateExpenseInput {
+    amount: number
+    balanceType: BalanceType
+    categoryId?: number
+    content?: string | null
+    date: string
+}

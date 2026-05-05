@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { serverFetch, ApiError } from "../api/client";
-import { createExpenseSchema } from "@budget/common";
+import { createExpenseSchema, updateExpenseSchema } from "@budget/common";
 import type { GetExpenseResponse } from "../api/types";
 
 export type ExpenseFieldErrors = {
@@ -52,6 +52,59 @@ export async function createExpenseAction(
   }
 
   // ホームページの XDayDisplay も再計算するため "/" も revalidate する
+  revalidatePath("/");
+  revalidatePath("/expenses");
+  return { error: null, success: true };
+}
+
+export type UpdateExpenseFieldErrors = {
+  amount?: string[];
+  balanceType?: string[];
+  date?: string[];
+};
+
+export type UpdateExpenseActionState = {
+  error: string | null;
+  fieldErrors?: UpdateExpenseFieldErrors;
+  success: boolean;
+};
+
+/** 支出を更新する Server Action */
+export async function updateExpenseAction(
+  id: string,
+  _prev: UpdateExpenseActionState,
+  formData: FormData,
+): Promise<UpdateExpenseActionState> {
+  const raw = {
+    amount: Number(formData.get("amount")),
+    balanceType: Number(formData.get("balanceType")) as 0 | 1,
+    date: String(formData.get("date") ?? ""),
+    content: formData.get("content") ? String(formData.get("content")) : null,
+  };
+
+  const result = updateExpenseSchema.safeParse(raw);
+  if (!result.success) {
+    const fieldErrors = result.error.flatten().fieldErrors as UpdateExpenseFieldErrors;
+    return { error: null, fieldErrors, success: false };
+  }
+
+  try {
+    await serverFetch<GetExpenseResponse>(`/api/expense/${id}`, {
+      method: "PUT",
+      body: JSON.stringify({ updateData: result.data }),
+    });
+  } catch (err) {
+    if (err instanceof ApiError) {
+      if (err.status === 403) {
+        return { error: "認証が必要です", success: false };
+      }
+      if (err.status === 404) {
+        return { error: "支出が見つかりません", success: false };
+      }
+    }
+    return { error: "支出の更新に失敗しました", success: false };
+  }
+
   revalidatePath("/");
   revalidatePath("/expenses");
   return { error: null, success: true };
