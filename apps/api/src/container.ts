@@ -1,28 +1,29 @@
-import { prisma } from './infrastructure/persistence/prisma-client';
-import { PrismaBudgetRepository } from './infrastructure/persistence/PrismaBudgetRepository';
-import { PrismaExpenseRepository } from './infrastructure/persistence/PrismaExpenseRepository';
-import { PrismaRefreshTokenRepository } from './infrastructure/persistence/PrismaRefreshTokenRepository';
-import { PrismaUserRepository } from './infrastructure/persistence/PrismaUserRepository';
-import { PrismaSecurityAnswerRepository } from './infrastructure/persistence/PrismaSecurityAnswerRepository';
-import { PrismaPasswordResetTokenRepository } from './infrastructure/persistence/PrismaPasswordResetTokenRepository';
-import { BcryptPasswordHasher } from './infrastructure/security/BcryptPasswordHasher';
 import type { AppDeps, RouteServices } from './app';
 import type { TokenService } from './application/auth/TokenService';
+import { GetRecoveryQuestionUseCase } from './application/use-cases/auth/GetRecoveryQuestionUseCase';
+import { GetSecurityQuestionsUseCase } from './application/use-cases/auth/GetSecurityQuestionsUseCase';
+import { RegisterUserUseCase } from './application/use-cases/auth/RegisterUserUseCase';
+import { ResetPasswordUseCase } from './application/use-cases/auth/ResetPasswordUseCase';
+import { VerifyRecoveryAnswerUseCase } from './application/use-cases/auth/VerifyRecoveryAnswerUseCase';
 import { CreateExpenseUseCase } from './application/use-cases/CreateExpenseUseCase';
 import { ExportUserDataUseCase } from './application/use-cases/export/ExportUserDataUseCase';
-import { RegisterUserUseCase } from './application/use-cases/auth/RegisterUserUseCase';
-import { GetSecurityQuestionsUseCase } from './application/use-cases/auth/GetSecurityQuestionsUseCase';
-import { GetRecoveryQuestionUseCase } from './application/use-cases/auth/GetRecoveryQuestionUseCase';
-import { VerifyRecoveryAnswerUseCase } from './application/use-cases/auth/VerifyRecoveryAnswerUseCase';
-import { ResetPasswordUseCase } from './application/use-cases/auth/ResetPasswordUseCase';
+import { UpdateExpenseUseCase } from './application/use-cases/UpdateExpenseUseCase';
 import { CheckUserNameUseCase } from './application/use-cases/user/CheckUserNameUseCase';
-import { GetUsersUseCase } from './application/use-cases/user/GetUsersUseCase';
-import { GetUserByIdUseCase } from './application/use-cases/user/GetUserByIdUseCase';
 import { CreateUserUseCase } from './application/use-cases/user/CreateUserUseCase';
-import { UpdateUserUseCase } from './application/use-cases/user/UpdateUserUseCase';
 import { DeleteUserUseCase } from './application/use-cases/user/DeleteUserUseCase';
-import { GetXDayUseCase } from './application/use-cases/xday/GetXDayUseCase';
+import { GetUserByIdUseCase } from './application/use-cases/user/GetUserByIdUseCase';
+import { GetUsersUseCase } from './application/use-cases/user/GetUsersUseCase';
+import { UpdateUserUseCase } from './application/use-cases/user/UpdateUserUseCase';
 import { GetExpenditureAnalysisUseCase } from './application/use-cases/xday/GetExpenditureAnalysisUseCase';
+import { GetXDayUseCase } from './application/use-cases/xday/GetXDayUseCase';
+import { PrismaBudgetRepository } from './infrastructure/persistence/PrismaBudgetRepository';
+import { PrismaExpenseRepository } from './infrastructure/persistence/PrismaExpenseRepository';
+import { PrismaPasswordResetTokenRepository } from './infrastructure/persistence/PrismaPasswordResetTokenRepository';
+import { PrismaRefreshTokenRepository } from './infrastructure/persistence/PrismaRefreshTokenRepository';
+import { PrismaSecurityAnswerRepository } from './infrastructure/persistence/PrismaSecurityAnswerRepository';
+import { PrismaUserRepository } from './infrastructure/persistence/PrismaUserRepository';
+import { prisma } from './infrastructure/persistence/prisma-client';
+import { BcryptPasswordHasher } from './infrastructure/security/BcryptPasswordHasher';
 
 /**
  * 本番用依存関係コンテナ。
@@ -53,6 +54,7 @@ export function buildServices(deps: AppDeps, tokenService: TokenService): RouteS
         expenseRepository: deps.expenseRepository,
         // Expense
         createExpenseUseCase: new CreateExpenseUseCase(deps.expenseRepository, deps.userRepository),
+        updateExpenseUseCase: new UpdateExpenseUseCase(deps.expenseRepository),
         // Export
         exportUseCase: new ExportUserDataUseCase(deps.expenseRepository),
         // Recovery / Registration

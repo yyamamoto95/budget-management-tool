@@ -1,37 +1,38 @@
 import { OpenAPIHono } from '@hono/zod-openapi';
 import { secureHeaders } from 'hono/secure-headers';
-import type { IBudgetRepository } from './domain/repositories/IBudgetRepository';
-import type { IExpenseRepository } from './domain/repositories/IExpenseRepository';
-import type { IUserRepository } from './domain/repositories/IUserRepository';
-import type { IRefreshTokenRepository } from './domain/repositories/IRefreshTokenRepository';
-import type { ISecurityAnswerRepository } from './domain/repositories/ISecurityAnswerRepository';
-import type { IPasswordResetTokenRepository } from './domain/repositories/IPasswordResetTokenRepository';
 import type { TokenService } from './application/auth/TokenService';
+import { TokenService as TokenServiceImpl } from './application/auth/TokenService';
+import type { GetRecoveryQuestionUseCase } from './application/use-cases/auth/GetRecoveryQuestionUseCase';
+import type { GetSecurityQuestionsUseCase } from './application/use-cases/auth/GetSecurityQuestionsUseCase';
+import type { RegisterUserUseCase } from './application/use-cases/auth/RegisterUserUseCase';
+import type { ResetPasswordUseCase } from './application/use-cases/auth/ResetPasswordUseCase';
+import type { VerifyRecoveryAnswerUseCase } from './application/use-cases/auth/VerifyRecoveryAnswerUseCase';
 import type { CreateExpenseUseCase } from './application/use-cases/CreateExpenseUseCase';
 import type { ExportUserDataUseCase } from './application/use-cases/export/ExportUserDataUseCase';
-import type { RegisterUserUseCase } from './application/use-cases/auth/RegisterUserUseCase';
-import type { GetSecurityQuestionsUseCase } from './application/use-cases/auth/GetSecurityQuestionsUseCase';
-import type { GetRecoveryQuestionUseCase } from './application/use-cases/auth/GetRecoveryQuestionUseCase';
-import type { VerifyRecoveryAnswerUseCase } from './application/use-cases/auth/VerifyRecoveryAnswerUseCase';
-import type { ResetPasswordUseCase } from './application/use-cases/auth/ResetPasswordUseCase';
+import type { UpdateExpenseUseCase } from './application/use-cases/UpdateExpenseUseCase';
 import type { CheckUserNameUseCase } from './application/use-cases/user/CheckUserNameUseCase';
-import type { GetUsersUseCase } from './application/use-cases/user/GetUsersUseCase';
-import type { GetUserByIdUseCase } from './application/use-cases/user/GetUserByIdUseCase';
 import type { CreateUserUseCase } from './application/use-cases/user/CreateUserUseCase';
-import type { UpdateUserUseCase } from './application/use-cases/user/UpdateUserUseCase';
 import type { DeleteUserUseCase } from './application/use-cases/user/DeleteUserUseCase';
-import type { GetXDayUseCase } from './application/use-cases/xday/GetXDayUseCase';
+import type { GetUserByIdUseCase } from './application/use-cases/user/GetUserByIdUseCase';
+import type { GetUsersUseCase } from './application/use-cases/user/GetUsersUseCase';
+import type { UpdateUserUseCase } from './application/use-cases/user/UpdateUserUseCase';
 import type { GetExpenditureAnalysisUseCase } from './application/use-cases/xday/GetExpenditureAnalysisUseCase';
-import { TokenService as TokenServiceImpl } from './application/auth/TokenService';
-import { DomainException } from './shared/errors/DomainException';
+import type { GetXDayUseCase } from './application/use-cases/xday/GetXDayUseCase';
 import { buildServices } from './container';
+import type { IBudgetRepository } from './domain/repositories/IBudgetRepository';
+import type { IExpenseRepository } from './domain/repositories/IExpenseRepository';
+import type { IPasswordResetTokenRepository } from './domain/repositories/IPasswordResetTokenRepository';
+import type { IRefreshTokenRepository } from './domain/repositories/IRefreshTokenRepository';
+import type { ISecurityAnswerRepository } from './domain/repositories/ISecurityAnswerRepository';
+import type { IUserRepository } from './domain/repositories/IUserRepository';
 import { createAuthRoutes } from './presentation/routes/auth';
 import { createBudgetRoutes } from './presentation/routes/budget';
 import { createExpenseRoutes } from './presentation/routes/expense';
-import { createUserRoutes } from './presentation/routes/user';
-import { createRecoveryRoutes } from './presentation/routes/recovery';
 import { createExportRoutes } from './presentation/routes/export';
+import { createRecoveryRoutes } from './presentation/routes/recovery';
+import { createUserRoutes } from './presentation/routes/user';
 import { createXDayRoutes } from './presentation/routes/xday';
+import { DomainException } from './shared/errors/DomainException';
 
 export type AppDeps = {
     userRepository: IUserRepository;
@@ -55,6 +56,7 @@ export type RouteServices = {
     expenseRepository: IExpenseRepository;
     // Expense
     createExpenseUseCase: CreateExpenseUseCase;
+    updateExpenseUseCase: UpdateExpenseUseCase;
     // Export
     exportUseCase: ExportUserDataUseCase;
     // Recovery / Registration
