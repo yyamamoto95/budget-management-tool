@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { getExpenses } from "@/lib/api/expense";
 import { ExpenseList } from "@/components/expense/ExpenseList";
 import { ExpenseCreateForm } from "@/components/expense/ExpenseCreateForm";
-import { logoutAction } from "@/lib/actions/auth";
+import { Header } from "@/components/layout/Header";
 import { ApiError } from "@/lib/api/client";
 import { redirect } from "next/navigation";
 
@@ -71,20 +71,12 @@ export default function ExpensesPage() {
 
   return (
     <div className="flex min-h-screen flex-col bg-[#fffdf5]">
+      <Header userName={userId} />
       <div className="mx-auto w-full max-w-2xl flex-1 px-4 py-8">
-      <header className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-extrabold text-[#1c1410]">
-          支出一覧
-        </h1>
-        <form action={logoutAction}>
-          <button type="submit" className="btn-ghost text-xs px-3 py-1.5">
-            ログアウト
-          </button>
-        </form>
-      </header>
+        <h1 className="mb-6 text-2xl font-extrabold text-[#1c1410]">支出一覧</h1>
 
-      {/* 新規登録フォーム */}
-      <ExpenseCreateForm userId={userId} />
+        {/* 新規登録フォーム */}
+        <ExpenseCreateForm userId={userId} />
 
       {/* 支出一覧（Server Component + Suspense でストリーミング） */}
       <Suspense
@@ -99,4 +91,5 @@ export default function ExpensesPage() {
       </div>
     </div>
   );
+
 }
