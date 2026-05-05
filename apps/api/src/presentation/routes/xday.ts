@@ -1,10 +1,7 @@
 import { createRoute } from '@hono/zod-openapi';
 import { createOpenAPIApp } from '../../lib/openapi-app';
 import { createAuthMiddleware } from '../middleware/auth';
-import type { TokenService } from '../../application/auth/TokenService';
-import type { AppDeps } from '../../app';
-import { GetXDayUseCase } from '../../application/use-cases/xday/GetXDayUseCase';
-import { GetExpenditureAnalysisUseCase } from '../../application/use-cases/xday/GetExpenditureAnalysisUseCase';
+import type { RouteServices } from '../../app';
 import {
     ErrorResponseSchema,
     XDayQuerySchema,
@@ -64,13 +61,9 @@ const getAnalysisRoute = createRoute({
 
 // ─── Handler 実装 ────────────────────────────────────────────────
 
-export function createXDayRoutes(deps: AppDeps, tokenService: TokenService) {
-    const { expenseRepository } = deps;
+export function createXDayRoutes({ tokenService, getXDayUseCase, getAnalysisUseCase }: RouteServices) {
     const auth = createAuthMiddleware(tokenService);
     const app = createOpenAPIApp();
-
-    const getXDayUseCase = new GetXDayUseCase(expenseRepository);
-    const getAnalysisUseCase = new GetExpenditureAnalysisUseCase(expenseRepository);
 
     app.use('/xday', auth);
     app.use('/xday/analysis', auth);

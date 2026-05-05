@@ -1,11 +1,9 @@
 import { createRoute, z } from '@hono/zod-openapi';
 import type { CreateExpenseInput } from '@budget/common';
-import { CreateExpenseUseCase } from '../../application/use-cases/CreateExpenseUseCase';
 import { createAuthMiddleware } from '../middleware/auth';
 import { createOpenAPIApp } from '../../lib/openapi-app';
-import type { TokenService } from '../../application/auth/TokenService';
 import type { Expense } from '../../domain/models/Expense';
-import type { AppDeps } from '../../app';
+import type { RouteServices } from '../../app';
 import {
     CreateExpenseBodySchema,
     ErrorResponseSchema,
@@ -150,9 +148,7 @@ const deleteExpenseRoute = createRoute({
 
 // ─── Handler 実装 ────────────────────────────────────────────────
 
-export function createExpenseRoutes(deps: AppDeps, tokenService: TokenService) {
-    const { expenseRepository, userRepository } = deps;
-    const createExpenseUseCase = new CreateExpenseUseCase(expenseRepository, userRepository);
+export function createExpenseRoutes({ tokenService, expenseRepository, createExpenseUseCase }: RouteServices) {
     const auth = createAuthMiddleware(tokenService);
     const app = createOpenAPIApp();
 

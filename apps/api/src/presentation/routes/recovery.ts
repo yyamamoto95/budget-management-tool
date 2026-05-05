@@ -1,12 +1,6 @@
 import { createRoute, z } from '@hono/zod-openapi';
 import { createOpenAPIApp } from '../../lib/openapi-app';
-import type { AppDeps } from '../../app';
-import { RegisterUserUseCase } from '../../application/use-cases/auth/RegisterUserUseCase';
-import { GetSecurityQuestionsUseCase } from '../../application/use-cases/auth/GetSecurityQuestionsUseCase';
-import { GetRecoveryQuestionUseCase } from '../../application/use-cases/auth/GetRecoveryQuestionUseCase';
-import { VerifyRecoveryAnswerUseCase } from '../../application/use-cases/auth/VerifyRecoveryAnswerUseCase';
-import { ResetPasswordUseCase } from '../../application/use-cases/auth/ResetPasswordUseCase';
-import { CheckUserNameUseCase } from '../../application/use-cases/user/CheckUserNameUseCase';
+import type { RouteServices } from '../../app';
 import {
     CheckUserNameQuerySchema,
     CheckUserNameResponseSchema,
@@ -150,19 +144,15 @@ const resetPasswordRoute = createRoute({
 
 // ─── Handler 実装 ────────────────────────────────────────────────
 
-export function createRecoveryRoutes(deps: AppDeps) {
-    const { userRepository, securityAnswerRepository, passwordResetTokenRepository } = deps;
+export function createRecoveryRoutes({
+    registerUseCase,
+    checkUserNameUseCase,
+    getSecurityQuestionsUseCase,
+    getRecoveryQuestionUseCase,
+    verifyRecoveryAnswerUseCase,
+    resetPasswordUseCase,
+}: RouteServices) {
     const app = createOpenAPIApp();
-
-    const registerUseCase = new RegisterUserUseCase(userRepository, securityAnswerRepository);
-    const checkUserNameUseCase = new CheckUserNameUseCase(userRepository);
-    const getSecurityQuestionsUseCase = new GetSecurityQuestionsUseCase(securityAnswerRepository);
-    const getRecoveryQuestionUseCase = new GetRecoveryQuestionUseCase(userRepository, securityAnswerRepository);
-    const verifyRecoveryAnswerUseCase = new VerifyRecoveryAnswerUseCase(
-        securityAnswerRepository,
-        passwordResetTokenRepository
-    );
-    const resetPasswordUseCase = new ResetPasswordUseCase(userRepository, passwordResetTokenRepository);
 
     app.openapi(registerRoute, async (c) => {
         const body = c.req.valid('json');

@@ -6,8 +6,25 @@ import type { IUserRepository } from './domain/repositories/IUserRepository';
 import type { IRefreshTokenRepository } from './domain/repositories/IRefreshTokenRepository';
 import type { ISecurityAnswerRepository } from './domain/repositories/ISecurityAnswerRepository';
 import type { IPasswordResetTokenRepository } from './domain/repositories/IPasswordResetTokenRepository';
-import { TokenService } from './application/auth/TokenService';
+import type { TokenService } from './application/auth/TokenService';
+import type { CreateExpenseUseCase } from './application/use-cases/CreateExpenseUseCase';
+import type { ExportUserDataUseCase } from './application/use-cases/export/ExportUserDataUseCase';
+import type { RegisterUserUseCase } from './application/use-cases/auth/RegisterUserUseCase';
+import type { GetSecurityQuestionsUseCase } from './application/use-cases/auth/GetSecurityQuestionsUseCase';
+import type { GetRecoveryQuestionUseCase } from './application/use-cases/auth/GetRecoveryQuestionUseCase';
+import type { VerifyRecoveryAnswerUseCase } from './application/use-cases/auth/VerifyRecoveryAnswerUseCase';
+import type { ResetPasswordUseCase } from './application/use-cases/auth/ResetPasswordUseCase';
+import type { CheckUserNameUseCase } from './application/use-cases/user/CheckUserNameUseCase';
+import type { GetUsersUseCase } from './application/use-cases/user/GetUsersUseCase';
+import type { GetUserByIdUseCase } from './application/use-cases/user/GetUserByIdUseCase';
+import type { CreateUserUseCase } from './application/use-cases/user/CreateUserUseCase';
+import type { UpdateUserUseCase } from './application/use-cases/user/UpdateUserUseCase';
+import type { DeleteUserUseCase } from './application/use-cases/user/DeleteUserUseCase';
+import type { GetXDayUseCase } from './application/use-cases/xday/GetXDayUseCase';
+import type { GetExpenditureAnalysisUseCase } from './application/use-cases/xday/GetExpenditureAnalysisUseCase';
+import { TokenService as TokenServiceImpl } from './application/auth/TokenService';
 import { DomainException } from './shared/errors/DomainException';
+import { buildServices } from './container';
 import { createAuthRoutes } from './presentation/routes/auth';
 import { createBudgetRoutes } from './presentation/routes/budget';
 import { createExpenseRoutes } from './presentation/routes/expense';
@@ -25,6 +42,39 @@ export type AppDeps = {
     passwordResetTokenRepository: IPasswordResetTokenRepository;
 };
 
+/**
+ * ルートファクトリが受け取るサービス群の型。
+ * UseCase のインスタンス生成は container.ts::buildServices() に集約する。
+ * リポジトリ直接参照は UseCase 未抽出のルート（auth / budget）用の暫定的な措置。
+ */
+export type RouteServices = {
+    tokenService: TokenService;
+    // UseCase 未抽出のルートが直接リポジトリを参照する箇所（暫定）
+    userRepository: IUserRepository;
+    budgetRepository: IBudgetRepository;
+    expenseRepository: IExpenseRepository;
+    // Expense
+    createExpenseUseCase: CreateExpenseUseCase;
+    // Export
+    exportUseCase: ExportUserDataUseCase;
+    // Recovery / Registration
+    registerUseCase: RegisterUserUseCase;
+    checkUserNameUseCase: CheckUserNameUseCase;
+    getSecurityQuestionsUseCase: GetSecurityQuestionsUseCase;
+    getRecoveryQuestionUseCase: GetRecoveryQuestionUseCase;
+    verifyRecoveryAnswerUseCase: VerifyRecoveryAnswerUseCase;
+    resetPasswordUseCase: ResetPasswordUseCase;
+    // User management
+    getUsersUseCase: GetUsersUseCase;
+    getUserByIdUseCase: GetUserByIdUseCase;
+    createUserUseCase: CreateUserUseCase;
+    updateUserUseCase: UpdateUserUseCase;
+    deleteUserUseCase: DeleteUserUseCase;
+    // XDay
+    getXDayUseCase: GetXDayUseCase;
+    getAnalysisUseCase: GetExpenditureAnalysisUseCase;
+};
+
 /** Hono context の型変数定義（認証済みルートで userId を参照するために使用） */
 export type HonoEnv = {
     Variables: {
@@ -35,7 +85,10 @@ export type HonoEnv = {
 export function createApp(deps: AppDeps) {
     const privateKeyPem = process.env.JWT_PRIVATE_KEY?.replace(/\\n/g, '\n') ?? '';
     const publicKeyPem = process.env.JWT_PUBLIC_KEY?.replace(/\\n/g, '\n') ?? '';
-    const tokenService = new TokenService(privateKeyPem, publicKeyPem, deps.refreshTokenRepository);
+    const tokenService = new TokenServiceImpl(privateKeyPem, publicKeyPem, deps.refreshTokenRepository);
+
+    // UseCase のインスタンス生成を container に委譲し、ルート層での new を禁止する
+    const services = buildServices(deps, tokenService);
 
     const app = new OpenAPIHono<HonoEnv>();
 
@@ -53,13 +106,13 @@ export function createApp(deps: AppDeps) {
     // ECS ヘルスチェック用エンドポイント（認証不要）
     app.get('/api/health', (c) => c.json({ status: 'ok' }));
 
-    app.route('/api', createAuthRoutes(deps, tokenService));
-    app.route('/api', createExpenseRoutes(deps, tokenService));
-    app.route('/api', createBudgetRoutes(deps, tokenService));
-    app.route('/api', createUserRoutes(deps, tokenService));
-    app.route('/api', createRecoveryRoutes(deps));
-    app.route('/api', createExportRoutes(deps, tokenService));
-    app.route('/api', createXDayRoutes(deps, tokenService));
+    app.route('/api', createAuthRoutes(services));
+    app.route('/api', createExpenseRoutes(services));
+    app.route('/api', createBudgetRoutes(services));
+    app.route('/api', createUserRoutes(services));
+    app.route('/api', createRecoveryRoutes(services));
+    app.route('/api', createExportRoutes(services));
+    app.route('/api', createXDayRoutes(services));
 
     app.onError((err, c) => {
         if (err instanceof DomainException) {

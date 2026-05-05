@@ -1,8 +1,7 @@
 import { createRoute } from '@hono/zod-openapi';
 import { createOpenAPIApp } from '../../lib/openapi-app';
 import { createAuthMiddleware } from '../middleware/auth';
-import type { TokenService } from '../../application/auth/TokenService';
-import type { AppDeps } from '../../app';
+import type { RouteServices } from '../../app';
 import {
     ErrorResponseSchema,
     LogoutRequestSchema,
@@ -120,8 +119,7 @@ const logoutRoute = createRoute({
 
 // ─── Handler 実装 ────────────────────────────────────────────────
 
-export function createAuthRoutes(deps: AppDeps, tokenService: TokenService) {
-    const { userRepository } = deps;
+export function createAuthRoutes({ tokenService, userRepository }: RouteServices) {
     const app = createOpenAPIApp();
     const auth = createAuthMiddleware(tokenService);
 

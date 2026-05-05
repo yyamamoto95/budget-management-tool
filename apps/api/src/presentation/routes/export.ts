@@ -1,9 +1,7 @@
 import { createRoute } from '@hono/zod-openapi';
 import { createOpenAPIApp } from '../../lib/openapi-app';
 import { createAuthMiddleware } from '../middleware/auth';
-import type { TokenService } from '../../application/auth/TokenService';
-import type { AppDeps } from '../../app';
-import { ExportUserDataUseCase } from '../../application/use-cases/export/ExportUserDataUseCase';
+import type { RouteServices } from '../../app';
 import { ErrorResponseSchema, ExportQuerySchema } from '../../openapi/schemas';
 import { z } from '@hono/zod-openapi';
 
@@ -34,12 +32,9 @@ const exportExpensesRoute = createRoute({
 
 // ─── Handler 実装 ────────────────────────────────────────────────
 
-export function createExportRoutes(deps: AppDeps, tokenService: TokenService) {
-    const { expenseRepository } = deps;
+export function createExportRoutes({ tokenService, exportUseCase }: RouteServices) {
     const auth = createAuthMiddleware(tokenService);
     const app = createOpenAPIApp();
-
-    const exportUseCase = new ExportUserDataUseCase(expenseRepository);
 
     app.use('/export/*', auth);
 
