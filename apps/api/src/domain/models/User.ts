@@ -84,6 +84,23 @@ export class User {
         return new User(props);
     }
 
+    /**
+     * ハッシュ済みパスワードをセットした新しいインスタンスを返す。
+     * アプリケーション層で IPasswordHasher でハッシュ化してから呼び出す。
+     */
+    withPassword(hashedPassword: string): User {
+        return new User({
+            userId: this.userId,
+            userName: this.userName,
+            password: hashedPassword,
+            email: this.email,
+            role: this.role,
+            status: this.status,
+            createdAt: this.createdAt,
+            updatedAt: this.updatedAt,
+        });
+    }
+
     // ─── バリデーション（ドメイン不変条件） ─────────────────────
     private static validateUserId(userId: string): void {
         if (!/^[a-zA-Z0-9_-]{3,30}$/.test(userId)) {

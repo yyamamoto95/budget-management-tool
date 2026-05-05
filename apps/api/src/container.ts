@@ -5,6 +5,7 @@ import { PrismaRefreshTokenRepository } from './infrastructure/persistence/Prism
 import { PrismaUserRepository } from './infrastructure/persistence/PrismaUserRepository';
 import { PrismaSecurityAnswerRepository } from './infrastructure/persistence/PrismaSecurityAnswerRepository';
 import { PrismaPasswordResetTokenRepository } from './infrastructure/persistence/PrismaPasswordResetTokenRepository';
+import { BcryptPasswordHasher } from './infrastructure/security/BcryptPasswordHasher';
 import type { AppDeps, RouteServices } from './app';
 import type { TokenService } from './application/auth/TokenService';
 import { CreateExpenseUseCase } from './application/use-cases/CreateExpenseUseCase';
@@ -43,6 +44,7 @@ export function buildDeps(): AppDeps {
  * UseCase のインスタンス生成はすべてここに集約し、ルートファクトリ内での new を禁止する。
  */
 export function buildServices(deps: AppDeps, tokenService: TokenService): RouteServices {
+    const passwordHasher = new BcryptPasswordHasher();
     return {
         tokenService,
         // リポジトリ直接参照（UseCase未抽出のルート用）
@@ -54,7 +56,7 @@ export function buildServices(deps: AppDeps, tokenService: TokenService): RouteS
         // Export
         exportUseCase: new ExportUserDataUseCase(deps.expenseRepository),
         // Recovery / Registration
-        registerUseCase: new RegisterUserUseCase(deps.userRepository, deps.securityAnswerRepository),
+        registerUseCase: new RegisterUserUseCase(deps.userRepository, deps.securityAnswerRepository, passwordHasher),
         checkUserNameUseCase: new CheckUserNameUseCase(deps.userRepository),
         getSecurityQuestionsUseCase: new GetSecurityQuestionsUseCase(deps.securityAnswerRepository),
         getRecoveryQuestionUseCase: new GetRecoveryQuestionUseCase(deps.userRepository, deps.securityAnswerRepository),
@@ -66,7 +68,7 @@ export function buildServices(deps: AppDeps, tokenService: TokenService): RouteS
         // User management
         getUsersUseCase: new GetUsersUseCase(deps.userRepository),
         getUserByIdUseCase: new GetUserByIdUseCase(deps.userRepository),
-        createUserUseCase: new CreateUserUseCase(deps.userRepository),
+        createUserUseCase: new CreateUserUseCase(deps.userRepository, passwordHasher),
         updateUserUseCase: new UpdateUserUseCase(deps.userRepository),
         deleteUserUseCase: new DeleteUserUseCase(deps.userRepository),
         // XDay
