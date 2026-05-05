@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
 import { getExpenses } from "@/lib/api/expense";
 import { ExpenseList } from "@/components/expense/ExpenseList";
 import { ExpenseCreateForm } from "@/components/expense/ExpenseCreateForm";
@@ -65,9 +66,9 @@ async function ExpenseListSection() {
   );
 }
 
-export default function ExpensesPage() {
-  // TODO: セッションからuserIdを取得する（現在はゲストIDをプレースホルダーとして使用）
-  const userId = "Guest";
+export default async function ExpensesPage() {
+  const cookieStore = await cookies();
+  const userId = cookieStore.get("user_id")?.value ?? "Guest";
 
   return (
     <div className="flex min-h-screen flex-col bg-[#fffdf5]">
