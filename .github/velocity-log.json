@@ -17,7 +17,7 @@
     "pbi_type_rules": "fix:/bug: prefix → fix / type:tech-debt label → tech-debt / type:chore or design label → chore / otherwise → feature",
     "initial_velocity_estimate": 9,
     "note": "Sprint #13-18 実績分析により 6pt → 9pt に改定（2026-05-15）。直近3スプリント平均 5.3pt・ピーク 8pt（Sprint #17）。AI 実装サイクルは推定の 1/10 以下で完了しており、M×3 + S×1 程度が 1 スプリントの適切な上限。上限超過時はユーザーに確認して分割する。",
-    "next_sprint_number": 26
+    "next_sprint_number": 27
   },
   "sprints": [
     {
@@ -1036,23 +1036,46 @@
     {
       "sprint_number": 25,
       "date": "2026-05-15",
-      "total_points": 0,
+      "goal": "onboarding→setup リネーム・初回設定フラグ DB 永続化・設定ページ家計基本設定を整備する",
+      "hypothesis": "設定フローの名称整理と DB 永続化により別端末でも継続利用できる基盤が整い、設定ページから家計基本情報を後から編集できるようになる",
+      "planned_points": 9,
+      "total_points": 9,
       "pbis": [
         {
           "issue": 334,
           "title": "refactor: 「onboarding」を「初回設定（/setup）」にリネームする",
-          "size": "unknown",
-          "points": null,
-          "cycle_time_hours": null,
+          "pbi_type": "tech-debt",
+          "size": "S",
+          "points": 2,
+          "cycle_time_hours": 0.2,
+          "pr": 338
+        },
+        {
+          "issue": 335,
+          "title": "refactor: 初回設定 Cookie 名を「setup_completed」に統一する",
+          "pbi_type": "tech-debt",
+          "size": "S",
+          "points": 2,
+          "cycle_time_hours": 0.1,
           "pr": 338
         },
         {
           "issue": 336,
-          "title": "feat: 初回設定完了フラグを DB で管理し、セッション間で引き継げるようにする（スキーマ・API）",
-          "size": "unknown",
-          "points": null,
-          "cycle_time_hours": null,
+          "title": "feat: 初回設定完了フラグ（initialSetupCompleted）を user_settings に追加する",
+          "pbi_type": "feature",
+          "size": "M",
+          "points": 3,
+          "cycle_time_hours": 0.3,
           "pr": 339
+        },
+        {
+          "issue": 333,
+          "title": "feat: 設定ページに「家計基本設定」セクション（給料日・月収・固定費・総資産）を追加する",
+          "pbi_type": "feature",
+          "size": "S",
+          "points": 2,
+          "cycle_time_hours": 0.5,
+          "pr": 340
         }
       ]
     }
