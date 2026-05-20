@@ -28,8 +28,6 @@ import {
     AnimatePresence,
     useMotionValue,
     useSpring,
-    useScroll,
-    useTransform,
     useReducedMotion,
     type PanInfo,
 } from "framer-motion";
@@ -903,17 +901,6 @@ export function HomePrototype() {
     }
     const CAROUSEL_LABELS = ['今日の状況', '今月の貯蓄予測', '今月のサマリー'] as const
 
-    // ── ヘッダースクロール shadow ─────────────────────────────────────────────
-    const { scrollY } = useScroll();
-    const headerShadow = useTransform(
-        scrollY, [0, 32],
-        ["0 0 0 0 transparent", "0 2px 12px rgba(28,20,16,0.09)"],
-    );
-    const headerBorderColor = useTransform(
-        scrollY, [0, 32],
-        ["rgba(28,20,16,0.08)", "rgba(28,20,16,0.18)"],
-    );
-
     // ── 計算値 ────────────────────────────────────────────────────────────────
     const netMonth    = MOCK.monthSummary.income - MOCK.monthSummary.expense;
     const savingsRate = Math.round((netMonth / MOCK.monthSummary.income) * 100);
@@ -1125,138 +1112,207 @@ export function HomePrototype() {
                     </MotionLink>
                 ))}
             </nav>
+
+            {/* ─── サイドバーフッター: ベル + アバター（PC のみ） ─── */}
+            <div className="relative shrink-0 border-t px-3 py-2.5 flex items-center gap-2" style={{ borderColor: C.border }}>
+                <div className="relative">
+                    <motion.button
+                        type="button"
+                        onClick={() => setNotifPanelOpen((p) => !p)}
+                        whileTap={{ scale: 0.82 }}
+                        transition={SPRING.snap}
+                        className="relative flex h-8 w-8 items-center justify-center tap-highlight"
+                        style={{ color: "rgba(28,20,16,0.45)", borderRadius: "8px" }}
+                        aria-label="通知"
+                        aria-expanded={notifPanelOpen}
+                    >
+                        <Bell size={17} />
+                        <AnimatePresence>
+                            {alerts.length > 0 && (
+                                <motion.span
+                                    initial={{ scale: 0 }}
+                                    animate={{ scale: 1 }}
+                                    exit={{ scale: 0 }}
+                                    transition={SPRING.quick}
+                                    className="absolute right-0.5 top-0.5 flex h-4 w-4 items-center justify-center rounded-full border-2 border-white text-[9px] font-extrabold text-white"
+                                    style={{ background: "#f43f5e" }}
+                                >
+                                    {alerts.length}
+                                </motion.span>
+                            )}
+                        </AnimatePresence>
+                    </motion.button>
+
+                    {/* 通知パネル（上方向に展開） */}
+                    <AnimatePresence>
+                        {notifPanelOpen && (
+                            <motion.div
+                                initial={{ opacity: 0, y: 8, scale: 0.95 }}
+                                animate={{ opacity: 1, y: 0, scale: 1   }}
+                                exit={{ opacity: 0, y: 8, scale: 0.95 }}
+                                transition={SPRING.quick}
+                                className="absolute left-0 bottom-full mb-2 z-50 w-64 overflow-hidden border"
+                                style={{
+                                    borderRadius: R.card,
+                                    background:   C.card,
+                                    borderColor:  C.borderStrong,
+                                    boxShadow:    C.shadowMd,
+                                }}
+                            >
+                                <div className="flex items-center justify-between border-b px-4 py-3" style={{ borderColor: C.border }}>
+                                    <span className="text-sm font-bold" style={{ color: C.text }}>通知</span>
+                                    <button type="button" onClick={() => setNotifPanelOpen(false)} style={{ color: C.muted }} aria-label="パネルを閉じる">
+                                        <X size={14} />
+                                    </button>
+                                </div>
+                                {alerts.length === 0 ? (
+                                    <div className="flex flex-col items-center gap-2 px-4 py-8" style={{ color: C.muted }}>
+                                        <BellOff size={20} />
+                                        <span className="text-xs">新しい通知はありません</span>
+                                    </div>
+                                ) : (
+                                    <div>
+                                        {alerts.map((alert) => {
+                                            const aColor = alert.type === "danger" ? "#f43f5e" : "#f59e0b";
+                                            return (
+                                                <div key={alert.id} className="flex items-start gap-3 border-b px-4 py-3 last:border-0" style={{ borderColor: C.border }}>
+                                                    {alert.type === "danger"
+                                                        ? <TrendingDown  size={13} style={{ color: aColor, flexShrink: 0, marginTop: 1 }} />
+                                                        : <AlertTriangle size={13} style={{ color: aColor, flexShrink: 0, marginTop: 1 }} />
+                                                    }
+                                                    <span className="flex-1 text-xs leading-relaxed" style={{ color: C.text }}>{alert.message}</span>
+                                                    <button type="button" onClick={() => setAlerts((p) => p.filter((a) => a.id !== alert.id))} style={{ color: C.muted, flexShrink: 0 }} aria-label="通知を閉じる">
+                                                        <X size={12} />
+                                                    </button>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </div>
+
+                <div className="flex-1" />
+
+                <MotionLink
+                    to="/my-page"
+                    whileTap={{ scale: 0.90 }}
+                    transition={SPRING.snap}
+                    className="flex h-8 w-8 items-center justify-center text-[12px] font-extrabold text-white tap-highlight"
+                    style={{
+                        background:     `linear-gradient(135deg, ${C.brand}, ${C.brandDeep})`,
+                        borderRadius:   R.badge,
+                        boxShadow:      "0 2px 8px rgba(241,136,64,0.30)",
+                        textDecoration: "none",
+                    }}
+                    aria-label="マイページ"
+                >
+                    {MOCK.userId}
+                </MotionLink>
+            </div>
         </motion.aside>
 
         <div className="min-h-screen pb-32 tap-highlight lg:pb-28 lg:pl-52" style={{ background: C.bg, color: C.text }}>
 
-            {/* ─── ヘッダー ───────────────────────────────────────────────── */}
-            <motion.header
-                className="glass sticky top-0 z-20 flex h-14 items-center border-b px-4 md:px-6"
-                style={{ borderColor: headerBorderColor, boxShadow: headerShadow }}
-            >
-                {/* ロゴ（SP のみ — PC はサイドナビに表示） */}
-                <div className="flex items-center gap-2.5 shrink-0 lg:hidden">
-                    <img src="/logo192.png" alt="家計かんり" className="h-8 w-8 shrink-0" style={{ borderRadius: "10px" }} />
-                    <span className="text-[15px] font-extrabold tracking-tight" style={{ color: C.text }}>家計かんり</span>
-                </div>
-
-                {/* ⑥ ヘッダー右: ベル（通知パネル） + アバター */}
-                <div className="ml-auto flex shrink-0 items-center gap-2">
-                    {/* ベルアイコン → タップで通知パネル展開 */}
-                    <div className="relative">
-                        <motion.button
-                            type="button"
-                            onClick={() => setNotifPanelOpen((p) => !p)}
-                            whileTap={{ scale: 0.82 }}
-                            transition={SPRING.snap}
-                            className="relative flex h-8 w-8 items-center justify-center tap-highlight"
-                            style={{ color: "rgba(28,20,16,0.45)", borderRadius: "8px" }}
-                            aria-label="通知"
-                            aria-expanded={notifPanelOpen}
-                        >
-                            <Bell size={17} />
-                            {/* バッジ: 件数表示 */}
-                            <AnimatePresence>
-                                {alerts.length > 0 && (
-                                    <motion.span
-                                        initial={{ scale: 0 }}
-                                        animate={{ scale: 1 }}
-                                        exit={{ scale: 0 }}
-                                        transition={SPRING.quick}
-                                        className="absolute right-0.5 top-0.5 flex h-4 w-4 items-center justify-center rounded-full border-2 border-white text-[9px] font-extrabold text-white"
-                                        style={{ background: "#f43f5e" }}
-                                    >
-                                        {alerts.length}
-                                    </motion.span>
-                                )}
-                            </AnimatePresence>
-                        </motion.button>
-
-                        {/* 通知パネル（ドロップダウン） */}
+            {/* ─── SP: ベル + アバター（ヘッダー廃止後の代替） ─── */}
+            <div className="lg:hidden flex items-center justify-end gap-2 px-4 pt-3 pb-1">
+                <div className="relative">
+                    <motion.button
+                        type="button"
+                        onClick={() => setNotifPanelOpen((p) => !p)}
+                        whileTap={{ scale: 0.82 }}
+                        transition={SPRING.snap}
+                        className="relative flex h-8 w-8 items-center justify-center tap-highlight"
+                        style={{ color: "rgba(28,20,16,0.45)", borderRadius: "8px" }}
+                        aria-label="通知"
+                        aria-expanded={notifPanelOpen}
+                    >
+                        <Bell size={17} />
                         <AnimatePresence>
-                            {notifPanelOpen && (
-                                <motion.div
-                                    initial={{ opacity: 0, y: -8, scale: 0.95 }}
-                                    animate={{ opacity: 1, y: 0,  scale: 1    }}
-                                    exit={{ opacity: 0, y: -8, scale: 0.95 }}
+                            {alerts.length > 0 && (
+                                <motion.span
+                                    initial={{ scale: 0 }}
+                                    animate={{ scale: 1 }}
+                                    exit={{ scale: 0 }}
                                     transition={SPRING.quick}
-                                    className="absolute right-0 top-10 z-50 w-72 overflow-hidden border"
-                                    style={{
-                                        borderRadius: R.card,
-                                        background:   C.card,
-                                        borderColor:  C.borderStrong,
-                                        boxShadow:    C.shadowMd,
-                                    }}
+                                    className="absolute right-0.5 top-0.5 flex h-4 w-4 items-center justify-center rounded-full border-2 border-white text-[9px] font-extrabold text-white"
+                                    style={{ background: "#f43f5e" }}
                                 >
-                                    <div className="flex items-center justify-between border-b px-4 py-3" style={{ borderColor: C.border }}>
-                                        <span className="text-sm font-bold" style={{ color: C.text }}>通知</span>
-                                        <button
-                                            type="button"
-                                            onClick={() => setNotifPanelOpen(false)}
-                                            style={{ color: C.muted }}
-                                            aria-label="パネルを閉じる"
-                                        >
-                                            <X size={14} />
-                                        </button>
-                                    </div>
-
-                                    {alerts.length === 0 ? (
-                                        <div className="flex flex-col items-center gap-2 px-4 py-8" style={{ color: C.muted }}>
-                                            <BellOff size={20} />
-                                            <span className="text-xs">新しい通知はありません</span>
-                                        </div>
-                                    ) : (
-                                        <div>
-                                            {alerts.map((alert) => {
-                                                const aColor = alert.type === "danger" ? "#f43f5e" : "#f59e0b";
-                                                return (
-                                                    <div
-                                                        key={alert.id}
-                                                        className="flex items-start gap-3 border-b px-4 py-3 last:border-0"
-                                                        style={{ borderColor: C.border }}
-                                                    >
-                                                        {alert.type === "danger"
-                                                            ? <TrendingDown  size={13} style={{ color: aColor, flexShrink: 0, marginTop: 1 }} />
-                                                            : <AlertTriangle size={13} style={{ color: aColor, flexShrink: 0, marginTop: 1 }} />
-                                                        }
-                                                        <span className="flex-1 text-xs leading-relaxed" style={{ color: C.text }}>
-                                                            {alert.message}
-                                                        </span>
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => setAlerts((p) => p.filter((a) => a.id !== alert.id))}
-                                                            style={{ color: C.muted, flexShrink: 0 }}
-                                                            aria-label="通知を閉じる"
-                                                        >
-                                                            <X size={12} />
-                                                        </button>
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
-                                    )}
-                                </motion.div>
+                                    {alerts.length}
+                                </motion.span>
                             )}
                         </AnimatePresence>
-                    </div>
+                    </motion.button>
 
-                    <MotionLink
-                        to="/my-page"
-                        whileTap={{ scale: 0.90 }}
-                        transition={SPRING.snap}
-                        className="flex h-8 w-8 items-center justify-center text-[12px] font-extrabold text-white tap-highlight"
-                        style={{
-                            background:     `linear-gradient(135deg, ${C.brand}, ${C.brandDeep})`,
-                            borderRadius:   R.badge,
-                            boxShadow:      "0 2px 8px rgba(241,136,64,0.30)",
-                            textDecoration: "none",
-                        }}
-                        aria-label="マイページ"
-                    >
-                        {MOCK.userId}
-                    </MotionLink>
+                    {/* 通知パネル（SP: 下方向に展開） */}
+                    <AnimatePresence>
+                        {notifPanelOpen && (
+                            <motion.div
+                                initial={{ opacity: 0, y: -8, scale: 0.95 }}
+                                animate={{ opacity: 1, y: 0,  scale: 1    }}
+                                exit={{ opacity: 0, y: -8, scale: 0.95 }}
+                                transition={SPRING.quick}
+                                className="absolute right-0 top-10 z-50 w-72 overflow-hidden border"
+                                style={{
+                                    borderRadius: R.card,
+                                    background:   C.card,
+                                    borderColor:  C.borderStrong,
+                                    boxShadow:    C.shadowMd,
+                                }}
+                            >
+                                <div className="flex items-center justify-between border-b px-4 py-3" style={{ borderColor: C.border }}>
+                                    <span className="text-sm font-bold" style={{ color: C.text }}>通知</span>
+                                    <button type="button" onClick={() => setNotifPanelOpen(false)} style={{ color: C.muted }} aria-label="パネルを閉じる">
+                                        <X size={14} />
+                                    </button>
+                                </div>
+                                {alerts.length === 0 ? (
+                                    <div className="flex flex-col items-center gap-2 px-4 py-8" style={{ color: C.muted }}>
+                                        <BellOff size={20} />
+                                        <span className="text-xs">新しい通知はありません</span>
+                                    </div>
+                                ) : (
+                                    <div>
+                                        {alerts.map((alert) => {
+                                            const aColor = alert.type === "danger" ? "#f43f5e" : "#f59e0b";
+                                            return (
+                                                <div key={alert.id} className="flex items-start gap-3 border-b px-4 py-3 last:border-0" style={{ borderColor: C.border }}>
+                                                    {alert.type === "danger"
+                                                        ? <TrendingDown  size={13} style={{ color: aColor, flexShrink: 0, marginTop: 1 }} />
+                                                        : <AlertTriangle size={13} style={{ color: aColor, flexShrink: 0, marginTop: 1 }} />
+                                                    }
+                                                    <span className="flex-1 text-xs leading-relaxed" style={{ color: C.text }}>{alert.message}</span>
+                                                    <button type="button" onClick={() => setAlerts((p) => p.filter((a) => a.id !== alert.id))} style={{ color: C.muted, flexShrink: 0 }} aria-label="通知を閉じる">
+                                                        <X size={12} />
+                                                    </button>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                 </div>
-            </motion.header>
+
+                <MotionLink
+                    to="/my-page"
+                    whileTap={{ scale: 0.90 }}
+                    transition={SPRING.snap}
+                    className="flex h-8 w-8 items-center justify-center text-[12px] font-extrabold text-white tap-highlight"
+                    style={{
+                        background:     `linear-gradient(135deg, ${C.brand}, ${C.brandDeep})`,
+                        borderRadius:   R.badge,
+                        boxShadow:      "0 2px 8px rgba(241,136,64,0.30)",
+                        textDecoration: "none",
+                    }}
+                    aria-label="マイページ"
+                >
+                    {MOCK.userId}
+                </MotionLink>
+            </div>
 
             {/* 通知パネルのオーバーレイ（クリックで閉じる） */}
             <AnimatePresence>
