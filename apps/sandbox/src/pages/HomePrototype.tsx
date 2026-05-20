@@ -29,7 +29,6 @@ import {
     useMotionValue,
     useSpring,
     useReducedMotion,
-    type PanInfo,
 } from "framer-motion";
 
 const MotionLink = motion(Link);
@@ -38,7 +37,7 @@ import {
     Home, BarChart2, Settings,
     Bell, BellOff, Plus, Check, Receipt,
     Wallet,
-    ChevronLeft, ChevronRight, ChevronDown, Delete,
+    ChevronRight, ChevronDown, Delete,
     TrendingDown, TrendingUp, AlertTriangle, AlertCircle, CheckCircle2, HelpCircle, MinusCircle, X,
     ArrowUpRight, ArrowDownRight, Sparkles,
     PenLine,
@@ -878,29 +877,6 @@ export function HomePrototype() {
     // ⑤ 初回設定完了後の空状態デモトグル
     const [isFirstSetup, setIsFirstSetup] = useState(false);
 
-    // ── SP スワイプカルーセル（今日の状況・今月の貯蓄予測・今月のサマリー）────────
-    const [carouselIdx,        setCarouselIdx]        = useState(0)
-    const [carouselDir,        setCarouselDir]        = useState<1 | -1>(1)
-    const [carouselHintPlayed, setCarouselHintPlayed] = useState(false)
-
-    const CAROUSEL_COUNT = 3
-    function goCarousel(nextIdx: number) {
-        if (nextIdx < 0 || nextIdx >= CAROUSEL_COUNT) return
-        setCarouselDir(nextIdx > carouselIdx ? 1 : -1)
-        setCarouselIdx(nextIdx)
-    }
-    function handleCarouselDragEnd(_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) {
-        const threshold = 40
-        if      (info.offset.x < -threshold) goCarousel(carouselIdx + 1)
-        else if (info.offset.x >  threshold) goCarousel(carouselIdx - 1)
-    }
-    const carouselSlideVariants = {
-        enter:  (dir: number) => ({ x: dir > 0 ? '100%' : '-100%', opacity: 0 }),
-        center: { x: 0, opacity: 1, transition: { type: 'spring' as const, stiffness: 320, damping: 30 } },
-        exit:   (dir: number) => ({ x: dir > 0 ? '-100%' : '100%', opacity: 0, transition: { duration: 0.14 } }),
-    }
-    const CAROUSEL_LABELS = ['今日の状況', '今月の貯蓄予測', '今月のサマリー'] as const
-
     // ── 計算値 ────────────────────────────────────────────────────────────────
     const netMonth    = MOCK.monthSummary.income - MOCK.monthSummary.expense;
     const savingsRate = Math.round((netMonth / MOCK.monthSummary.income) * 100);
@@ -1429,417 +1405,175 @@ export function HomePrototype() {
                     </motion.div>
 
                 ) : (<>
-                    {/* ─── 通常ダッシュボード ──────────────────────────────────
-                     * モバイル: 縦1カラム
-                     * デスクトップ（lg）:
-                     *   上段 左=[今日の状況・今週の記録] 右=[今月の貯蓄予測・サマリー]
-                     *   下段 全幅=[最近の記録]
+                    {/* ─── 通常ダッシュボード（レイアウト D: 時間軸セクション分け） ──
+                     * 今日 / 今月 / 最近の記録 の3セクションで整理
+                     * SP: 全1カラム縦積み  /  PC: 各セクション内 2カラム
                      */}
-                    <div className="grid grid-cols-1 gap-3 lg:grid-cols-2 lg:items-start">
 
-                        {/* ── 左カラム: 状況系ブロック ──────────────────────── */}
+                    {/* ── 今日 ──────────────────────────────────────────────── */}
+                    <div className="mb-2 flex items-center gap-2">
+                        <span className="text-[10px] font-extrabold tracking-[0.12em]" style={{ color: C.muted }}>今日</span>
+                        <div className="flex-1 h-px" style={{ background: C.border }} />
+                    </div>
+                    <motion.div
+                        className="grid grid-cols-1 gap-3 lg:grid-cols-2 lg:items-start"
+                        variants={pageContainerVariants}
+                        initial="hidden"
+                        animate="visible"
+                    >
+                        {/* Block 1: 今日の状況 */}
                         <motion.div
-                            className="space-y-3"
-                            variants={pageContainerVariants}
-                            initial="hidden"
-                            animate="visible"
+                            data-tour="block-today"
+                            variants={pageItemVariants}
+                            className="border p-4"
+                            style={{ borderRadius: R.card, background: C.card, borderColor: C.border, boxShadow: C.shadow }}
                         >
-                        {isLargeScreen ? (
-                            /* ── PC: Block 1〜4 縦並び ─────────────────── */
-                            <>
-                                {/* Block 1: 今日の状況 */}
-                                <motion.div
-                                    data-tour="block-today"
-                                    variants={pageItemVariants}
-                                    className="border p-4"
-                                    style={{ borderRadius: R.card, background: C.card, borderColor: C.border, boxShadow: C.shadow }}
-                                >
-                                    <div className="mb-3 flex items-center justify-between">
-                                        <span className="text-[13px] font-bold" style={{ color: C.text }}>今日の状況</span>
-                                        <span className="px-2.5 py-0.5 text-[10px] font-bold" style={{ borderRadius: R.badge, background: todayStatusBadge.bg, color: todayStatusBadge.color }}>{todayStatusBadge.label}</span>
+                            <div className="mb-3 flex items-center justify-between">
+                                <span className="text-[13px] font-bold" style={{ color: C.text }}>今日の状況</span>
+                                <span className="px-2.5 py-0.5 text-[10px] font-bold" style={{ borderRadius: R.badge, background: todayStatusBadge.bg, color: todayStatusBadge.color }}>{todayStatusBadge.label}</span>
+                            </div>
+                            <div className="mb-1.5 flex justify-between text-[11px]" style={{ color: C.muted }}>
+                                <span>今日の支出</span>
+                                <span className="tabular-nums font-semibold">{formatYen(todayTotalExpense)} / {formatYen(MOCK.dailyBudget)}</span>
+                            </div>
+                            <ProgressBar pct={Math.min(100, Math.round(todaySpendPct * 100))} delay={0.3} gradient={todaySpendPct <= 0.8 ? "linear-gradient(90deg, #34d399, #35b5a2)" : todaySpendPct <= 1.0 ? "linear-gradient(90deg, #f9a8d4, #e879a3)" : "linear-gradient(90deg, #fb7185, #f43f5e)"} />
+                            <div className="mt-3 flex items-center gap-2 rounded-xl px-3 py-2.5" style={{ background: savingsInsight.bg }}>
+                                <savingsInsight.Icon size={13} style={{ color: savingsInsight.color, flexShrink: 0 }} />
+                                <span className="text-[11px] font-semibold leading-tight" style={{ color: savingsInsight.color }}>{savingsInsight.message}</span>
+                            </div>
+                        </motion.div>
+
+                        {/* Block 2: 今週の記録 */}
+                        <motion.div data-tour="block-streak" variants={pageItemVariants} className="border p-4" style={{ borderRadius: R.card, background: C.card, borderColor: C.border, boxShadow: C.shadow }}>
+                            <div className="mb-3 flex items-center justify-between">
+                                <span className="text-[13px] font-bold" style={{ color: C.text }}>今週の記録</span>
+                                <span className="text-[11px] font-semibold tabular-nums" style={{ color: C.muted }}>{weekAchievedCount} / {weekRecordedCount}日 節約達成</span>
+                            </div>
+                            <div className="grid grid-cols-7 gap-1">
+                                {MOCK.weeklyData.map((day) => {
+                                    const TODAY_DATE = "2026-05-16"
+                                    const isToday    = day.date === TODAY_DATE
+                                    const isFuture   = day.date > TODAY_DATE
+                                    const achieved   = !isFuture && day.recorded && day.expense <= MOCK.dailyBudget
+                                    const over       = !isFuture && day.recorded && day.expense > MOCK.dailyBudget
+                                    const unrecorded = !isFuture && !day.recorded
+                                    const streakState: StreakState = achieved ? "achieved" : over ? "over" : unrecorded ? "unrecorded" : "future"
+                                    const Icon  = achieved ? CheckCircle2 : over ? AlertCircle : unrecorded ? HelpCircle : MinusCircle
+                                    const color = achieved ? C.brand : over ? "#f43f5e" : unrecorded ? "rgba(28,20,16,0.38)" : "rgba(28,20,16,0.15)"
+                                    const tooltipContent = <StreakTooltipContent dow={day.dow} date={day.date} state={streakState} expense={day.expense} dailyBudget={MOCK.dailyBudget} />
+                                    const [, mm, dd] = day.date.split("-")
+                                    const dateLabel = `${parseInt(mm)}/${parseInt(dd)}(${day.dow})`
+                                    return (
+                                        <StreakTooltip key={day.dow} content={isFuture ? null : tooltipContent}>
+                                            <span className="text-[8px] font-semibold leading-none tabular-nums" style={{ color: isToday ? C.brand : C.muted }}>{dateLabel}</span>
+                                            <Icon size={22} strokeWidth={2} style={{ color }} />
+                                        </StreakTooltip>
+                                    )
+                                })}
+                            </div>
+                        </motion.div>
+                    </motion.div>
+
+                    {/* ── 今月 ──────────────────────────────────────────────── */}
+                    <div className="mt-4 mb-2 flex items-center gap-2">
+                        <span className="text-[10px] font-extrabold tracking-[0.12em]" style={{ color: C.muted }}>今月</span>
+                        <div className="flex-1 h-px" style={{ background: C.border }} />
+                    </div>
+                    <motion.div
+                        className="grid grid-cols-1 gap-3 lg:grid-cols-2 lg:items-start"
+                        variants={pageContainerVariants}
+                        initial="hidden"
+                        animate="visible"
+                    >
+                        {/* Block 3: 今月の貯蓄予測 */}
+                        <motion.div data-tour="block-savings-forecast" variants={pageItemVariants} className="border p-4" style={{ borderRadius: R.card, background: C.card, borderColor: C.border, boxShadow: C.shadow }}>
+                            <div className="mb-3 flex items-center justify-between">
+                                <span className="text-[13px] font-bold" style={{ color: C.text }}>今月の貯蓄予測</span>
+                                <span className="px-2 py-0.5 text-[10px] font-bold" style={{ borderRadius: R.badge, background: savingsBadge.bg, color: savingsBadge.color }}>{savingsBadge.label}</span>
+                            </div>
+                            <div className="text-[10px] font-semibold mb-0.5" style={{ color: C.muted }}>月末予測残高</div>
+                            <div className="mb-3 flex items-baseline gap-1.5">
+                                <span className="hero-number font-black" style={{ color: projectedSavings >= 0 ? C.income : "#f43f5e", fontSize: "clamp(1.6rem, 5vw, 2rem)", letterSpacing: "-0.03em" }}>{projectedSavings >= 0 ? "+" : "−"}{formatYen(Math.abs(projectedSavings))}</span>
+                                <span className="text-[11px] font-semibold" style={{ color: C.muted }}>{projectedSavings >= 0 ? "貯まる見込み" : "不足見込み"}</span>
+                            </div>
+                            <div className="mb-1 flex justify-between text-[10px]" style={{ color: C.muted }}>
+                                <span>{formatYen(MOCK.monthSummary.expense)} 使用</span>
+                                <span>目標貯蓄 {formatYen(MOCK.savingsGoal)}</span>
+                            </div>
+                            <div className="relative h-2 rounded-full overflow-hidden" style={{ background: "rgba(28,20,16,0.06)" }}>
+                                <motion.div className="absolute h-full" initial={{ width: 0 }} animate={{ width: `${actualExpensePct}%` }} transition={{ ...SPRING.bar, delay: 0.3 }} style={{ background: savingsBarColor.solid, borderRadius: "9999px 0 0 9999px" }} />
+                                <motion.div className="absolute h-full" initial={{ width: 0 }} animate={{ width: `${Math.max(0, Math.min(100 - actualExpensePct, projectedExpensePct - actualExpensePct))}%` }} transition={{ ...SPRING.bar, delay: 0.5 }} style={{ left: `${actualExpensePct}%`, background: savingsBarColor.light }} />
+                                <div className="absolute top-0 h-full w-0.5" style={{ left: `${targetLinePct}%`, background: "rgba(28,20,16,0.28)" }} />
+                            </div>
+                            <div className="mt-1 text-right text-[10px]" style={{ color: C.muted }}>{dayOfMonth}日経過 / {daysInMonth}日</div>
+                            <div className="mt-3 grid grid-cols-3 gap-2 pt-3 border-t" style={{ borderColor: C.border }}>
+                                {[
+                                    { label: "残り予算",  value: formatYen(remainingBudget),                   color: remainingBudget >= 0      ? C.text : "#f43f5e" },
+                                    { label: "残り日数",  value: `あと${remainingDays}日`,                      color: C.text },
+                                    { label: "1日の目安", value: formatYen(Math.max(0, dailyRemainingBudget)), color: dailyRemainingBudget >= 0 ? C.text : "#f43f5e" },
+                                ].map(item => (
+                                    <div key={item.label} className="text-center">
+                                        <div className="text-[9px] font-semibold mb-0.5" style={{ color: C.muted }}>{item.label}</div>
+                                        <div className="text-[12px] font-extrabold tabular-nums" style={{ color: item.color }}>{item.value}</div>
                                     </div>
-                                    <div className="mb-1.5 flex justify-between text-[11px]" style={{ color: C.muted }}>
-                                        <span>今日の支出</span>
-                                        <span className="tabular-nums font-semibold">{formatYen(todayTotalExpense)} / {formatYen(MOCK.dailyBudget)}</span>
+                                ))}
+                            </div>
+                        </motion.div>
+
+                        {/* Block 4: 今月のサマリー */}
+                        {(() => {
+                            const lastMonthDailyAvg  = MOCK.lastMonthExpense / 30
+                            const thisMonthDailyAvg  = MOCK.monthSummary.expense / dayOfMonth
+                            const momPct  = Math.round((thisMonthDailyAvg / lastMonthDailyAvg - 1) * 100)
+                            const momSaved = momPct < 0
+                            const sRate   = Math.round((netMonth / MOCK.monthSummary.income) * 100)
+                            return (
+                                <motion.div data-tour="block-summary" variants={pageItemVariants} className="border p-4 overflow-hidden" style={{ borderRadius: R.card, background: C.card, borderColor: C.border, boxShadow: C.shadow }}>
+                                    <div className="mb-1 flex items-center justify-between">
+                                        <span className="text-[13px] font-bold" style={{ color: C.text }}>今月のサマリー</span>
+                                        <span className="font-mono text-[11px]" style={{ color: C.muted }}>{MOCK.monthSummary.label}</span>
                                     </div>
-                                    <ProgressBar pct={Math.min(100, Math.round(todaySpendPct * 100))} delay={0.3} gradient={todaySpendPct <= 0.8 ? "linear-gradient(90deg, #34d399, #35b5a2)" : todaySpendPct <= 1.0 ? "linear-gradient(90deg, #f9a8d4, #e879a3)" : "linear-gradient(90deg, #fb7185, #f43f5e)"} />
-                                    <div className="mt-3 flex items-center gap-2 rounded-xl px-3 py-2.5" style={{ background: savingsInsight.bg }}>
-                                        <savingsInsight.Icon size={13} style={{ color: savingsInsight.color, flexShrink: 0 }} />
-                                        <span className="text-[11px] font-semibold leading-tight" style={{ color: savingsInsight.color }}>{savingsInsight.message}</span>
+                                    <div className="mb-3 flex items-end gap-2">
+                                        <span className="hero-number text-3xl font-black" style={{ color: C.income, letterSpacing: "-0.02em" }}><SpringNumber value={netMonth} format={formatYen} /></span>
+                                        <motion.span initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} transition={{ ...SPRING.base, delay: 0.6 }} className="mb-0.5 flex items-center gap-0.5 text-xs font-semibold" style={{ color: savingsRate >= 20 ? C.income : "#f59e0b" }}><ArrowUpRight size={12} />{savingsRate}%</motion.span>
                                     </div>
-                                </motion.div>
-
-                                {/* Block 2: 今週の記録 */}
-                                <motion.div data-tour="block-streak" variants={pageItemVariants} className="border p-4" style={{ borderRadius: R.card, background: C.card, borderColor: C.border, boxShadow: C.shadow }}>
-                                    <div className="mb-3 flex items-center justify-between">
-                                        <span className="text-[13px] font-bold" style={{ color: C.text }}>今週の記録</span>
-                                        <span className="text-[11px] font-semibold tabular-nums" style={{ color: C.muted }}>{weekAchievedCount} / {weekRecordedCount}日 節約達成</span>
+                                    <div className="space-y-1.5 mb-3">
+                                        {[
+                                            { label: "収入", value: formatYen(MOCK.monthSummary.income), color: C.income, icon: ArrowUpRight },
+                                            { label: "支出", value: formatYen(MOCK.monthSummary.expense), color: C.brand, icon: ArrowDownRight },
+                                        ].map((item) => (
+                                            <div key={item.label} className="flex items-center justify-between">
+                                                <span className="flex items-center gap-1 text-[11px]" style={{ color: item.color }}><item.icon size={11} />{item.label}</span>
+                                                <span className="hero-number text-[13px] font-bold tabular-nums" style={{ color: C.text }}>{item.value}</span>
+                                            </div>
+                                        ))}
+                                        <div className="border-t pt-1.5 flex items-center justify-between" style={{ borderColor: C.border }}>
+                                            <span className="flex items-center gap-1 text-[11px]" style={{ color: C.muted }}><Wallet size={10} />収支差</span>
+                                            <span className="hero-number text-[13px] font-extrabold tabular-nums" style={{ color: netMonth >= 0 ? C.income : "#f43f5e" }}>{formatYenSigned(netMonth)}</span>
+                                        </div>
                                     </div>
-                                    <div className="grid grid-cols-7 gap-1">
-                                        {MOCK.weeklyData.map((day) => {
-                                            const TODAY_DATE = "2026-05-16"
-                                            const isToday    = day.date === TODAY_DATE
-                                            const isFuture   = day.date > TODAY_DATE
-                                            const achieved   = !isFuture && day.recorded && day.expense <= MOCK.dailyBudget
-                                            const over       = !isFuture && day.recorded && day.expense > MOCK.dailyBudget
-                                            const unrecorded = !isFuture && !day.recorded
-                                            const streakState: StreakState = achieved ? "achieved" : over ? "over" : unrecorded ? "unrecorded" : "future"
-                                            const Icon  = achieved ? CheckCircle2 : over ? AlertCircle : unrecorded ? HelpCircle : MinusCircle
-                                            const color = achieved ? C.brand : over ? "#f43f5e" : unrecorded ? "rgba(28,20,16,0.38)" : "rgba(28,20,16,0.15)"
-                                            const tooltipContent = <StreakTooltipContent dow={day.dow} date={day.date} state={streakState} expense={day.expense} dailyBudget={MOCK.dailyBudget} />
-                                            const [, mm, dd] = day.date.split("-")
-                                            const dateLabel = `${parseInt(mm)}/${parseInt(dd)}(${day.dow})`
-                                            return (
-                                                <StreakTooltip key={day.dow} content={isFuture ? null : tooltipContent}>
-                                                    <span className="text-[8px] font-semibold leading-none tabular-nums" style={{ color: isToday ? C.brand : C.muted }}>{dateLabel}</span>
-                                                    <Icon size={22} strokeWidth={2} style={{ color }} />
-                                                </StreakTooltip>
-                                            )
-                                        })}
-                                    </div>
-                                </motion.div>
-
-                            </>
-                        ) : (
-                            /* ── SP: スワイプカルーセル(Block1,3,4) + ストリーク(Block2) ─ */
-                            <>
-                                {/* ── カルーセルカード ── */}
-                                <motion.div variants={pageItemVariants}>
-                                    <div
-                                        className="border overflow-hidden"
-                                        style={{ borderRadius: R.card, background: C.card, borderColor: C.border, boxShadow: C.shadow }}
-                                    >
-                                        {/* スワイプ可能エリア */}
-                                        <motion.div
-                                            drag="x"
-                                            dragConstraints={{ left: 0, right: 0 }}
-                                            dragElastic={0.04}
-                                            onDragEnd={handleCarouselDragEnd}
-                                            style={{ touchAction: 'pan-y', cursor: 'grab', minHeight: 260, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}
-                                            whileDrag={{ cursor: 'grabbing' }}
-                                            // 初回: 微小なウィグルでスワイプ可能性を伝える（小さめ）
-                                            animate={carouselHintPlayed ? {} : { x: [0, -5, 3, 0] }}
-                                            transition={carouselHintPlayed ? {} : { duration: 0.7, delay: 0.8, ease: 'easeInOut' }}
-                                            onAnimationComplete={() => setCarouselHintPlayed(true)}
-                                        >
-                                            <AnimatePresence mode="wait" custom={carouselDir}>
-                                                {/* Slide 0: 今日の状況 + 今週の記録 */}
-                                                {carouselIdx === 0 && (
-                                                    <motion.div
-                                                        key="today"
-                                                        data-tour="block-today"
-                                                        custom={carouselDir}
-                                                        variants={carouselSlideVariants}
-                                                        initial="enter"
-                                                        animate="center"
-                                                        exit="exit"
-                                                        className="p-4"
-                                                    >
-                                                        <div className="mb-3 flex items-center justify-between">
-                                                            <span className="text-[13px] font-bold" style={{ color: C.text }}>今日の状況</span>
-                                                            <span className="px-2.5 py-0.5 text-[10px] font-bold" style={{ borderRadius: R.badge, background: todayStatusBadge.bg, color: todayStatusBadge.color }}>{todayStatusBadge.label}</span>
-                                                        </div>
-                                                        <div className="mb-1.5 flex justify-between text-[11px]" style={{ color: C.muted }}>
-                                                            <span>今日の支出</span>
-                                                            <span className="tabular-nums font-semibold">{formatYen(todayTotalExpense)} / {formatYen(MOCK.dailyBudget)}</span>
-                                                        </div>
-                                                        <ProgressBar pct={Math.min(100, Math.round(todaySpendPct * 100))} delay={0.1} gradient={todaySpendPct <= 0.8 ? "linear-gradient(90deg, #34d399, #35b5a2)" : todaySpendPct <= 1.0 ? "linear-gradient(90deg, #f9a8d4, #e879a3)" : "linear-gradient(90deg, #fb7185, #f43f5e)"} />
-                                                        <div className="mt-3 flex items-center gap-2 rounded-xl px-3 py-2.5" style={{ background: savingsInsight.bg }}>
-                                                            <savingsInsight.Icon size={13} style={{ color: savingsInsight.color, flexShrink: 0 }} />
-                                                            <span className="text-[11px] font-semibold leading-tight" style={{ color: savingsInsight.color }}>{savingsInsight.message}</span>
-                                                        </div>
-
-                                                        {/* 今週の記録 */}
-                                                        <div
-                                                            data-tour="block-streak"
-                                                            className="mt-3 pt-3 border-t"
-                                                            style={{ borderColor: C.border }}
-                                                        >
-                                                            <div className="mb-2 flex items-center justify-between">
-                                                                <span className="text-[13px] font-bold" style={{ color: C.text }}>今週の記録</span>
-                                                                <span className="text-[11px] font-semibold tabular-nums" style={{ color: C.muted }}>{weekAchievedCount} / {weekRecordedCount}日 節約達成</span>
-                                                            </div>
-                                                            <div className="grid grid-cols-7 gap-1">
-                                                                {MOCK.weeklyData.map((day) => {
-                                                                    const TODAY_DATE = "2026-05-16"
-                                                                    const isToday    = day.date === TODAY_DATE
-                                                                    const isFuture   = day.date > TODAY_DATE
-                                                                    const achieved   = !isFuture && day.recorded && day.expense <= MOCK.dailyBudget
-                                                                    const over       = !isFuture && day.recorded && day.expense > MOCK.dailyBudget
-                                                                    const unrecorded = !isFuture && !day.recorded
-                                                                    const streakState: StreakState = achieved ? "achieved" : over ? "over" : unrecorded ? "unrecorded" : "future"
-                                                                    const Icon  = achieved ? CheckCircle2 : over ? AlertCircle : unrecorded ? HelpCircle : MinusCircle
-                                                                    const color = achieved ? C.brand : over ? "#f43f5e" : unrecorded ? "rgba(28,20,16,0.38)" : "rgba(28,20,16,0.15)"
-                                                                    const tooltipContent = <StreakTooltipContent dow={day.dow} date={day.date} state={streakState} expense={day.expense} dailyBudget={MOCK.dailyBudget} />
-                                                                    const [, mm, dd] = day.date.split("-")
-                                                                    const dateLabel = `${parseInt(mm)}/${parseInt(dd)}(${day.dow})`
-                                                                    return (
-                                                                        <StreakTooltip key={day.dow} content={isFuture ? null : tooltipContent}>
-                                                                            <span className="text-[8px] font-semibold leading-none tabular-nums" style={{ color: isToday ? C.brand : C.muted }}>{dateLabel}</span>
-                                                                            <Icon size={22} strokeWidth={2} style={{ color }} />
-                                                                        </StreakTooltip>
-                                                                    )
-                                                                })}
-                                                            </div>
-                                                        </div>
-                                                    </motion.div>
-                                                )}
-
-                                                {/* Slide 1: 今月の貯蓄予測 */}
-                                                {carouselIdx === 1 && (
-                                                    <motion.div
-                                                        key="forecast"
-                                                        data-tour="block-savings-forecast"
-                                                        custom={carouselDir}
-                                                        variants={carouselSlideVariants}
-                                                        initial="enter"
-                                                        animate="center"
-                                                        exit="exit"
-                                                        className="p-4"
-                                                    >
-                                                        <div className="mb-3 flex items-center justify-between">
-                                                            <span className="text-[13px] font-bold" style={{ color: C.text }}>今月の貯蓄予測</span>
-                                                            <span className="px-2 py-0.5 text-[10px] font-bold" style={{ borderRadius: R.badge, background: savingsBadge.bg, color: savingsBadge.color }}>{savingsBadge.label}</span>
-                                                        </div>
-                                                        <div className="text-[10px] font-semibold mb-0.5" style={{ color: C.muted }}>月末予測残高</div>
-                                                        <div className="mb-3 flex items-baseline gap-1.5">
-                                                            <span className="hero-number font-black" style={{ color: projectedSavings >= 0 ? C.income : "#f43f5e", fontSize: "clamp(1.6rem, 5vw, 2rem)", letterSpacing: "-0.03em" }}>{projectedSavings >= 0 ? "+" : "−"}{formatYen(Math.abs(projectedSavings))}</span>
-                                                            <span className="text-[11px] font-semibold" style={{ color: C.muted }}>{projectedSavings >= 0 ? "貯まる見込み" : "不足見込み"}</span>
-                                                        </div>
-                                                        <div className="mb-1 flex justify-between text-[10px]" style={{ color: C.muted }}>
-                                                            <span>{formatYen(MOCK.monthSummary.expense)} 使用</span>
-                                                            <span>目標貯蓄 {formatYen(MOCK.savingsGoal)}</span>
-                                                        </div>
-                                                        <div className="relative h-2 rounded-full overflow-hidden" style={{ background: "rgba(28,20,16,0.06)" }}>
-                                                            <motion.div className="absolute h-full" initial={{ width: 0 }} animate={{ width: `${actualExpensePct}%` }} transition={{ ...SPRING.bar, delay: 0.1 }} style={{ background: savingsBarColor.solid, borderRadius: "9999px 0 0 9999px" }} />
-                                                            <motion.div className="absolute h-full" initial={{ width: 0 }} animate={{ width: `${Math.max(0, Math.min(100 - actualExpensePct, projectedExpensePct - actualExpensePct))}%` }} transition={{ ...SPRING.bar, delay: 0.25 }} style={{ left: `${actualExpensePct}%`, background: savingsBarColor.light }} />
-                                                            <div className="absolute top-0 h-full w-0.5" style={{ left: `${targetLinePct}%`, background: "rgba(28,20,16,0.28)" }} />
-                                                        </div>
-                                                        <div className="mt-1 text-right text-[10px]" style={{ color: C.muted }}>{dayOfMonth}日経過 / {daysInMonth}日</div>
-                                                        <div className="mt-3 grid grid-cols-3 gap-2 pt-3 border-t" style={{ borderColor: C.border }}>
-                                                            {[
-                                                                { label: "残り予算",  value: formatYen(remainingBudget),                   color: remainingBudget >= 0      ? C.text : "#f43f5e" },
-                                                                { label: "残り日数",  value: `あと${remainingDays}日`,                      color: C.text },
-                                                                { label: "1日の目安", value: formatYen(Math.max(0, dailyRemainingBudget)), color: dailyRemainingBudget >= 0 ? C.text : "#f43f5e" },
-                                                            ].map(item => (
-                                                                <div key={item.label} className="text-center">
-                                                                    <div className="text-[9px] font-semibold mb-0.5" style={{ color: C.muted }}>{item.label}</div>
-                                                                    <div className="text-[12px] font-extrabold tabular-nums" style={{ color: item.color }}>{item.value}</div>
-                                                                </div>
-                                                            ))}
-                                                        </div>
-                                                    </motion.div>
-                                                )}
-
-                                                {/* Slide 2: 今月のサマリー */}
-                                                {carouselIdx === 2 && (() => {
-                                                    const lastMonthDailyAvg  = MOCK.lastMonthExpense / 30
-                                                    const thisMonthDailyAvg  = MOCK.monthSummary.expense / dayOfMonth
-                                                    const momPct  = Math.round((thisMonthDailyAvg / lastMonthDailyAvg - 1) * 100)
-                                                    const momSaved = momPct < 0
-                                                    const sRate   = Math.round((netMonth / MOCK.monthSummary.income) * 100)
-                                                    return (
-                                                        <motion.div
-                                                            key="summary"
-                                                            data-tour="block-summary"
-                                                            custom={carouselDir}
-                                                            variants={carouselSlideVariants}
-                                                            initial="enter"
-                                                            animate="center"
-                                                            exit="exit"
-                                                            className="p-4 overflow-hidden"
-                                                        >
-                                                            <div className="mb-1 flex items-center justify-between">
-                                                                <span className="text-[13px] font-bold" style={{ color: C.text }}>今月のサマリー</span>
-                                                                <span className="font-mono text-[11px]" style={{ color: C.muted }}>{MOCK.monthSummary.label}</span>
-                                                            </div>
-                                                            <div className="mb-3 flex items-end gap-2">
-                                                                <span className="hero-number text-3xl font-black" style={{ color: C.income, letterSpacing: "-0.02em" }}><SpringNumber value={netMonth} format={formatYen} /></span>
-                                                                <motion.span initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} transition={{ ...SPRING.base, delay: 0.4 }} className="mb-0.5 flex items-center gap-0.5 text-xs font-semibold" style={{ color: savingsRate >= 20 ? C.income : "#f59e0b" }}><ArrowUpRight size={12} />{savingsRate}%</motion.span>
-                                                            </div>
-                                                            <div className="space-y-1.5 mb-3">
-                                                                {[
-                                                                    { label: "収入", value: formatYen(MOCK.monthSummary.income), color: C.income, icon: ArrowUpRight },
-                                                                    { label: "支出", value: formatYen(MOCK.monthSummary.expense), color: C.brand, icon: ArrowDownRight },
-                                                                ].map((item) => (
-                                                                    <div key={item.label} className="flex items-center justify-between">
-                                                                        <span className="flex items-center gap-1 text-[11px]" style={{ color: item.color }}><item.icon size={11} />{item.label}</span>
-                                                                        <span className="hero-number text-[13px] font-bold tabular-nums" style={{ color: C.text }}>{item.value}</span>
-                                                                    </div>
-                                                                ))}
-                                                                <div className="border-t pt-1.5 flex items-center justify-between" style={{ borderColor: C.border }}>
-                                                                    <span className="flex items-center gap-1 text-[11px]" style={{ color: C.muted }}><Wallet size={10} />収支差</span>
-                                                                    <span className="hero-number text-[13px] font-extrabold tabular-nums" style={{ color: netMonth >= 0 ? C.income : "#f43f5e" }}>{formatYenSigned(netMonth)}</span>
-                                                                </div>
-                                                            </div>
-                                                            <div className="grid grid-cols-2 gap-2">
-                                                                <div className="flex flex-col gap-0.5 rounded-xl px-3 py-2.5" style={{ background: momSaved ? C.incomeLight : "rgba(244,63,94,0.06)" }}>
-                                                                    <span className="text-[9px] font-semibold" style={{ color: C.muted }}>先月比 支出</span>
-                                                                    <span className="text-[18px] font-extrabold tabular-nums" style={{ color: momSaved ? C.income : "#f43f5e", letterSpacing: "-0.02em" }}>{momPct > 0 ? "+" : ""}{momPct}%</span>
-                                                                    <span className="text-[9px]" style={{ color: C.muted }}>{momSaved ? `月換算で${formatYen(Math.round((lastMonthDailyAvg - thisMonthDailyAvg) * 30))}節約` : "先月より支出増"}</span>
-                                                                </div>
-                                                                <div className="flex flex-col gap-0.5 rounded-xl px-3 py-2.5" style={{ background: C.incomeLight }}>
-                                                                    <span className="text-[9px] font-semibold" style={{ color: C.muted }}>今月の貯蓄率</span>
-                                                                    <span className="text-[18px] font-extrabold tabular-nums" style={{ color: C.income, letterSpacing: "-0.02em" }}>{sRate}%</span>
-                                                                    <span className="text-[9px]" style={{ color: C.muted }}>収入の{sRate}%を貯蓄ペース</span>
-                                                                </div>
-                                                            </div>
-                                                        </motion.div>
-                                                    )
-                                                })()}
-                                            </AnimatePresence>
-                                        </motion.div>
-
-                                        {/* ── インジケーター行: ＜ ドット ＞ ── */}
-                                        <div
-                                            className="flex items-center justify-center gap-2 px-4 py-2.5 border-t"
-                                            style={{ borderColor: C.border }}
-                                        >
-                                            {/* 前へボタン */}
-                                            <motion.button
-                                                type="button"
-                                                onClick={() => goCarousel(carouselIdx - 1)}
-                                                disabled={carouselIdx === 0}
-                                                whileTap={{ scale: 0.85 }}
-                                                className="flex h-6 w-6 items-center justify-center rounded-full transition-opacity disabled:opacity-25"
-                                                style={{ color: C.brand }}
-                                                aria-label="前のカード"
-                                            >
-                                                <ChevronLeft size={15} strokeWidth={2.5} />
-                                            </motion.button>
-
-                                            {/* ドットインジケーター */}
-                                            {CAROUSEL_LABELS.map((label, i) => (
-                                                <motion.button
-                                                    key={i}
-                                                    type="button"
-                                                    onClick={() => { setCarouselDir(i > carouselIdx ? 1 : -1); setCarouselIdx(i) }}
-                                                    aria-label={label}
-                                                    aria-current={i === carouselIdx ? 'true' : undefined}
-                                                    animate={{
-                                                        width:      i === carouselIdx ? 20 : 6,
-                                                        background: i === carouselIdx ? C.brand : 'rgba(28,20,16,0.18)',
-                                                    }}
-                                                    transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                                                    style={{ height: 6, borderRadius: 9999 }}
-                                                />
-                                            ))}
-
-                                            {/* 次へボタン */}
-                                            <motion.button
-                                                type="button"
-                                                onClick={() => goCarousel(carouselIdx + 1)}
-                                                disabled={carouselIdx === CAROUSEL_COUNT - 1}
-                                                whileTap={{ scale: 0.85 }}
-                                                className="flex h-6 w-6 items-center justify-center rounded-full transition-opacity disabled:opacity-25"
-                                                style={{ color: C.brand }}
-                                                aria-label="次のカード"
-                                            >
-                                                <ChevronRight size={15} strokeWidth={2.5} />
-                                            </motion.button>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <div className="flex flex-col gap-0.5 rounded-xl px-3 py-2.5" style={{ background: momSaved ? C.incomeLight : "rgba(244,63,94,0.06)" }}>
+                                            <span className="text-[9px] font-semibold" style={{ color: C.muted }}>先月比 支出</span>
+                                            <span className="text-[18px] font-extrabold tabular-nums" style={{ color: momSaved ? C.income : "#f43f5e", letterSpacing: "-0.02em" }}>{momPct > 0 ? "+" : ""}{momPct}%</span>
+                                            <span className="text-[9px]" style={{ color: C.muted }}>{momSaved ? `月換算で${formatYen(Math.round((lastMonthDailyAvg - thisMonthDailyAvg) * 30))}節約` : "先月より支出増"}</span>
+                                        </div>
+                                        <div className="flex flex-col gap-0.5 rounded-xl px-3 py-2.5" style={{ background: C.incomeLight }}>
+                                            <span className="text-[9px] font-semibold" style={{ color: C.muted }}>今月の貯蓄率</span>
+                                            <span className="text-[18px] font-extrabold tabular-nums" style={{ color: C.income, letterSpacing: "-0.02em" }}>{sRate}%</span>
+                                            <span className="text-[9px]" style={{ color: C.muted }}>収入の{sRate}%を貯蓄ペース</span>
                                         </div>
                                     </div>
                                 </motion.div>
+                            )
+                        })()}
+                    </motion.div>
 
-                            </>
-                        )}
-                        </motion.div>
-
-                        {/* ── 右カラム: 今月の貯蓄予測・サマリー（PC のみ） ── */}
-                        {isLargeScreen && (
-                            <motion.div
-                                className="space-y-3"
-                                variants={pageContainerVariants}
-                                initial="hidden"
-                                animate="visible"
-                            >
-                                {/* Block 3: 今月の貯蓄予測 */}
-                                <motion.div data-tour="block-savings-forecast" variants={pageItemVariants} className="border p-4" style={{ borderRadius: R.card, background: C.card, borderColor: C.border, boxShadow: C.shadow }}>
-                                    <div className="mb-3 flex items-center justify-between">
-                                        <span className="text-[13px] font-bold" style={{ color: C.text }}>今月の貯蓄予測</span>
-                                        <span className="px-2 py-0.5 text-[10px] font-bold" style={{ borderRadius: R.badge, background: savingsBadge.bg, color: savingsBadge.color }}>{savingsBadge.label}</span>
-                                    </div>
-                                    <div className="text-[10px] font-semibold mb-0.5" style={{ color: C.muted }}>月末予測残高</div>
-                                    <div className="mb-3 flex items-baseline gap-1.5">
-                                        <span className="hero-number font-black" style={{ color: projectedSavings >= 0 ? C.income : "#f43f5e", fontSize: "clamp(1.6rem, 5vw, 2rem)", letterSpacing: "-0.03em" }}>{projectedSavings >= 0 ? "+" : "−"}{formatYen(Math.abs(projectedSavings))}</span>
-                                        <span className="text-[11px] font-semibold" style={{ color: C.muted }}>{projectedSavings >= 0 ? "貯まる見込み" : "不足見込み"}</span>
-                                    </div>
-                                    <div className="mb-1 flex justify-between text-[10px]" style={{ color: C.muted }}>
-                                        <span>{formatYen(MOCK.monthSummary.expense)} 使用</span>
-                                        <span>目標貯蓄 {formatYen(MOCK.savingsGoal)}</span>
-                                    </div>
-                                    <div className="relative h-2 rounded-full overflow-hidden" style={{ background: "rgba(28,20,16,0.06)" }}>
-                                        <motion.div className="absolute h-full" initial={{ width: 0 }} animate={{ width: `${actualExpensePct}%` }} transition={{ ...SPRING.bar, delay: 0.3 }} style={{ background: savingsBarColor.solid, borderRadius: "9999px 0 0 9999px" }} />
-                                        <motion.div className="absolute h-full" initial={{ width: 0 }} animate={{ width: `${Math.max(0, Math.min(100 - actualExpensePct, projectedExpensePct - actualExpensePct))}%` }} transition={{ ...SPRING.bar, delay: 0.5 }} style={{ left: `${actualExpensePct}%`, background: savingsBarColor.light }} />
-                                        <div className="absolute top-0 h-full w-0.5" style={{ left: `${targetLinePct}%`, background: "rgba(28,20,16,0.28)" }} />
-                                    </div>
-                                    <div className="mt-1 text-right text-[10px]" style={{ color: C.muted }}>{dayOfMonth}日経過 / {daysInMonth}日</div>
-                                    <div className="mt-3 grid grid-cols-3 gap-2 pt-3 border-t" style={{ borderColor: C.border }}>
-                                        {[
-                                            { label: "残り予算",  value: formatYen(remainingBudget),                   color: remainingBudget >= 0      ? C.text : "#f43f5e" },
-                                            { label: "残り日数",  value: `あと${remainingDays}日`,                      color: C.text },
-                                            { label: "1日の目安", value: formatYen(Math.max(0, dailyRemainingBudget)), color: dailyRemainingBudget >= 0 ? C.text : "#f43f5e" },
-                                        ].map(item => (
-                                            <div key={item.label} className="text-center">
-                                                <div className="text-[9px] font-semibold mb-0.5" style={{ color: C.muted }}>{item.label}</div>
-                                                <div className="text-[12px] font-extrabold tabular-nums" style={{ color: item.color }}>{item.value}</div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </motion.div>
-
-                                {/* Block 4: 今月のサマリー */}
-                                {(() => {
-                                    const lastMonthDailyAvg  = MOCK.lastMonthExpense / 30
-                                    const thisMonthDailyAvg  = MOCK.monthSummary.expense / dayOfMonth
-                                    const momPct  = Math.round((thisMonthDailyAvg / lastMonthDailyAvg - 1) * 100)
-                                    const momSaved = momPct < 0
-                                    const sRate   = Math.round((netMonth / MOCK.monthSummary.income) * 100)
-                                    return (
-                                        <motion.div data-tour="block-summary" variants={pageItemVariants} className="border p-4 overflow-hidden" style={{ borderRadius: R.card, background: C.card, borderColor: C.border, boxShadow: C.shadow }}>
-                                            <div className="mb-1 flex items-center justify-between">
-                                                <span className="text-[13px] font-bold" style={{ color: C.text }}>今月のサマリー</span>
-                                                <span className="font-mono text-[11px]" style={{ color: C.muted }}>{MOCK.monthSummary.label}</span>
-                                            </div>
-                                            <div className="mb-3 flex items-end gap-2">
-                                                <span className="hero-number text-3xl font-black" style={{ color: C.income, letterSpacing: "-0.02em" }}><SpringNumber value={netMonth} format={formatYen} /></span>
-                                                <motion.span initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} transition={{ ...SPRING.base, delay: 0.6 }} className="mb-0.5 flex items-center gap-0.5 text-xs font-semibold" style={{ color: savingsRate >= 20 ? C.income : "#f59e0b" }}><ArrowUpRight size={12} />{savingsRate}%</motion.span>
-                                            </div>
-                                            <div className="space-y-1.5 mb-3">
-                                                {[
-                                                    { label: "収入", value: formatYen(MOCK.monthSummary.income), color: C.income, icon: ArrowUpRight },
-                                                    { label: "支出", value: formatYen(MOCK.monthSummary.expense), color: C.brand, icon: ArrowDownRight },
-                                                ].map((item) => (
-                                                    <div key={item.label} className="flex items-center justify-between">
-                                                        <span className="flex items-center gap-1 text-[11px]" style={{ color: item.color }}><item.icon size={11} />{item.label}</span>
-                                                        <span className="hero-number text-[13px] font-bold tabular-nums" style={{ color: C.text }}>{item.value}</span>
-                                                    </div>
-                                                ))}
-                                                <div className="border-t pt-1.5 flex items-center justify-between" style={{ borderColor: C.border }}>
-                                                    <span className="flex items-center gap-1 text-[11px]" style={{ color: C.muted }}><Wallet size={10} />収支差</span>
-                                                    <span className="hero-number text-[13px] font-extrabold tabular-nums" style={{ color: netMonth >= 0 ? C.income : "#f43f5e" }}>{formatYenSigned(netMonth)}</span>
-                                                </div>
-                                            </div>
-                                            <div className="grid grid-cols-2 gap-2">
-                                                <div className="flex flex-col gap-0.5 rounded-xl px-3 py-2.5" style={{ background: momSaved ? C.incomeLight : "rgba(244,63,94,0.06)" }}>
-                                                    <span className="text-[9px] font-semibold" style={{ color: C.muted }}>先月比 支出</span>
-                                                    <span className="text-[18px] font-extrabold tabular-nums" style={{ color: momSaved ? C.income : "#f43f5e", letterSpacing: "-0.02em" }}>{momPct > 0 ? "+" : ""}{momPct}%</span>
-                                                    <span className="text-[9px]" style={{ color: C.muted }}>{momSaved ? `月換算で${formatYen(Math.round((lastMonthDailyAvg - thisMonthDailyAvg) * 30))}節約` : "先月より支出増"}</span>
-                                                </div>
-                                                <div className="flex flex-col gap-0.5 rounded-xl px-3 py-2.5" style={{ background: C.incomeLight }}>
-                                                    <span className="text-[9px] font-semibold" style={{ color: C.muted }}>今月の貯蓄率</span>
-                                                    <span className="text-[18px] font-extrabold tabular-nums" style={{ color: C.income, letterSpacing: "-0.02em" }}>{sRate}%</span>
-                                                    <span className="text-[9px]" style={{ color: C.muted }}>収入の{sRate}%を貯蓄ペース</span>
-                                                </div>
-                                            </div>
-                                        </motion.div>
-                                    )
-                                })()}
-                            </motion.div>
-                        )}
+                    {/* ── 最近の記録 ──────────────────────────────────────── */}
+                    <div className="mt-4 mb-2 flex items-center gap-2">
+                        <span className="text-[10px] font-extrabold tracking-[0.12em]" style={{ color: C.muted }}>最近の記録</span>
+                        <div className="flex-1 h-px" style={{ background: C.border }} />
                     </div>
-
-                    {/* ④ 最近の記録 — 全幅（PC/SP 共通） */}
                     <motion.div
                         data-tour="recent-records"
                         variants={pageContainerVariants}

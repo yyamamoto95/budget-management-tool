@@ -9,8 +9,9 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { createPortal } from 'react-dom'
+import { useSearchParams } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { HelpCircle, X, ChevronRight, ChevronLeft } from 'lucide-react'
+import { X, ChevronRight, ChevronLeft } from 'lucide-react'
 import { HOME_TOUR_STEPS, type TourStepDef } from '../tours/homeTourSteps'
 
 // ── Cookie ヘルパー ─────────────────────────────────────────────────────────
@@ -99,6 +100,7 @@ export function HomeTour() {
   const [stepIdx, setStepIdx] = useState(0)
   const [spotRect, setSpotRect] = useState<SpotRect | null>(null)
   const [dir, setDir] = useState<1 | -1>(1)
+  const [searchParams, setSearchParams] = useSearchParams()
 
   const step  = HOME_TOUR_STEPS[stepIdx]
   const total = HOME_TOUR_STEPS.length
@@ -160,6 +162,18 @@ export function HomeTour() {
     }
   }, [])
 
+  // ?tour=1 で設定ページのガイドタブから起動
+  useEffect(() => {
+    if (searchParams.get('tour') === '1') {
+      const t = setTimeout(() => {
+        startTour()
+        setSearchParams({}, { replace: true })
+      }, 600)
+      return () => clearTimeout(t)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   // スポットライト: ターゲットなし時はビューポート中央に 0×0 → 全体暗転
   const vw = typeof window !== 'undefined' ? window.innerWidth  : 0
   const vh = typeof window !== 'undefined' ? window.innerHeight : 0
@@ -170,21 +184,6 @@ export function HomeTour() {
 
   return (
     <>
-      {/* いつでも再表示できる ? ボタン */}
-      <button
-        type="button"
-        aria-label="使い方ガイドを表示"
-        onClick={startTour}
-        className="fixed bottom-24 right-4 z-40 flex h-10 w-10 items-center justify-center rounded-full shadow-lg transition-all hover:scale-105 hover:opacity-90 lg:bottom-6"
-        style={{
-          background:     'rgba(28,20,16,0.72)',
-          backdropFilter: 'blur(10px)',
-          color:          '#fff',
-        }}
-      >
-        <HelpCircle size={18} strokeWidth={2.2} />
-      </button>
-
       {/* ポータル: オーバーレイ + スポットライト + ポップオーバー */}
       {active && createPortal(
         <AnimatePresence>

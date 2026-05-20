@@ -1,33 +1,31 @@
 /**
  * SandboxNav — Sandbox 全ページ共通フローティングナビ
  *
- * プロトタイプページの左下に固定表示される薄型ナビバー。
- * - ギャラリーへ戻る
- * - 前後プロトタイプへ移動
- * プロトタイプ本体のレイアウトを妨げないよう最小化可能。
+ * - ドラッグで自由移動（framer-motion drag）
+ * - ギャラリーへ戻る / 前後プロトタイプへ移動
  */
 
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
+import { motion } from 'framer-motion'
 import { LayoutGrid, ChevronLeft, ChevronRight, ChevronDown, ChevronUp } from 'lucide-react'
 
-// Gallery.tsx の prototypes 配列と同期させる（SSOT ではないが Sandbox 内限定）
 const PAGES: { path: string; label: string }[] = [
-  { path: '/nav-layout',              label: 'ナビゲーション統合レイアウト' },
-  { path: '/calendar-page',           label: 'カレンダーページ刷新' },
   { path: '/daily-budget-card-palette', label: 'カラーパレット比較' },
-  { path: '/home',                    label: 'ホーム画面' },
-  { path: '/category-ab',             label: '支出カテゴリ TOP A/B' },
-  { path: '/asset-outlook-ab',        label: '長期指標 A/B' },
-  { path: '/personal-settings',       label: '個人設定 — 現行' },
-  { path: '/settings-wizard',         label: '個人設定 B — ウィザード' },
-  { path: '/settings-e',              label: '個人設定 E — コンパクトリスト' },
+  { path: '/home',                      label: 'ホーム画面' },
+  { path: '/category-ab',              label: '支出カテゴリ TOP A/B' },
+  { path: '/asset-outlook-ab',         label: '長期指標 A/B' },
+  { path: '/asset-outlook-pc-ab',      label: '長期指標 PC' },
+  { path: '/personal-settings',        label: '個人設定 — 現行' },
+  { path: '/settings-wizard',          label: '個人設定 B — ウィザード' },
+  { path: '/settings-e',               label: '個人設定 E — コンパクトリスト' },
   { path: '/meisai',                   label: '明細' },
-  { path: '/status-color-palette',      label: 'ステータスカラー' },
+  { path: '/report',                   label: 'レポート' },
+  { path: '/status-color-palette',     label: 'ステータスカラー' },
   { path: '/savings-forecast-palette', label: '貯蓄予測カラー' },
   { path: '/today-status-palette',     label: '今日の状況カラー' },
-  { path: '/category-color-palette',  label: 'カテゴリカラー定義' },
-  { path: '/report',                  label: 'レポート' },
+  { path: '/category-color-palette',   label: 'カテゴリカラー定義' },
+  { path: '/my-page',                  label: 'マイページ' },
 ]
 
 export function SandboxNav() {
@@ -43,9 +41,12 @@ export function SandboxNav() {
   const next = currentIdx < PAGES.length - 1 ? PAGES[currentIdx + 1] : null
 
   return (
-    <div
-      className="fixed bottom-4 left-3 z-50 flex flex-col items-start gap-1"
-      style={{ pointerEvents: 'none' }}
+    <motion.div
+      drag
+      dragMomentum={false}
+      className="fixed bottom-4 left-3 z-50 flex flex-col items-start gap-1 select-none"
+      style={{ touchAction: 'none' }}
+      whileDrag={{ scale: 1.04 }}
     >
       {/* ページ一覧ドロップアップ */}
       {open && (
@@ -56,7 +57,6 @@ export function SandboxNav() {
             backdropFilter: 'blur(12px)',
             border: '1px solid rgba(28,20,16,0.10)',
             boxShadow: '0 8px 24px rgba(28,20,16,0.14)',
-            pointerEvents: 'auto',
             maxHeight: '60vh',
             overflowY: 'auto',
             minWidth: 200,
@@ -72,13 +72,10 @@ export function SandboxNav() {
                 color: p.path === pathname ? '#f18840' : 'rgba(28,20,16,0.7)',
               }}
             >
-              {p.path === pathname && (
-                <span
-                  className="h-1.5 w-1.5 rounded-full shrink-0"
-                  style={{ background: '#f18840' }}
-                />
-              )}
-              {p.path !== pathname && <span className="h-1.5 w-1.5 rounded-full shrink-0" />}
+              <span
+                className="h-1.5 w-1.5 rounded-full shrink-0"
+                style={{ background: p.path === pathname ? '#f18840' : 'transparent' }}
+              />
               {p.label}
             </Link>
           ))}
@@ -87,12 +84,11 @@ export function SandboxNav() {
 
       {/* コントロールバー */}
       <div
-        className="flex items-center gap-1 rounded-full px-2 py-1.5"
+        className="flex items-center gap-1 rounded-full px-2 py-1.5 cursor-grab active:cursor-grabbing"
         style={{
           background: 'rgba(28,20,16,0.72)',
           backdropFilter: 'blur(10px)',
           boxShadow: '0 2px 8px rgba(28,20,16,0.25)',
-          pointerEvents: 'auto',
         }}
       >
         {/* ギャラリーへ */}
@@ -104,10 +100,7 @@ export function SandboxNav() {
           <LayoutGrid size={13} className="text-white" />
         </Link>
 
-        <span
-          className="mx-0.5 text-white/20 text-xs select-none"
-          aria-hidden="true"
-        >|</span>
+        <span className="mx-0.5 text-white/20 text-xs" aria-hidden="true">|</span>
 
         {/* 前へ */}
         {prev ? (
@@ -131,17 +124,13 @@ export function SandboxNav() {
           className="flex items-center gap-1 rounded-full px-2 transition-colors hover:bg-white/20"
           style={{ maxWidth: 120 }}
         >
-          <span
-            className="truncate text-[11px] font-bold text-white"
-            style={{ maxWidth: 90 }}
-          >
+          <span className="truncate text-[11px] font-bold text-white" style={{ maxWidth: 90 }}>
             {current?.label ?? pathname}
           </span>
-          {open ? (
-            <ChevronDown size={11} className="shrink-0 text-white/70" />
-          ) : (
-            <ChevronUp size={11} className="shrink-0 text-white/70" />
-          )}
+          {open
+            ? <ChevronDown  size={11} className="shrink-0 text-white/70" />
+            : <ChevronUp    size={11} className="shrink-0 text-white/70" />
+          }
         </button>
 
         {/* 次へ */}
@@ -159,6 +148,6 @@ export function SandboxNav() {
           </span>
         )}
       </div>
-    </div>
+    </motion.div>
   )
 }
