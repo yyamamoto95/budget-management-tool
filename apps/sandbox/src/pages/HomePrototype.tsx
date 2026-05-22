@@ -1693,6 +1693,7 @@ export function HomePrototype() {
                             type="button"
                             onClick={() => handleOpenDrawer()}
                             aria-label="記録する"
+                            data-tour="quick-entry"
                             className="flex items-center justify-center rounded-full text-white"
                             style={{
                                 width:      56,
@@ -1924,6 +1925,7 @@ export function HomePrototype() {
         <motion.button
             type="button"
             aria-label="記録する"
+            data-tour="quick-entry"
             onClick={() => handleOpenDrawer()}
             className="fixed bottom-6 right-16 z-40 hidden lg:flex items-center gap-2 rounded-full px-5 text-sm font-bold text-white"
             style={{

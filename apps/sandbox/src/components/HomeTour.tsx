@@ -48,13 +48,20 @@ function getTargetRect(selector: string): SpotRect | null {
 }
 
 // ── ポップオーバー位置計算 ────────────────────────────────────────────────────
-const POPOVER_W   = 320
-const POPOVER_H   = 260   // 概算高さ（スペース不足チェック用）
-const POPOVER_GAP = 14
+const POPOVER_W_MAX = 320
+const POPOVER_H     = 260   // 概算高さ（スペース不足チェック用）
+const POPOVER_GAP   = 14
+
+/** ビューポート幅に応じたポップオーバー幅を返す */
+function getPopoverW(): number {
+  if (typeof window === 'undefined') return POPOVER_W_MAX
+  return Math.min(POPOVER_W_MAX, window.innerWidth - 32)
+}
 
 function calcPopoverPos(
   spotRect: SpotRect | null,
   side: TourStepDef['side'],
+  popoverW: number,
 ): { left: number; top: number } {
   const vw = window.innerWidth
   const vh = window.innerHeight
@@ -62,14 +69,14 @@ function calcPopoverPos(
   // ターゲットなし / center → ビューポート中央
   if (!spotRect || side === 'center') {
     return {
-      left: Math.max(16, (vw - POPOVER_W) / 2),
+      left: Math.max(16, (vw - popoverW) / 2),
       top:  Math.max(16, (vh - POPOVER_H) / 2),
     }
   }
 
   const { x, y, w, h } = spotRect
   const cx = x + w / 2
-  const clampX = (v: number) => Math.max(16, Math.min(vw - POPOVER_W - 16, v))
+  const clampX = (v: number) => Math.max(16, Math.min(vw - popoverW - 16, v))
 
   // スペース不足のとき自動反転
   const spaceBelow = vh - (y + h)
@@ -82,16 +89,16 @@ function calcPopoverPos(
   }
 
   if (preferred === 'bottom') {
-    return { left: clampX(cx - POPOVER_W / 2), top: y + h + POPOVER_GAP }
+    return { left: clampX(cx - popoverW / 2), top: y + h + POPOVER_GAP }
   }
   if (preferred === 'top') {
-    return { left: clampX(cx - POPOVER_W / 2), top: Math.max(16, y - POPOVER_H - POPOVER_GAP) }
+    return { left: clampX(cx - popoverW / 2), top: Math.max(16, y - POPOVER_H - POPOVER_GAP) }
   }
   if (preferred === 'right') {
-    return { left: Math.min(vw - POPOVER_W - 16, x + w + POPOVER_GAP), top: Math.max(16, y + h / 2 - POPOVER_H / 2) }
+    return { left: Math.min(vw - popoverW - 16, x + w + POPOVER_GAP), top: Math.max(16, y + h / 2 - POPOVER_H / 2) }
   }
   // left
-  return { left: Math.max(16, x - POPOVER_W - POPOVER_GAP), top: Math.max(16, y + h / 2 - POPOVER_H / 2) }
+  return { left: Math.max(16, x - popoverW - POPOVER_GAP), top: Math.max(16, y + h / 2 - POPOVER_H / 2) }
 }
 
 // ── メインコンポーネント ──────────────────────────────────────────────────────
@@ -177,8 +184,13 @@ export function HomeTour() {
   // スポットライト: ターゲットなし時はビューポート中央に 0×0 → 全体暗転
   const vw = typeof window !== 'undefined' ? window.innerWidth  : 0
   const vh = typeof window !== 'undefined' ? window.innerHeight : 0
+  const isLargeScreen = vw >= 1024
+  // PC では sidePC を優先、SP では side を使用
+  const effectiveSide = (isLargeScreen && step.sidePC) ? step.sidePC : step.side
+  // SP ではビューポート幅に収まるよう縮小
+  const popoverW   = getPopoverW()
   const animSpot  = spotRect ?? { x: vw / 2, y: vh / 2, w: 0, h: 0 }
-  const popoverPos = calcPopoverPos(spotRect, step.side)
+  const popoverPos = calcPopoverPos(spotRect, effectiveSide, popoverW)
 
   const Icon = step.icon
 
@@ -231,7 +243,7 @@ export function HomeTour() {
                   key={stepIdx}
                   className="absolute overflow-hidden rounded-2xl bg-white"
                   style={{
-                    width:        POPOVER_W,
+                    width:        popoverW,
                     left:         popoverPos.left,
                     top:          popoverPos.top,
                     pointerEvents: 'auto',
