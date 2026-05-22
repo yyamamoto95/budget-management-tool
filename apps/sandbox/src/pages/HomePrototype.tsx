@@ -1410,13 +1410,8 @@ export function HomePrototype() {
                      * SP: 全1カラム縦積み  /  PC: 各セクション内 2カラム
                      */}
 
-                    {/* ── 今日 ──────────────────────────────────────────────── */}
-                    <div className="mb-2 flex items-center gap-2">
-                        <span className="text-[10px] font-extrabold tracking-[0.12em]" style={{ color: C.muted }}>今日</span>
-                        <div className="flex-1 h-px" style={{ background: C.border }} />
-                    </div>
                     <motion.div
-                        className="grid grid-cols-1 gap-3 lg:grid-cols-2 lg:items-start"
+                        className="grid grid-cols-1 gap-3 lg:grid-cols-2"
                         variants={pageContainerVariants}
                         initial="hidden"
                         animate="visible"
@@ -1472,19 +1467,6 @@ export function HomePrototype() {
                                 })}
                             </div>
                         </motion.div>
-                    </motion.div>
-
-                    {/* ── 今月 ──────────────────────────────────────────────── */}
-                    <div className="mt-4 mb-2 flex items-center gap-2">
-                        <span className="text-[10px] font-extrabold tracking-[0.12em]" style={{ color: C.muted }}>今月</span>
-                        <div className="flex-1 h-px" style={{ background: C.border }} />
-                    </div>
-                    <motion.div
-                        className="grid grid-cols-1 gap-3 lg:grid-cols-2 lg:items-start"
-                        variants={pageContainerVariants}
-                        initial="hidden"
-                        animate="visible"
-                    >
                         {/* Block 3: 今月の貯蓄予測 */}
                         <motion.div data-tour="block-savings-forecast" variants={pageItemVariants} className="border p-4" style={{ borderRadius: R.card, background: C.card, borderColor: C.border, boxShadow: C.shadow }}>
                             <div className="mb-3 flex items-center justify-between">
@@ -1569,11 +1551,6 @@ export function HomePrototype() {
                         })()}
                     </motion.div>
 
-                    {/* ── 最近の記録 ──────────────────────────────────────── */}
-                    <div className="mt-4 mb-2 flex items-center gap-2">
-                        <span className="text-[10px] font-extrabold tracking-[0.12em]" style={{ color: C.muted }}>最近の記録</span>
-                        <div className="flex-1 h-px" style={{ background: C.border }} />
-                    </div>
                     <motion.div
                         data-tour="recent-records"
                         variants={pageContainerVariants}
