@@ -1553,6 +1553,7 @@ export function HomePrototype() {
 
                     <motion.div
                         data-tour="recent-records"
+                        className="mt-3"
                         variants={pageContainerVariants}
                         initial="hidden"
                         animate="visible"
