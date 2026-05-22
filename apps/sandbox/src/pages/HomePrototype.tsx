@@ -390,6 +390,7 @@ type QECProps = {
     balanceType: 0 | 1
     setBalanceType: (t: 0 | 1) => void
     amountStr: string
+    setAmountStr: (v: string) => void
     onClear: () => void
     categoryId: number
     setCategoryId: (id: number) => void
@@ -687,7 +688,7 @@ function QuickEntryContent(p: QECProps) {
 
                 {/* 2カラムグリッド */}
                 <motion.div variants={DRAWER_ANIM.item} className="grid grid-cols-2 gap-4 items-start">
-                    {/* 左: 金額表示 + テンキー */}
+                    {/* 左: 金額表示 + キーボード入力（PC）+ テンキー */}
                     <div className="space-y-3">
                         <AmountPanel
                             balanceType={p.balanceType}
@@ -699,6 +700,29 @@ function QuickEntryContent(p: QECProps) {
                                     {p.balanceType === 0 ? "支出金額" : "収入金額"}
                                 </span>
                             }
+                        />
+                        {/* PC キーボード入力フィールド */}
+                        <input
+                            autoFocus
+                            type="text"
+                            inputMode="numeric"
+                            className="w-full px-3 py-2 text-right font-bold tabular-nums outline-none transition-colors"
+                            style={{
+                                fontSize:     '18px',
+                                border:       `1.5px solid ${C.border}`,
+                                borderRadius: R.input,
+                                background:   C.bg,
+                                color:        C.text,
+                            }}
+                            onFocus={(e) => { e.currentTarget.style.borderColor = C.brand; e.currentTarget.style.background = C.brandLight }}
+                            onBlur={(e)  => { e.currentTarget.style.borderColor = C.border; e.currentTarget.style.background = C.bg }}
+                            value={p.amountStr}
+                            onChange={(e) => {
+                                const v = e.target.value.replace(/[^0-9]/g, '')
+                                if (v === '' || Number(v) <= 9_999_999) p.setAmountStr(v)
+                            }}
+                            placeholder="キーボードで入力"
+                            aria-label="金額をキーボードで入力"
                         />
                         <Numpad onKey={p.handleNumKey} />
                     </div>
@@ -1756,6 +1780,7 @@ export function HomePrototype() {
                             balanceType={balanceType}
                             setBalanceType={setBalanceType}
                             amountStr={amountStr}
+                            setAmountStr={setAmountStr}
                             onClear={() => setAmountStr("")}
                             categoryId={categoryId}
                             setCategoryId={setCategoryId}
@@ -1842,6 +1867,7 @@ export function HomePrototype() {
                                     balanceType={balanceType}
                                     setBalanceType={setBalanceType}
                                     amountStr={amountStr}
+                                    setAmountStr={setAmountStr}
                                     onClear={() => setAmountStr("")}
                                     categoryId={categoryId}
                                     setCategoryId={setCategoryId}

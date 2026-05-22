@@ -212,30 +212,21 @@ export function MeisaiPrototype() {
   }
 
   return (
-    <div className="min-h-screen pb-24 lg:pb-8" style={{ background: D.bg }}>
-
-      {/* ── Header ──────────────────────────────────────────────────────────── */}
-      <motion.header
-        className="sticky top-0 z-20 flex h-14 items-center border-b px-4 md:px-6"
-        style={{
-          background: 'rgba(255,253,245,0.92)',
-          backdropFilter: 'blur(12px)',
-          borderColor: D.border,
-        }}
-        initial={{ opacity: 0, y: -8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={SPRING.SMOOTH}
+    <>
+      {/* ── PC サイドバー ──────────────────────────────────────────────────── */}
+      <aside
+        className="hidden lg:flex lg:flex-col fixed inset-y-0 left-0 z-30 w-52 border-r"
+        style={{ background: D.card, borderColor: D.border }}
       >
-        <div className="flex items-center gap-2.5 shrink-0">
+        <div className="flex h-14 shrink-0 items-center gap-2.5 border-b px-4" style={{ borderColor: D.border }}>
           <img src="/logo192.png" alt="家計かんり" className="h-8 w-8 shrink-0" style={{ borderRadius: '10px' }} />
           <span className="text-[15px] font-extrabold tracking-tight" style={{ color: D.text }}>家計かんり</span>
         </div>
-        {/* PC ナビ */}
-        <nav className="hidden flex-1 items-center justify-center gap-0.5 md:flex">
+        <nav className="flex-1 overflow-y-auto p-3 space-y-0.5" aria-label="メインメニュー">
           {NAV_ITEMS.map((item) => (
             <Link key={item.label} to={item.to}
               aria-current={item.active ? 'page' : undefined}
-              className="flex items-center gap-1.5 px-3 py-2 text-[13px] font-semibold"
+              className="flex w-full items-center gap-3 px-3 py-2.5 text-[13px] font-semibold"
               style={{
                 borderRadius:   '10px',
                 background:     item.active ? D.brandLight : 'transparent',
@@ -243,12 +234,12 @@ export function MeisaiPrototype() {
                 textDecoration: 'none',
               }}
             >
-              <item.icon size={14} aria-hidden />
+              <item.icon size={17} aria-hidden />
               {item.label}
             </Link>
           ))}
         </nav>
-        <div className="ml-auto flex shrink-0 items-center gap-2">
+        <div className="shrink-0 border-t px-3 py-2.5 flex items-center justify-between" style={{ borderColor: D.border }}>
           <button type="button" className="flex h-8 w-8 items-center justify-center"
             style={{ color: 'rgba(28,20,16,0.45)', borderRadius: '8px' }} aria-label="通知">
             <Bell size={17} />
@@ -256,26 +247,45 @@ export function MeisaiPrototype() {
           <Link to="/my-page"
             className="flex h-8 w-8 items-center justify-center text-[12px] font-extrabold text-white"
             style={{
-              background:     `linear-gradient(135deg, ${D.brand}, ${D.brandDeep})`,
-              borderRadius:   '9999px',
-              boxShadow:      '0 2px 8px rgba(241,136,64,0.30)',
+              background: `linear-gradient(135deg, ${D.brand}, ${D.brandDeep})`,
+              borderRadius: '9999px',
+              boxShadow: '0 2px 8px rgba(241,136,64,0.30)',
               textDecoration: 'none',
             }}
             aria-label="マイページ">Y</Link>
         </div>
-      </motion.header>
+      </aside>
 
-      {/* ── スティッキーコントロール ────────────────────────────────────────── */}
-      <div
-        className="sticky top-14 z-10 border-b"
-        style={{
-          background:     'rgba(255,253,245,0.96)',
-          backdropFilter: 'blur(10px)',
-          borderColor:    D.border,
-        }}
-      >
-        {/* 行1: 期間フィルタ + リスト/カレンダー切替 */}
-        <div className="mx-auto max-w-4xl flex items-center gap-2 px-4 pt-2 pb-1.5">
+      <div className="min-h-screen pb-24 lg:pb-8 lg:pl-52" style={{ background: D.bg }}>
+
+        {/* ── SP: ベル + アバター ─────────────────────────────────────────── */}
+        <div className="lg:hidden flex items-center justify-end gap-2 px-4 pt-3 pb-1">
+          <button type="button" className="flex h-8 w-8 items-center justify-center"
+            style={{ color: 'rgba(28,20,16,0.45)', borderRadius: '8px' }} aria-label="通知">
+            <Bell size={17} />
+          </button>
+          <Link to="/my-page"
+            className="flex h-8 w-8 items-center justify-center text-[12px] font-extrabold text-white"
+            style={{
+              background: `linear-gradient(135deg, ${D.brand}, ${D.brandDeep})`,
+              borderRadius: '9999px',
+              boxShadow: '0 2px 8px rgba(241,136,64,0.30)',
+              textDecoration: 'none',
+            }}
+            aria-label="マイページ">Y</Link>
+        </div>
+
+        {/* ── スティッキーコントロール ──────────────────────────────────────── */}
+        <div
+          className="sticky top-0 z-10 border-b"
+          style={{
+            background:     'rgba(255,253,245,0.96)',
+            backdropFilter: 'blur(10px)',
+            borderColor:    D.border,
+          }}
+        >
+          {/* 行1: 期間フィルタ + リスト/カレンダー切替 */}
+          <div className="flex items-center gap-2 px-4 pt-2 pb-1.5 md:px-6">
           <div className="flex flex-1 gap-1 overflow-x-auto">
             {PERIOD_ORDER.map(p => {
               const active = period === p
@@ -322,26 +332,26 @@ export function MeisaiPrototype() {
           </div>
         </div>
 
-        {/* 行2: 検索バー */}
-        <div className="mx-auto max-w-4xl px-4 pb-2">
-          <div
-            className="flex items-center gap-2 rounded-xl px-3 py-2"
-            style={{ background: D.surface, border: `1px solid ${D.border}` }}
-          >
-            <Search size={13} style={{ color: D.muted, flexShrink: 0 }} />
-            <input
-              type="search"
-              placeholder="ラベル・カテゴリで検索"
-              value={query}
-              onChange={e => setQuery(e.target.value)}
-              className="flex-1 bg-transparent text-[13px] outline-none"
-              style={{ color: D.text }}
-            />
+          {/* 行2: 検索バー */}
+          <div className="px-4 pb-2 md:px-6">
+            <div
+              className="flex items-center gap-2 rounded-xl px-3 py-2"
+              style={{ background: D.surface, border: `1px solid ${D.border}` }}
+            >
+              <Search size={13} style={{ color: D.muted, flexShrink: 0 }} />
+              <input
+                type="search"
+                placeholder="ラベル・カテゴリで検索"
+                value={query}
+                onChange={e => setQuery(e.target.value)}
+                className="flex-1 bg-transparent text-[13px] outline-none"
+                style={{ color: D.text }}
+              />
+            </div>
           </div>
         </div>
-      </div>
 
-      <main className="mx-auto max-w-4xl px-4 py-4 md:px-6">
+        <main className="px-4 py-4 md:px-6">
         <AnimatePresence mode="wait">
 
           {/* ── リストビュー ────────────────────────────────────────────────── */}
@@ -717,11 +727,11 @@ export function MeisaiPrototype() {
           )}
 
         </AnimatePresence>
-      </main>
+        </main>
 
-      {/* ── モバイルボトムナビ（中央FABパターン） ──────────────────────────── */}
-      <nav
-        className="fixed bottom-0 left-0 right-0 z-30 lg:hidden"
+        {/* ── SP モバイルボトムナビ（中央FABパターン） ──────────────────────── */}
+        <nav
+          className="fixed bottom-0 left-0 right-0 z-30 lg:hidden"
         style={{
           background:     'rgba(255,253,245,0.92)',
           backdropFilter: 'blur(16px)',
@@ -772,9 +782,10 @@ export function MeisaiPrototype() {
               <span className="text-[10px] font-bold leading-none">{item.label}</span>
             </Link>
           ))}
-        </div>
-      </nav>
+          </div>
+        </nav>
 
-    </div>
+      </div>
+    </>
   )
 }

@@ -453,37 +453,34 @@ export function PersonalSettingsPrototype() {
   }
 
   return (
-    <div className="min-h-screen pb-24 lg:pb-8" style={{ background: D.bg }}>
-
-      {/* ── Header ────────────────────────────────────────────────────────── */}
-      <motion.header
-        className="sticky top-0 z-20 flex h-14 items-center border-b px-4 md:px-6"
-        style={{ background: 'rgba(255,253,245,0.92)', backdropFilter: 'blur(12px)', borderColor: D.border }}
-        initial={{ opacity: 0, y: -8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={SPRING.SMOOTH}
+    <>
+      {/* ── PC サイドバー ──────────────────────────────────────────────────── */}
+      <aside
+        className="hidden lg:flex lg:flex-col fixed inset-y-0 left-0 z-30 w-52 border-r"
+        style={{ background: D.card, borderColor: D.border }}
       >
-        <div className="flex items-center gap-2.5 shrink-0">
+        <div className="flex h-14 shrink-0 items-center gap-2.5 border-b px-4" style={{ borderColor: D.border }}>
           <img src="/logo192.png" alt="家計かんり" className="h-8 w-8 shrink-0" style={{ borderRadius: '10px' }} />
           <span className="text-[15px] font-extrabold tracking-tight" style={{ color: D.text }}>家計かんり</span>
         </div>
-        <nav className="hidden flex-1 items-center justify-center gap-0.5 md:flex" aria-label="メインナビゲーション">
+        <nav className="flex-1 overflow-y-auto p-3 space-y-0.5" aria-label="メインメニュー">
           {NAV_ITEMS.map((item) => (
             <Link key={item.label} to={item.to}
               aria-current={item.active ? 'page' : undefined}
-              className="flex items-center gap-1.5 px-3 py-2 text-[13px] font-semibold"
+              className="flex w-full items-center gap-3 px-3 py-2.5 text-[13px] font-semibold"
               style={{
-                borderRadius: '10px',
+                borderRadius:   '10px',
                 background:     item.active ? D.brandLight : 'transparent',
                 color:          item.active ? D.brand : 'rgba(28,20,16,0.50)',
                 textDecoration: 'none',
-              }}>
-              <item.icon size={14} aria-hidden />
+              }}
+            >
+              <item.icon size={17} aria-hidden />
               {item.label}
             </Link>
           ))}
         </nav>
-        <div className="ml-auto flex shrink-0 items-center gap-2">
+        <div className="shrink-0 border-t px-3 py-2.5 flex items-center justify-between" style={{ borderColor: D.border }}>
           <button type="button" className="flex h-8 w-8 items-center justify-center"
             style={{ color: 'rgba(28,20,16,0.45)', borderRadius: '8px' }} aria-label="通知">
             <Bell size={17} />
@@ -492,17 +489,37 @@ export function PersonalSettingsPrototype() {
             className="flex h-8 w-8 items-center justify-center text-[12px] font-extrabold text-white"
             style={{
               background: `linear-gradient(135deg, ${D.brand}, ${D.brandDeep})`,
-              borderRadius: '9999px', boxShadow: '0 2px 8px rgba(241,136,64,0.30)',
+              borderRadius: '9999px',
+              boxShadow: '0 2px 8px rgba(241,136,64,0.30)',
               textDecoration: 'none',
             }}
             aria-label="マイページ">Y</Link>
         </div>
-      </motion.header>
+      </aside>
 
-      {/* ── Mini Preview Bar (mobile sticky) ──────────────────────────────── */}
-      <div className="sticky top-14 z-10 lg:hidden border-b"
-        style={{ background: 'rgba(255,253,245,0.95)', backdropFilter: 'blur(10px)', borderColor: D.border }}>
-        <div className="mx-auto max-w-7xl flex items-center gap-4 px-4 py-2.5">
+      <div className="min-h-screen pb-24 lg:pb-8 lg:pl-52" style={{ background: D.bg }}>
+
+        {/* ── SP: ベル + アバター ─────────────────────────────────────────── */}
+        <div className="lg:hidden flex items-center justify-end gap-2 px-4 pt-3 pb-1">
+          <button type="button" className="flex h-8 w-8 items-center justify-center"
+            style={{ color: 'rgba(28,20,16,0.45)', borderRadius: '8px' }} aria-label="通知">
+            <Bell size={17} />
+          </button>
+          <Link to="/my-page"
+            className="flex h-8 w-8 items-center justify-center text-[12px] font-extrabold text-white"
+            style={{
+              background: `linear-gradient(135deg, ${D.brand}, ${D.brandDeep})`,
+              borderRadius: '9999px',
+              boxShadow: '0 2px 8px rgba(241,136,64,0.30)',
+              textDecoration: 'none',
+            }}
+            aria-label="マイページ">Y</Link>
+        </div>
+
+        {/* ── Mini Preview Bar (mobile sticky) ────────────────────────────── */}
+        <div className="sticky top-0 z-10 lg:hidden border-b"
+          style={{ background: 'rgba(255,253,245,0.95)', backdropFilter: 'blur(10px)', borderColor: D.border }}>
+          <div className="flex items-center gap-4 px-4 py-2.5">
           <div className="shrink-0">
             <div className="text-[10px] font-semibold" style={{ color: D.muted }}>1日予算</div>
             <motion.div
@@ -543,9 +560,9 @@ export function PersonalSettingsPrototype() {
         </div>
       </div>
 
-      {/* ── Main ──────────────────────────────────────────────────────────── */}
-      <main className="mx-auto max-w-7xl px-4 py-4 md:px-6 md:py-5">
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-[160px_1fr_380px] lg:items-start lg:gap-5">
+        {/* ── Main ─────────────────────────────────────────────────────────── */}
+        <main className="px-4 py-4 md:px-6 md:py-5">
+        <div className={`grid grid-cols-1 gap-4 lg:items-start lg:gap-5 ${activeMenu === 'settings' ? 'lg:grid-cols-[160px_1fr_380px]' : 'lg:grid-cols-[160px_1fr]'}`}>
 
           {/* ── PC Left Menu Sidebar ─────────────────────────────────────────── */}
           <nav
@@ -579,9 +596,9 @@ export function PersonalSettingsPrototype() {
             </div>
           </nav>
 
-          {/* Preview Card — PC only, right column, sticky */}
+          {/* Preview Card — PC only, right column, sticky（設定タブのみ表示） */}
           <motion.div
-            className="hidden lg:block lg:col-start-3 lg:row-start-1 lg:sticky lg:top-[5.5rem]"
+            className={`lg:col-start-3 lg:row-start-1 lg:sticky lg:top-[5.5rem] ${activeMenu === 'settings' ? 'hidden lg:block' : 'hidden'}`}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ ...SPRING.SMOOTH, delay: 0.04 }}
@@ -921,31 +938,32 @@ export function PersonalSettingsPrototype() {
           </div>
 
         </div>
-      </main>
+        </main>
 
-      {/* ── Mobile Bottom Nav ─────────────────────────────────────────────── */}
-      <nav className="fixed bottom-0 left-0 right-0 z-30 lg:hidden"
-        style={{
-          background: 'rgba(255,253,245,0.92)', backdropFilter: 'blur(16px)',
-          borderTop: `1px solid ${D.border}`,
-          paddingBottom: 'env(safe-area-inset-bottom, 0px)',
-        }}
-        aria-label="メインメニュー"
-      >
-        <div className="grid grid-cols-4 h-14">
-          {NAV_ITEMS.map((item) => (
-            <Link key={item.label} to={item.to}
-              aria-current={item.active ? 'page' : undefined}
-              className="flex flex-col items-center justify-center gap-0.5"
-              style={{ color: item.active ? D.brand : 'rgba(28,20,16,0.40)', textDecoration: 'none' }}>
-              <item.icon size={20} strokeWidth={item.active ? 2.4 : 2} aria-hidden />
-              <span className="text-[10px] font-bold leading-none">{item.label}</span>
-            </Link>
-          ))}
-        </div>
-      </nav>
+        {/* ── SP モバイルボトムナビ ──────────────────────────────────────────── */}
+        <nav className="fixed bottom-0 left-0 right-0 z-30 lg:hidden"
+          style={{
+            background: 'rgba(255,253,245,0.92)', backdropFilter: 'blur(16px)',
+            borderTop: `1px solid ${D.border}`,
+            paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+          }}
+          aria-label="メインメニュー"
+        >
+          <div className="grid grid-cols-4 h-14">
+            {NAV_ITEMS.map((item) => (
+              <Link key={item.label} to={item.to}
+                aria-current={item.active ? 'page' : undefined}
+                className="flex flex-col items-center justify-center gap-0.5"
+                style={{ color: item.active ? D.brand : 'rgba(28,20,16,0.40)', textDecoration: 'none' }}>
+                <item.icon size={20} strokeWidth={item.active ? 2.4 : 2} aria-hidden />
+                <span className="text-[10px] font-bold leading-none">{item.label}</span>
+              </Link>
+            ))}
+          </div>
+        </nav>
 
-      <Toast visible={saved} />
-    </div>
+        <Toast visible={saved} />
+      </div>
+    </>
   )
 }
