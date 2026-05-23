@@ -22,7 +22,10 @@ const loginRoute = createRoute({
     summary: 'ログイン',
     description: 'userId / password で認証し、JWT アクセストークンとリフレッシュトークンを返す。',
     request: {
-        body: { content: { 'application/json': { schema: LoginRequestSchema } }, required: true },
+        body: {
+            content: { 'application/json': { schema: LoginRequestSchema } },
+            required: true,
+        },
     },
     responses: {
         200: {
@@ -73,7 +76,10 @@ const refreshRoute = createRoute({
     summary: 'トークンリフレッシュ',
     description: 'リフレッシュトークンを消費し、新しいトークンペアを返す（Refresh Token Rotation）。',
     request: {
-        body: { content: { 'application/json': { schema: RefreshRequestSchema } }, required: true },
+        body: {
+            content: { 'application/json': { schema: RefreshRequestSchema } },
+            required: true,
+        },
     },
     responses: {
         200: {
@@ -103,7 +109,10 @@ const logoutRoute = createRoute({
     description: 'リフレッシュトークンを失効させる。',
     security: [{ bearerAuth: [] }],
     request: {
-        body: { content: { 'application/json': { schema: LogoutRequestSchema } }, required: false },
+        body: {
+            content: { 'application/json': { schema: LogoutRequestSchema } },
+            required: false,
+        },
     },
     responses: {
         200: {
@@ -170,10 +179,22 @@ export function createAuthRoutes({ tokenService, userRepository }: RouteServices
         } catch (err) {
             const msg = err instanceof Error ? err.message : '';
             if (msg === 'REFRESH_TOKEN_REUSE_DETECTED') {
-                return c.json({ result: 'error' as const, message: '不正なトークンが検出されました' }, 401);
+                return c.json(
+                    {
+                        result: 'error' as const,
+                        message: '不正なトークンが検出されました',
+                    },
+                    401
+                );
             }
             if (msg === 'REFRESH_TOKEN_EXPIRED' || msg === 'INVALID_REFRESH_TOKEN') {
-                return c.json({ result: 'error' as const, message: 'トークンが無効です。再ログインしてください' }, 401);
+                return c.json(
+                    {
+                        result: 'error' as const,
+                        message: 'トークンが無効です。再ログインしてください',
+                    },
+                    401
+                );
             }
             console.error('[POST /refresh]', err);
             return c.json({ result: 'error' as const, message: 'Something broken' }, 500);

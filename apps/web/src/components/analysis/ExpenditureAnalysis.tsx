@@ -92,11 +92,11 @@ export function ExpenditureAnalysis({ data }: Props) {
                             <p
                                 className="text-2xl font-bold tabular-nums"
                                 style={{
-                                    color: totalDeviation >= 70
-                                        ? "var(--color-brand-secondary)"
-                                        : totalDeviation >= 60
-                                        ? "var(--color-brand-primary)"
-                                        : "var(--color-income)",
+                                    color: (() => {
+                                        if (totalDeviation >= 70) return "var(--color-brand-secondary)";
+                                        if (totalDeviation >= 60) return "var(--color-brand-primary)";
+                                        return "var(--color-income)";
+                                    })(),
                                 }}
                             >
                                 {totalDeviation}
@@ -162,20 +162,23 @@ export function ExpenditureAnalysis({ data }: Props) {
                 {/* 判定コメント */}
                 <div className="mb-6 rounded-[var(--radius-card)] border border-orange-100 bg-white p-5 shadow-sm">
                     <h2 className="mb-2 text-sm font-semibold text-zinc-700">総合判定</h2>
-                    {totalDeviation < 40 ? (
+                    {totalDeviation < 40 && (
                         <p className="text-sm text-zinc-700" style={{ color: "var(--color-income)" }}>
                             支出水準は平均を下回っています。この調子を維持することで家計の寿命を着実に延ばせます。
                         </p>
-                    ) : totalDeviation < 60 ? (
+                    )}
+                    {totalDeviation >= 40 && totalDeviation < 60 && (
                         <p className="text-sm text-zinc-700">
                             支出水準は標準的です。上のカテゴリを少し調整するだけで、より長い自由な期間を手に入れられます。
                         </p>
-                    ) : totalDeviation < 70 ? (
+                    )}
+                    {totalDeviation >= 60 && totalDeviation < 70 && (
                         <p className="text-sm text-zinc-700">
                             支出が平均よりやや高い傾向にあります。
                             {topImpact[0] && `特に「${topImpact[0].label}」を見直すと効果的です。`}
                         </p>
-                    ) : (
+                    )}
+                    {totalDeviation >= 70 && (
                         <p className="text-sm text-zinc-700">
                             支出が高水準です。上記のカテゴリを調整することで、家計の寿命を合計
                             <strong className="mx-1" style={{ color: "var(--color-brand-primary)" }}>

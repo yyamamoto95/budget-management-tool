@@ -50,7 +50,9 @@ export class TokenService {
     /** アクセストークンを検証し、ペイロードを返す */
     async verifyAccessToken(token: string): Promise<JwtPayload> {
         const publicKey = await this.getPublicKey();
-        const { payload } = await jwtVerify(token, publicKey, { algorithms: [ALGORITHM] });
+        const { payload } = await jwtVerify(token, publicKey, {
+            algorithms: [ALGORITHM],
+        });
 
         if (!payload.sub || !payload.jti) {
             throw new Error('invalid token payload');

@@ -15,6 +15,7 @@ const CY = 100;
 const OUTER_R = 80;
 const INNER_R = 50;
 
+// eslint-disable-next-line max-params -- SVG幾何計算ユーティリティ; 4引数はすべて意味的に独立している
 function polarToCartesian(cx: number, cy: number, r: number, angleDeg: number) {
   const rad = (angleDeg * Math.PI) / 180;
   return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };

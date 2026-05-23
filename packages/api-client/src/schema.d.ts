@@ -492,6 +492,55 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/expense/parse": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** テキストから支出情報をパース */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ExpenseParseRequest"];
+                };
+            };
+            responses: {
+                /** @description パース結果 */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ExpenseParseResponse"];
+                    };
+                };
+                /** @description 未認証 */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/budget": {
         parameters: {
             query?: never;
@@ -1598,6 +1647,11 @@ export interface components {
                  */
                 date: string;
                 /**
+                 * @description カテゴリID（省略時はデフォルト: 1=食費）
+                 * @example 3
+                 */
+                categoryId?: number;
+                /**
                  * @description 備考
                  * @example 昼食代
                  */
@@ -1623,11 +1677,47 @@ export interface components {
                  */
                 date: string;
                 /**
+                 * @description カテゴリID
+                 * @example 3
+                 */
+                categoryId?: number;
+                /**
                  * @description 備考
                  * @example 昼食代
                  */
                 content?: string | null;
             };
+        };
+        ExpenseParseResponse: {
+            /**
+             * @description 抽出された金額（円）。見つからない場合は null
+             * @example 900
+             */
+            amount: number | null;
+            /**
+             * @description 推定カテゴリ ID（0: 未分類）
+             * @example 1
+             */
+            categoryId: number;
+            /**
+             * @description 入力テキスト（備考欄の初期値として利用）
+             * @example ランチ代¥900
+             */
+            content: string;
+            /**
+             * @description パース実行日（YYYY-MM-DD）
+             * @example 2026-05-09
+             */
+            date: string;
+        };
+        ExpenseParseRequest: {
+            /**
+             * @description パース対象テキスト（例: 「ランチ代¥900」「スーパーで1200円」）
+             * @example ランチ代¥900
+             */
+            text: string;
+            /** @description レシート画像（Base64）。現時点では未対応（将来的に AI モデルで処理） */
+            imageBase64?: string;
         };
         BudgetResponse: {
             /**

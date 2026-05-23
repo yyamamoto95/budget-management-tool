@@ -1,18 +1,18 @@
 {
-    "compilerOptions": {
-        "lib": ["ES2020", "DOM"],
-        "target": "ES2020",
-        "module": "CommonJS",
-        "moduleResolution": "node",
-        "outDir": "./build",
-        "sourceMap": true,
-        "skipLibCheck": true,
-        "strictNullChecks": true,
-        "baseUrl": ".",
-        "paths": {
-            "@budget/common": ["../../packages/common/src/index.ts"],
-            "@budget/common/*": ["../../packages/common/src/*"]
-        }
-    },
-    "exclude": ["node_modules", "src/__tests__"]
+	"compilerOptions": {
+		"lib": ["ES2020", "DOM"],
+		"target": "ES2020",
+		"module": "CommonJS",
+		"moduleResolution": "node",
+		"outDir": "./build",
+		"sourceMap": true,
+		"skipLibCheck": true,
+		"strictNullChecks": true,
+		"baseUrl": ".",
+		"paths": {
+			"@budget/common": ["../../packages/common/src/index.ts"],
+			"@budget/common/*": ["../../packages/common/src/*"]
+		}
+	},
+	"exclude": ["node_modules", "src/__tests__"]
 }

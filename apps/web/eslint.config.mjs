@@ -54,6 +54,43 @@ const eslintConfig = defineConfig([
       ],
     },
   },
+  // セキュリティ・型安全強制ルール（本番コードのみ。テストはモック都合で一部除外）
+  {
+    files: ["**/*.{ts,tsx}"],
+    ignores: ["**/__tests__/**", "**/*.stories.tsx", "**/components/ui/**"],
+    rules: {
+      // XSS 防止: dangerouslySetInnerHTML の直接使用を禁止する
+      "react/no-danger": "error",
+      // 任意コード実行防止: eval() / new Function() を禁止する
+      "no-eval": "error",
+      "no-new-func": "error",
+      // XSS 防止: javascript: スキームを href に使用することを禁止する
+      "no-script-url": "error",
+      // 型安全: 'as any' キャストを禁止する（型定義を見直すこと）
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector: "TSAsExpression[typeAnnotation.type='TSAnyKeyword']",
+          message:
+            "'as any' は禁止です。型定義を見直すか、unknown を使用してください。",
+        },
+      ],
+      // 未使用変数・引数を警告ではなくエラーにする（本番コードに未使用コードを残さない）
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
+      ],
+      // 変数宣言: const 優先・var 禁止
+      "prefer-const": "error",
+      "no-var": "error",
+      // 可読性: ネスト三項演算子を禁止する
+      "no-nested-ternary": "error",
+      // デバッグコード禁止: console.log/debug を本番コードに残さない
+      "no-console": ["error", { allow: ["error", "warn"] }],
+      // 引数の数: 4つ以上はオブジェクト引数に変換する
+      "max-params": ["error", 3],
+    },
+  },
 ]);
 
 export default eslintConfig;

@@ -64,7 +64,10 @@ describe('UpdateExpenseUseCase', () => {
         });
 
         it('正常系: content が null でも更新できる', async () => {
-            const result = await useCase.execute('expense-01', { ...validInput, content: null });
+            const result = await useCase.execute('expense-01', {
+                ...validInput,
+                content: null,
+            });
             expect(result.ok).toBe(true);
             if (result.ok) {
                 expect(result.value).toEqual(updatedExpense);

@@ -22,13 +22,17 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 // biome-ignore lint/suspicious/noExplicitAny: bcrypt は CommonJS モジュールのため require を使用
-const bcrypt = require('bcrypt') as { hash: (data: string, rounds: number) => Promise<string> };
+const bcrypt = require('bcrypt') as {
+    hash: (data: string, rounds: number) => Promise<string>;
+};
 
 const GUEST_USER_ID = 'Guest';
 const GUEST_USER_NAME = 'ゲスト';
 
 async function seedGuestUser(prisma: PrismaClient): Promise<void> {
-    const existing = await prisma.userList.findUnique({ where: { userId: GUEST_USER_ID } });
+    const existing = await prisma.userList.findUnique({
+        where: { userId: GUEST_USER_ID },
+    });
     if (existing) {
         console.log(`  → ゲストユーザーは既に存在します（スキップ）: userId=${GUEST_USER_ID}`);
         return;

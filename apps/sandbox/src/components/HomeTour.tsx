@@ -9,8 +9,9 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { createPortal } from 'react-dom'
+import { useSearchParams } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { HelpCircle, X, ChevronRight, ChevronLeft } from 'lucide-react'
+import { X, ChevronRight, ChevronLeft } from 'lucide-react'
 import { HOME_TOUR_STEPS, type TourStepDef } from '../tours/homeTourSteps'
 
 // ── Cookie ヘルパー ─────────────────────────────────────────────────────────
@@ -35,25 +36,38 @@ type SpotRect = { x: number; y: number; w: number; h: number }
 const SPOT_PADDING = 8
 
 function getTargetRect(selector: string): SpotRect | null {
-  const el = document.querySelector(selector)
-  if (!el) return null
-  const r = el.getBoundingClientRect()
-  return {
-    x: r.left - SPOT_PADDING,
-    y: r.top  - SPOT_PADDING,
-    w: r.width  + SPOT_PADDING * 2,
-    h: r.height + SPOT_PADDING * 2,
+  // 同じ selector が複数ある場合（SP/PC 出し分け要素など）は
+  // 表示中の要素（width > 0）を優先して返す
+  const els = document.querySelectorAll(selector)
+  for (const el of Array.from(els)) {
+    const r = el.getBoundingClientRect()
+    if (r.width > 0 && r.height > 0) {
+      return {
+        x: r.left - SPOT_PADDING,
+        y: r.top  - SPOT_PADDING,
+        w: r.width  + SPOT_PADDING * 2,
+        h: r.height + SPOT_PADDING * 2,
+      }
+    }
   }
+  return null
 }
 
 // ── ポップオーバー位置計算 ────────────────────────────────────────────────────
-const POPOVER_W   = 320
-const POPOVER_H   = 260   // 概算高さ（スペース不足チェック用）
-const POPOVER_GAP = 14
+const POPOVER_W_MAX = 320
+const POPOVER_H     = 340   // 保守的な最大高さ（スペース不足チェック・クランプ用）
+const POPOVER_GAP   = 14
+
+/** ビューポート幅に応じたポップオーバー幅を返す */
+function getPopoverW(): number {
+  if (typeof window === 'undefined') return POPOVER_W_MAX
+  return Math.min(POPOVER_W_MAX, window.innerWidth - 32)
+}
 
 function calcPopoverPos(
   spotRect: SpotRect | null,
   side: TourStepDef['side'],
+  popoverW: number,
 ): { left: number; top: number } {
   const vw = window.innerWidth
   const vh = window.innerHeight
@@ -61,14 +75,16 @@ function calcPopoverPos(
   // ターゲットなし / center → ビューポート中央
   if (!spotRect || side === 'center') {
     return {
-      left: Math.max(16, (vw - POPOVER_W) / 2),
+      left: Math.max(16, (vw - popoverW) / 2),
       top:  Math.max(16, (vh - POPOVER_H) / 2),
     }
   }
 
   const { x, y, w, h } = spotRect
   const cx = x + w / 2
-  const clampX = (v: number) => Math.max(16, Math.min(vw - POPOVER_W - 16, v))
+  const clampX   = (v: number) => Math.max(16, Math.min(vw - popoverW - 16, v))
+  // ポップオーバーが画面下端を超えないようにクランプ
+  const clampTop = (v: number) => Math.max(16, Math.min(vh - POPOVER_H - 16, v))
 
   // スペース不足のとき自動反転
   const spaceBelow = vh - (y + h)
@@ -81,16 +97,16 @@ function calcPopoverPos(
   }
 
   if (preferred === 'bottom') {
-    return { left: clampX(cx - POPOVER_W / 2), top: y + h + POPOVER_GAP }
+    return { left: clampX(cx - popoverW / 2), top: clampTop(y + h + POPOVER_GAP) }
   }
   if (preferred === 'top') {
-    return { left: clampX(cx - POPOVER_W / 2), top: Math.max(16, y - POPOVER_H - POPOVER_GAP) }
+    return { left: clampX(cx - popoverW / 2), top: Math.max(16, y - POPOVER_H - POPOVER_GAP) }
   }
   if (preferred === 'right') {
-    return { left: Math.min(vw - POPOVER_W - 16, x + w + POPOVER_GAP), top: Math.max(16, y + h / 2 - POPOVER_H / 2) }
+    return { left: Math.min(vw - popoverW - 16, x + w + POPOVER_GAP), top: clampTop(Math.max(16, y + h / 2 - POPOVER_H / 2)) }
   }
   // left
-  return { left: Math.max(16, x - POPOVER_W - POPOVER_GAP), top: Math.max(16, y + h / 2 - POPOVER_H / 2) }
+  return { left: Math.max(16, x - popoverW - POPOVER_GAP), top: clampTop(Math.max(16, y + h / 2 - POPOVER_H / 2)) }
 }
 
 // ── メインコンポーネント ──────────────────────────────────────────────────────
@@ -99,6 +115,7 @@ export function HomeTour() {
   const [stepIdx, setStepIdx] = useState(0)
   const [spotRect, setSpotRect] = useState<SpotRect | null>(null)
   const [dir, setDir] = useState<1 | -1>(1)
+  const [searchParams, setSearchParams] = useSearchParams()
 
   const step  = HOME_TOUR_STEPS[stepIdx]
   const total = HOME_TOUR_STEPS.length
@@ -128,6 +145,14 @@ export function HomeTour() {
     window.addEventListener('resize', updateSpot)
     return () => window.removeEventListener('resize', updateSpot)
   }, [active, updateSpot])
+
+  // ガイド中はスクロール禁止
+  useEffect(() => {
+    if (!active) return
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = prev }
+  }, [active])
 
   function startTour() {
     setStepIdx(0)
@@ -160,31 +185,33 @@ export function HomeTour() {
     }
   }, [])
 
+  // ?tour=1 で設定ページのガイドタブから起動
+  useEffect(() => {
+    if (searchParams.get('tour') === '1') {
+      const t = setTimeout(() => {
+        startTour()
+        setSearchParams({}, { replace: true })
+      }, 600)
+      return () => clearTimeout(t)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   // スポットライト: ターゲットなし時はビューポート中央に 0×0 → 全体暗転
   const vw = typeof window !== 'undefined' ? window.innerWidth  : 0
   const vh = typeof window !== 'undefined' ? window.innerHeight : 0
+  const isLargeScreen = vw >= 1024
+  // PC では sidePC を優先、SP では side を使用
+  const effectiveSide = (isLargeScreen && step.sidePC) ? step.sidePC : step.side
+  // SP ではビューポート幅に収まるよう縮小
+  const popoverW   = getPopoverW()
   const animSpot  = spotRect ?? { x: vw / 2, y: vh / 2, w: 0, h: 0 }
-  const popoverPos = calcPopoverPos(spotRect, step.side)
+  const popoverPos = calcPopoverPos(spotRect, effectiveSide, popoverW)
 
   const Icon = step.icon
 
   return (
     <>
-      {/* いつでも再表示できる ? ボタン */}
-      <button
-        type="button"
-        aria-label="使い方ガイドを表示"
-        onClick={startTour}
-        className="fixed bottom-24 right-4 z-40 flex h-10 w-10 items-center justify-center rounded-full shadow-lg transition-all hover:scale-105 hover:opacity-90 lg:bottom-6"
-        style={{
-          background:     'rgba(28,20,16,0.72)',
-          backdropFilter: 'blur(10px)',
-          color:          '#fff',
-        }}
-      >
-        <HelpCircle size={18} strokeWidth={2.2} />
-      </button>
-
       {/* ポータル: オーバーレイ + スポットライト + ポップオーバー */}
       {active && createPortal(
         <AnimatePresence>
@@ -232,7 +259,7 @@ export function HomeTour() {
                   key={stepIdx}
                   className="absolute overflow-hidden rounded-2xl bg-white"
                   style={{
-                    width:        POPOVER_W,
+                    width:        popoverW,
                     left:         popoverPos.left,
                     top:          popoverPos.top,
                     pointerEvents: 'auto',

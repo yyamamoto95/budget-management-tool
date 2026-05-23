@@ -85,7 +85,7 @@ function calcDailyBudget(s: State) {
 // ─── ナビゲーション ──────────────────────────────────────────────────────────
 const NAV_ITEMS = [
   { label: 'ホーム',     icon: Home,     to: '/home',              active: false },
-  { label: 'カレンダー', icon: Calendar,  to: '/calendar-page',     active: false },
+  { label: 'カレンダー', icon: Calendar,  to: '/home',              active: false },
   { label: 'レポート',   icon: BarChart2, to: '/asset-outlook-ab',  active: false },
   { label: '設定',       icon: Settings,  to: '/personal-settings', active: true  },
 ] as const

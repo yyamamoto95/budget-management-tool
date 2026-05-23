@@ -50,7 +50,10 @@ describe('UpsertUserSettingsUseCase', () => {
     });
 
     it('正常系: 月次収入 0 で保存できる', async () => {
-        vi.mocked(mockRepo.upsert).mockResolvedValue({ ...mockSettings, monthlyIncome: 0 });
+        vi.mocked(mockRepo.upsert).mockResolvedValue({
+            ...mockSettings,
+            monthlyIncome: 0,
+        });
 
         const result = await useCase.execute({ ...validInput, monthlyIncome: 0 });
 
@@ -61,7 +64,10 @@ describe('UpsertUserSettingsUseCase', () => {
     });
 
     it('正常系: 総資産 0 で保存できる', async () => {
-        vi.mocked(mockRepo.upsert).mockResolvedValue({ ...mockSettings, totalAssets: 0 });
+        vi.mocked(mockRepo.upsert).mockResolvedValue({
+            ...mockSettings,
+            totalAssets: 0,
+        });
 
         const result = await useCase.execute({ ...validInput, totalAssets: 0 });
 
@@ -72,7 +78,10 @@ describe('UpsertUserSettingsUseCase', () => {
     });
 
     it('正常系: 給料日 1 で保存できる（最小値）', async () => {
-        vi.mocked(mockRepo.upsert).mockResolvedValue({ ...mockSettings, paydayDay: 1 });
+        vi.mocked(mockRepo.upsert).mockResolvedValue({
+            ...mockSettings,
+            paydayDay: 1,
+        });
 
         const result = await useCase.execute({ ...validInput, paydayDay: 1 });
 
@@ -83,7 +92,10 @@ describe('UpsertUserSettingsUseCase', () => {
     });
 
     it('正常系: 給料日 31 で保存できる（最大値）', async () => {
-        vi.mocked(mockRepo.upsert).mockResolvedValue({ ...mockSettings, paydayDay: 31 });
+        vi.mocked(mockRepo.upsert).mockResolvedValue({
+            ...mockSettings,
+            paydayDay: 31,
+        });
 
         const result = await useCase.execute({ ...validInput, paydayDay: 31 });
 
@@ -139,15 +151,24 @@ describe('UpsertUserSettingsUseCase', () => {
     });
 
     it('正常系: initialSetupCompleted=true で保存できる', async () => {
-        vi.mocked(mockRepo.upsert).mockResolvedValue({ ...mockSettings, initialSetupCompleted: true });
+        vi.mocked(mockRepo.upsert).mockResolvedValue({
+            ...mockSettings,
+            initialSetupCompleted: true,
+        });
 
-        const result = await useCase.execute({ ...validInput, initialSetupCompleted: true });
+        const result = await useCase.execute({
+            ...validInput,
+            initialSetupCompleted: true,
+        });
 
         expect(result.ok).toBe(true);
         if (result.ok) {
             expect(result.value.initialSetupCompleted).toBe(true);
         }
-        expect(mockRepo.upsert).toHaveBeenCalledWith({ ...validInput, initialSetupCompleted: true });
+        expect(mockRepo.upsert).toHaveBeenCalledWith({
+            ...validInput,
+            initialSetupCompleted: true,
+        });
     });
 
     it('正常系: initialSetupCompleted を省略した場合もリポジトリが呼ばれる', async () => {

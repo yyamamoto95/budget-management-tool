@@ -1,53 +1,53 @@
 {
-  "name": "@budget/api",
-  "private": true,
-  "type": "commonjs",
-  "scripts": {
-    "dev": "wait-on tcp:${DB_HOSTNAME:-127.0.0.1}:${DB_PORT:-3306} && PORT=5000 tsx src/index.ts",
-    "build": "tsc",
-    "start": "node build/index.js",
-    "type-check": "tsc --noEmit",
-    "lint": "biome lint .",
-    "format": "biome format . --write",
-    "check": "biome check .",
-    "db:docs": "prisma generate",
-    "db:share": "prisma generate && dbdocs build ../../docs/database/schema.dbml --public",
-    "migration:run": "prisma migrate deploy",
-    "migration:dev": "prisma migrate dev",
-    "seed": "tsx scripts/seed.ts",
-    "generate:openapi": "tsx scripts/generate-openapi.ts",
-    "generate:spec": "tsx scripts/generate-spec.ts",
-    "test:integration": "vitest run --config vitest.integration.config.ts"
-  },
-  "dependencies": {
-    "@anthropic-ai/sdk": "^0.96.0",
-    "@asteasolutions/zod-to-openapi": "^7.3.4",
-    "@budget/common": "workspace:*",
-    "@hono/node-server": "^1.14.4",
-    "@hono/zod-openapi": "^0.19.10",
-    "@prisma/client": "^6.0.0",
-    "bcrypt": "^6.0.0",
-    "dotenv": "^16.4.7",
-    "hono": "^4.12.18",
-    "jose": "^6.2.2",
-    "mysql2": "^3.12.0",
-    "ulid": "^3.0.2",
-    "yaml": "^2.8.3",
-    "zod": "^3.25.76"
-  },
-  "devDependencies": {
-    "@biomejs/biome": "^2.4.10",
-    "@types/bcrypt": "^6.0.0",
-    "@types/node": "^20.19.37",
-    "dbdocs": "1.1.0",
-    "prisma": "^6.0.0",
-    "prisma-dbml-generator": "^0.12.0",
-    "tsx": "^4.21.0",
-    "typescript": "^5.4.0",
-    "vitest": "^4.1.4",
-    "wait-on": "^9.0.4"
-  },
-  "engines": {
-    "node": ">=20"
-  }
+	"name": "@budget/api",
+	"private": true,
+	"type": "commonjs",
+	"scripts": {
+		"dev": "wait-on tcp:${DB_HOSTNAME:-127.0.0.1}:${DB_PORT:-3306} && PORT=5000 tsx src/index.ts",
+		"build": "tsc",
+		"start": "node build/index.js",
+		"type-check": "tsc --noEmit",
+		"lint": "biome lint .",
+		"format": "biome format . --write",
+		"check": "biome check .",
+		"db:docs": "prisma generate",
+		"db:share": "prisma generate && dbdocs build ../../docs/database/schema.dbml --public",
+		"migration:run": "prisma migrate deploy",
+		"migration:dev": "prisma migrate dev",
+		"seed": "tsx scripts/seed.ts",
+		"generate:openapi": "tsx scripts/generate-openapi.ts",
+		"generate:spec": "tsx scripts/generate-spec.ts",
+		"test:integration": "vitest run --config vitest.integration.config.ts"
+	},
+	"dependencies": {
+		"@anthropic-ai/sdk": "^0.96.0",
+		"@asteasolutions/zod-to-openapi": "^7.3.4",
+		"@budget/common": "workspace:*",
+		"@hono/node-server": "^1.14.4",
+		"@hono/zod-openapi": "^0.19.10",
+		"@prisma/client": "^6.0.0",
+		"bcrypt": "^6.0.0",
+		"dotenv": "^16.4.7",
+		"hono": "^4.12.18",
+		"jose": "^6.2.2",
+		"mysql2": "^3.12.0",
+		"ulid": "^3.0.2",
+		"yaml": "^2.8.3",
+		"zod": "^3.25.76"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^2.4.10",
+		"@types/bcrypt": "^6.0.0",
+		"@types/node": "^20.19.37",
+		"dbdocs": "1.1.0",
+		"prisma": "^6.0.0",
+		"prisma-dbml-generator": "^0.12.0",
+		"tsx": "^4.21.0",
+		"typescript": "^5.4.0",
+		"vitest": "^4.1.4",
+		"wait-on": "^9.0.4"
+	},
+	"engines": {
+		"node": ">=20"
+	}
 }

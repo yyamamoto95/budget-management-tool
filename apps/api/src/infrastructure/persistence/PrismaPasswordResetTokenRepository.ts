@@ -39,7 +39,9 @@ export class PrismaPasswordResetTokenRepository implements IPasswordResetTokenRe
 
     async verify(plainToken: string): Promise<string | null> {
         const tokenHash = hashToken(plainToken);
-        const record = await this.prisma.passwordResetToken.findUnique({ where: { tokenHash } });
+        const record = await this.prisma.passwordResetToken.findUnique({
+            where: { tokenHash },
+        });
         if (!record) return null;
         if (record.usedAt !== null) return null;
         if (record.expiresAt < new Date()) return null;

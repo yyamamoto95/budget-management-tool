@@ -36,7 +36,11 @@ const mockExpense = Expense.reconstruct({
 
 const mockUserRepository = {
     all: vi.fn(),
-    one: vi.fn().mockResolvedValue({ userId: 'user-1', userName: 'Test', password: 'hash' }),
+    one: vi.fn().mockResolvedValue({
+        userId: 'user-1',
+        userName: 'Test',
+        password: 'hash',
+    }),
     save: vi.fn(),
     remove: vi.fn(),
     login: vi.fn().mockResolvedValue(true),
@@ -70,7 +74,10 @@ function buildApp() {
 /** ログイン済みエージェントを返すヘルパー */
 async function loginClient(app: ReturnType<typeof buildApp>) {
     const client = new TestAgent(app);
-    await client.login('/api/login', { userId: 'user-1', password: 'password123' });
+    await client.login('/api/login', {
+        userId: 'user-1',
+        password: 'password123',
+    });
     return client;
 }
 
@@ -144,7 +151,12 @@ describe('POST /api/expense', () => {
         const client = await loginClient(app);
 
         const res = await client.post('/api/expense', {
-            newData: { amount: 0, balanceType: 0, userId: 'user-1', date: '2024-01-01' },
+            newData: {
+                amount: 0,
+                balanceType: 0,
+                userId: 'user-1',
+                date: '2024-01-01',
+            },
         });
         expect(res.status).toBe(400);
         expect((res.body as Record<string, unknown>).result).toBe('error');
@@ -188,7 +200,9 @@ describe('DELETE /api/expense/:id', () => {
 
     it('401: 未認証なら 401 を返す', async () => {
         const app = buildApp();
-        const res = await testRequest(app, '/api/expense/test-id-01', { method: 'DELETE' });
+        const res = await testRequest(app, '/api/expense/test-id-01', {
+            method: 'DELETE',
+        });
         expect(res.status).toBe(401);
     });
 });

@@ -7,7 +7,9 @@ export class PrismaUserSettingsRepository implements IUserSettingsRepository {
     constructor(private readonly prisma: PrismaClient) {}
 
     async findByUserId(userId: string): Promise<UserSettings | null> {
-        const record = await this.prisma.userSettings.findUnique({ where: { userId } });
+        const record = await this.prisma.userSettings.findUnique({
+            where: { userId },
+        });
         if (!record) return null;
         return {
             id: record.id,

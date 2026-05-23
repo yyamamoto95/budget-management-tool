@@ -70,7 +70,10 @@ const createExpenseRoute = createRoute({
     summary: '支出登録',
     security: [{ bearerAuth: [] }],
     request: {
-        body: { content: { 'application/json': { schema: CreateExpenseBodySchema } }, required: true },
+        body: {
+            content: { 'application/json': { schema: CreateExpenseBodySchema } },
+            required: true,
+        },
     },
     responses: {
         200: {
@@ -100,7 +103,10 @@ const updateExpenseRoute = createRoute({
     security: [{ bearerAuth: [] }],
     request: {
         params: IdParamSchema,
-        body: { content: { 'application/json': { schema: UpdateExpenseBodySchema } }, required: true },
+        body: {
+            content: { 'application/json': { schema: UpdateExpenseBodySchema } },
+            required: true,
+        },
     },
     responses: {
         200: {
@@ -129,7 +135,10 @@ const parseExpenseRoute = createRoute({
     summary: 'テキストから支出情報をパース',
     security: [{ bearerAuth: [] }],
     request: {
-        body: { content: { 'application/json': { schema: ExpenseParseRequestSchema } }, required: true },
+        body: {
+            content: { 'application/json': { schema: ExpenseParseRequestSchema } },
+            required: true,
+        },
     },
     responses: {
         200: {
@@ -152,7 +161,11 @@ const deleteExpenseRoute = createRoute({
     request: { params: IdParamSchema },
     responses: {
         200: {
-            content: { 'application/json': { schema: z.object({ result: z.literal('success') }) } },
+            content: {
+                'application/json': {
+                    schema: z.object({ result: z.literal('success') }),
+                },
+            },
             description: '削除成功',
         },
         401: {

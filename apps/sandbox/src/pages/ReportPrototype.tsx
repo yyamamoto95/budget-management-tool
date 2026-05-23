@@ -106,30 +106,21 @@ export function ReportPrototype() {
     : null
 
   return (
-    <div className="min-h-screen pb-24 lg:pb-8" style={{ background: D.bg }}>
-
-      {/* ── Header ──────────────────────────────────────────────────────────── */}
-      <motion.header
-        className="sticky top-0 z-20 flex h-14 items-center border-b px-4 md:px-6"
-        style={{
-          background:     'rgba(255,253,245,0.92)',
-          backdropFilter: 'blur(12px)',
-          borderColor:    D.border,
-        }}
-        initial={{ opacity: 0, y: -8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={SPRING.SMOOTH}
+    <>
+      {/* ── PC サイドバー ──────────────────────────────────────────────────── */}
+      <aside
+        className="hidden lg:flex lg:flex-col fixed inset-y-0 left-0 z-30 w-52 border-r"
+        style={{ background: D.card, borderColor: D.border }}
       >
-        <div className="flex items-center gap-2.5 shrink-0">
+        <div className="flex h-14 shrink-0 items-center gap-2.5 border-b px-4" style={{ borderColor: D.border }}>
           <img src="/logo192.png" alt="家計かんり" className="h-8 w-8 shrink-0" style={{ borderRadius: '10px' }} />
           <span className="text-[15px] font-extrabold tracking-tight" style={{ color: D.text }}>家計かんり</span>
         </div>
-        {/* PC ナビ */}
-        <nav className="hidden flex-1 items-center justify-center gap-0.5 md:flex">
+        <nav className="flex-1 overflow-y-auto p-3 space-y-0.5" aria-label="メインメニュー">
           {NAV_ITEMS.map((item) => (
             <Link key={item.label} to={item.to}
               aria-current={item.active ? 'page' : undefined}
-              className="flex items-center gap-1.5 px-3 py-2 text-[13px] font-semibold"
+              className="flex w-full items-center gap-3 px-3 py-2.5 text-[13px] font-semibold"
               style={{
                 borderRadius:   '10px',
                 background:     item.active ? D.brandLight : 'transparent',
@@ -137,12 +128,12 @@ export function ReportPrototype() {
                 textDecoration: 'none',
               }}
             >
-              <item.icon size={14} aria-hidden />
+              <item.icon size={17} aria-hidden />
               {item.label}
             </Link>
           ))}
         </nav>
-        <div className="ml-auto flex shrink-0 items-center gap-2">
+        <div className="shrink-0 border-t px-3 py-2.5 flex items-center justify-between" style={{ borderColor: D.border }}>
           <button type="button" className="flex h-8 w-8 items-center justify-center"
             style={{ color: 'rgba(28,20,16,0.45)', borderRadius: '8px' }} aria-label="通知">
             <Bell size={17} />
@@ -150,49 +141,68 @@ export function ReportPrototype() {
           <Link to="/my-page"
             className="flex h-8 w-8 items-center justify-center text-[12px] font-extrabold text-white"
             style={{
-              background:     `linear-gradient(135deg, ${D.brand}, ${D.brandDeep})`,
-              borderRadius:   '9999px',
-              boxShadow:      '0 2px 8px rgba(241,136,64,0.30)',
+              background: `linear-gradient(135deg, ${D.brand}, ${D.brandDeep})`,
+              borderRadius: '9999px',
+              boxShadow: '0 2px 8px rgba(241,136,64,0.30)',
               textDecoration: 'none',
             }}
             aria-label="マイページ">Y</Link>
         </div>
-      </motion.header>
+      </aside>
 
-      {/* ── スティッキー期間タブ ─────────────────────────────────────────────── */}
-      <div
-        className="sticky top-14 z-10 border-b"
-        style={{
-          background:     'rgba(255,253,245,0.96)',
-          backdropFilter: 'blur(10px)',
-          borderColor:    D.border,
-        }}
-      >
-        <div className="mx-auto max-w-4xl flex items-center gap-2 px-4 py-2">
-          <span className="text-[14px] font-extrabold shrink-0" style={{ color: D.text }}>レポート</span>
-          <div className="flex gap-1 ml-2">
-            {PERIOD_ORDER.map(p => {
-              const active = period === p
-              return (
-                <motion.button key={p} type="button"
-                  onClick={() => setPeriod(p)}
-                  className="rounded-full px-3 py-1.5 text-[12px] font-bold"
-                  style={{
-                    background: active ? D.brand : D.surface,
-                    color:      active ? '#fff'  : D.muted,
-                  }}
-                  whileTap={{ scale: 0.93 }}
-                  transition={SPRING.SNAP}
-                >
-                  {PERIOD_LABELS[p]}
-                </motion.button>
-              )
-            })}
+      <div className="min-h-screen pb-24 lg:pb-8 lg:pl-52" style={{ background: D.bg }}>
+
+        {/* ── SP: ベル + アバター ─────────────────────────────────────────── */}
+        <div className="lg:hidden flex items-center justify-end gap-2 px-4 pt-3 pb-1">
+          <button type="button" className="flex h-8 w-8 items-center justify-center"
+            style={{ color: 'rgba(28,20,16,0.45)', borderRadius: '8px' }} aria-label="通知">
+            <Bell size={17} />
+          </button>
+          <Link to="/my-page"
+            className="flex h-8 w-8 items-center justify-center text-[12px] font-extrabold text-white"
+            style={{
+              background: `linear-gradient(135deg, ${D.brand}, ${D.brandDeep})`,
+              borderRadius: '9999px',
+              boxShadow: '0 2px 8px rgba(241,136,64,0.30)',
+              textDecoration: 'none',
+            }}
+            aria-label="マイページ">Y</Link>
+        </div>
+
+        {/* ── スティッキー期間タブ ─────────────────────────────────────────── */}
+        <div
+          className="sticky top-0 z-10 border-b"
+          style={{
+            background:     'rgba(255,253,245,0.96)',
+            backdropFilter: 'blur(10px)',
+            borderColor:    D.border,
+          }}
+        >
+          <div className="flex items-center gap-2 px-4 py-2 md:px-6">
+            <span className="text-[14px] font-extrabold shrink-0" style={{ color: D.text }}>レポート</span>
+            <div className="flex gap-1 ml-2">
+              {PERIOD_ORDER.map(p => {
+                const active = period === p
+                return (
+                  <motion.button key={p} type="button"
+                    onClick={() => setPeriod(p)}
+                    className="rounded-full px-3 py-1.5 text-[12px] font-bold"
+                    style={{
+                      background: active ? D.brand : D.surface,
+                      color:      active ? '#fff'  : D.muted,
+                    }}
+                    whileTap={{ scale: 0.93 }}
+                    transition={SPRING.SNAP}
+                  >
+                    {PERIOD_LABELS[p]}
+                  </motion.button>
+                )
+              })}
+            </div>
           </div>
         </div>
-      </div>
 
-      <main className="mx-auto max-w-4xl px-4 py-4 md:px-6 space-y-4">
+        <main className="px-4 py-4 md:px-6 space-y-4">
         <AnimatePresence mode="wait">
           <motion.div key={period}
             initial={{ opacity: 0, y: 8 }}
@@ -340,8 +350,8 @@ export function ReportPrototype() {
             <Link to="/meisai"
               className="flex items-center justify-center gap-2 rounded-2xl py-3.5 text-[13px] font-bold"
               style={{
-                background:     D.surface,
-                border:         `1px solid ${D.border}`,
+                background:     D.brandLight,
+                border:         `1.5px solid rgba(241,136,64,0.24)`,
                 color:          D.brand,
                 textDecoration: 'none',
               }}
@@ -352,33 +362,34 @@ export function ReportPrototype() {
 
           </motion.div>
         </AnimatePresence>
-      </main>
+        </main>
 
-      {/* ── モバイルボトムナビ ───────────────────────────────────────────────── */}
-      <nav
-        className="fixed bottom-0 left-0 right-0 z-30 lg:hidden"
-        style={{
-          background:     'rgba(255,253,245,0.92)',
-          backdropFilter: 'blur(16px)',
-          borderTop:      `1px solid ${D.border}`,
-          paddingBottom:  'env(safe-area-inset-bottom, 0px)',
-        }}
-        aria-label="メインメニュー"
-      >
-        <div className="grid grid-cols-4 h-14">
-          {NAV_ITEMS.map((item) => (
-            <Link key={item.label} to={item.to}
-              aria-current={item.active ? 'page' : undefined}
-              className="flex flex-col items-center justify-center gap-0.5"
-              style={{ color: item.active ? D.brand : 'rgba(28,20,16,0.40)', textDecoration: 'none' }}
-            >
-              <item.icon size={20} strokeWidth={item.active ? 2.4 : 2} aria-hidden />
-              <span className="text-[10px] font-bold leading-none">{item.label}</span>
-            </Link>
-          ))}
-        </div>
-      </nav>
+        {/* ── SP モバイルボトムナビ ──────────────────────────────────────────── */}
+        <nav
+          className="fixed bottom-0 left-0 right-0 z-30 lg:hidden"
+          style={{
+            background:     'rgba(255,253,245,0.92)',
+            backdropFilter: 'blur(16px)',
+            borderTop:      `1px solid ${D.border}`,
+            paddingBottom:  'env(safe-area-inset-bottom, 0px)',
+          }}
+          aria-label="メインメニュー"
+        >
+          <div className="grid grid-cols-4 h-14">
+            {NAV_ITEMS.map((item) => (
+              <Link key={item.label} to={item.to}
+                aria-current={item.active ? 'page' : undefined}
+                className="flex flex-col items-center justify-center gap-0.5"
+                style={{ color: item.active ? D.brand : 'rgba(28,20,16,0.40)', textDecoration: 'none' }}
+              >
+                <item.icon size={20} strokeWidth={item.active ? 2.4 : 2} aria-hidden />
+                <span className="text-[10px] font-bold leading-none">{item.label}</span>
+              </Link>
+            ))}
+          </div>
+        </nav>
 
-    </div>
+      </div>
+    </>
   )
 }

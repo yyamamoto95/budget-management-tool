@@ -11,7 +11,6 @@ import {
     ResetPasswordBodySchema,
     SecurityQuestionListResponseSchema,
     SuccessResponseSchema,
-    UserIdParamSchema,
     UserResponseSchema,
     VerifyRecoveryBodySchema,
 } from '../../openapi/schemas';
@@ -39,11 +38,16 @@ const registerRoute = createRoute({
     summary: '自己登録',
     description: 'メールアドレス不要の匿名登録。秘密の質問もあわせて設定する。',
     request: {
-        body: { content: { 'application/json': { schema: RegisterBodySchema } }, required: true },
+        body: {
+            content: { 'application/json': { schema: RegisterBodySchema } },
+            required: true,
+        },
     },
     responses: {
         201: {
-            content: { 'application/json': { schema: z.object({ user: UserResponseSchema }) } },
+            content: {
+                'application/json': { schema: z.object({ user: UserResponseSchema }) },
+            },
             description: '登録成功',
         },
         400: {
@@ -74,7 +78,9 @@ const getSecurityQuestionsRoute = createRoute({
     summary: '秘密の質問一覧取得',
     responses: {
         200: {
-            content: { 'application/json': { schema: SecurityQuestionListResponseSchema } },
+            content: {
+                'application/json': { schema: SecurityQuestionListResponseSchema },
+            },
             description: '質問一覧',
         },
     },
@@ -88,7 +94,9 @@ const getRecoveryQuestionRoute = createRoute({
     request: { query: z.object({ userId: z.string().min(1) }) },
     responses: {
         200: {
-            content: { 'application/json': { schema: RecoveryQuestionResponseSchema } },
+            content: {
+                'application/json': { schema: RecoveryQuestionResponseSchema },
+            },
             description: '質問取得成功',
         },
         404: {
@@ -104,11 +112,16 @@ const verifyRecoveryRoute = createRoute({
     tags: ['Recovery'],
     summary: 'パスワードリカバリ: 回答照合',
     request: {
-        body: { content: { 'application/json': { schema: VerifyRecoveryBodySchema } }, required: true },
+        body: {
+            content: { 'application/json': { schema: VerifyRecoveryBodySchema } },
+            required: true,
+        },
     },
     responses: {
         200: {
-            content: { 'application/json': { schema: PasswordResetTokenResponseSchema } },
+            content: {
+                'application/json': { schema: PasswordResetTokenResponseSchema },
+            },
             description: '照合成功。リセットトークンを返す（30分有効）',
         },
         401: {
@@ -128,7 +141,10 @@ const resetPasswordRoute = createRoute({
     tags: ['Recovery'],
     summary: 'パスワードリカバリ: パスワードリセット',
     request: {
-        body: { content: { 'application/json': { schema: ResetPasswordBodySchema } }, required: true },
+        body: {
+            content: { 'application/json': { schema: ResetPasswordBodySchema } },
+            required: true,
+        },
     },
     responses: {
         200: {

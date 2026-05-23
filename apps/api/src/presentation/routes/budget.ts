@@ -82,7 +82,10 @@ const createBudgetRoute = createRoute({
     summary: '予算登録',
     security: [{ bearerAuth: [] }],
     request: {
-        body: { content: { 'application/json': { schema: CreateBudgetBodySchema } }, required: true },
+        body: {
+            content: { 'application/json': { schema: CreateBudgetBodySchema } },
+            required: true,
+        },
     },
     responses: {
         200: {
@@ -108,7 +111,10 @@ const updateBudgetRoute = createRoute({
     security: [{ bearerAuth: [] }],
     request: {
         params: IdParamSchema,
-        body: { content: { 'application/json': { schema: CreateBudgetBodySchema } }, required: true },
+        body: {
+            content: { 'application/json': { schema: CreateBudgetBodySchema } },
+            required: true,
+        },
     },
     responses: {
         200: {
@@ -135,7 +141,11 @@ const deleteBudgetRoute = createRoute({
     request: { params: IdParamSchema },
     responses: {
         200: {
-            content: { 'application/json': { schema: z.object({ result: z.literal('success') }) } },
+            content: {
+                'application/json': {
+                    schema: z.object({ result: z.literal('success') }),
+                },
+            },
             description: '削除成功',
         },
         401: {

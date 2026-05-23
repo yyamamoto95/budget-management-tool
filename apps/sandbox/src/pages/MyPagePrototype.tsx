@@ -606,6 +606,17 @@ export function MyPagePrototype() {
           </Section>
         </div>
 
+        {/* ログアウト */}
+        <div className="mt-4">
+          <button
+            type="button"
+            className="w-full rounded-2xl border py-3 text-sm font-bold transition-colors hover:opacity-80"
+            style={{ borderColor: 'rgba(244,63,94,0.25)', color: D.danger, background: 'rgba(244,63,94,0.04)' }}
+          >
+            ログアウト
+          </button>
+        </div>
+
         {/* ナビリンク */}
         <div className="mt-6 text-center text-xs" style={{ color: D.muted }}>
           <Link to="/home" style={{ color: D.brand }} className="font-semibold hover:underline">

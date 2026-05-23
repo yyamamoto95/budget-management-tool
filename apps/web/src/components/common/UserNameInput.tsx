@@ -57,12 +57,11 @@ export function UserNameInput({ value, onChange, error, disabled }: Props) {
         return null;
     };
 
-    const borderColor =
-        checkState === "available"
-            ? "border-green-500 focus:border-green-500"
-            : checkState === "taken" || checkState === "invalid"
-            ? "border-red-400 focus:border-red-500"
-            : "border-zinc-300 dark:border-zinc-600 focus:border-zinc-500";
+    // 入力状態に応じたボーダー色クラス
+    let borderColor: string;
+    if (checkState === "available") borderColor = "border-green-500 focus:border-green-500";
+    else if (checkState === "taken" || checkState === "invalid") borderColor = "border-red-400 focus:border-red-500";
+    else borderColor = "border-zinc-300 dark:border-zinc-600 focus:border-zinc-500";
 
     return (
         <div className="flex flex-col gap-1">

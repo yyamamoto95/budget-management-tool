@@ -49,7 +49,9 @@ const getAnalysisRoute = createRoute({
     },
     responses: {
         200: {
-            content: { 'application/json': { schema: ExpenditureAnalysisResponseSchema } },
+            content: {
+                'application/json': { schema: ExpenditureAnalysisResponseSchema },
+            },
             description: '支出解剖データ',
         },
         401: {
@@ -73,7 +75,11 @@ export function createXDayRoutes({ tokenService, getXDayUseCase, getAnalysisUseC
         const userId = c.get('userId');
         const snapshotAt = new Date().toISOString();
 
-        const result = await getXDayUseCase.execute({ userId, totalAssets, monthlyIncome });
+        const result = await getXDayUseCase.execute({
+            userId,
+            totalAssets,
+            monthlyIncome,
+        });
 
         return c.json({ ...result, snapshotAt }, 200);
     });

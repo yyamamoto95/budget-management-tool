@@ -8,7 +8,23 @@
         "rules": {
             "recommended": true,
             "suspicious": {
-                "noExplicitAny": "error"
+                "noExplicitAny": "error",
+                "noConsole": {
+                    "level": "error",
+                    "options": { "allow": ["warn", "error"] }
+                }
+            },
+            "correctness": {
+                "noUnusedImports": "error",
+                "noUnusedVariables": "error"
+            },
+            "style": {
+                "useConst": "error",
+                "noNestedTernary": "error",
+                "noNonNullAssertion": "error"
+            },
+            "security": {
+                "noGlobalEval": "error"
             },
             "complexity": {
                 "noStaticOnlyClass": "off"
@@ -21,7 +37,8 @@
             "linter": {
                 "rules": {
                     "suspicious": {
-                        "noExplicitAny": "off"
+                        "noExplicitAny": "off",
+                        "noConsole": "off"
                     }
                 }
             }
@@ -31,7 +48,8 @@
             "linter": {
                 "rules": {
                     "suspicious": {
-                        "noExplicitAny": "off"
+                        "noExplicitAny": "off",
+                        "noConsole": "off"
                     },
                     "complexity": {
                         "noBannedTypes": "off"

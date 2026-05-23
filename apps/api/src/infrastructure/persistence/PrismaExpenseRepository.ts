@@ -24,17 +24,23 @@ export class PrismaExpenseRepository implements IExpenseRepository {
     constructor(private readonly prisma: PrismaClient) {}
 
     async findAll(): Promise<Expense[]> {
-        const records = await this.prisma.budgetList.findMany({ where: { deletedDate: null } });
+        const records = await this.prisma.budgetList.findMany({
+            where: { deletedDate: null },
+        });
         return records.map(toDomain);
     }
 
     async findByUserId(userId: string): Promise<Expense[]> {
-        const records = await this.prisma.budgetList.findMany({ where: { userId, deletedDate: null } });
+        const records = await this.prisma.budgetList.findMany({
+            where: { userId, deletedDate: null },
+        });
         return records.map(toDomain);
     }
 
     async findById(id: string): Promise<Expense | null> {
-        const record = await this.prisma.budgetList.findFirst({ where: { id, deletedDate: null } });
+        const record = await this.prisma.budgetList.findFirst({
+            where: { id, deletedDate: null },
+        });
         return record ? toDomain(record) : null;
     }
 

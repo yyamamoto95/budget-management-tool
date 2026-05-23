@@ -14,7 +14,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   Check, TrendingUp, Home, Zap, Car, ShoppingBag,
   Wallet, Heart, Bell, Calendar, BarChart2, Settings, PiggyBank,
-  ChevronLeft, ChevronRight, ChevronDown, Receipt,
+  ChevronLeft, ChevronRight, ChevronDown, Receipt, BookOpen,
 } from 'lucide-react'
 
 // ─── Spring ──────────────────────────────────────────────────────────────────
@@ -418,6 +418,7 @@ const NAV_ITEMS = [
 export function PersonalSettingsPrototype() {
   const [state, setState] = useState<State>(INITIAL_STATE)
   const [saved, setSaved] = useState(false)
+  const [activeMenu, setActiveMenu] = useState<'settings' | 'guide'>('settings')
 
   const dailyBudget    = calcDailyBudget(state)
   const totalFixed     = calcTotalFixed(state)
@@ -452,37 +453,34 @@ export function PersonalSettingsPrototype() {
   }
 
   return (
-    <div className="min-h-screen pb-24 lg:pb-8" style={{ background: D.bg }}>
-
-      {/* ── Header ────────────────────────────────────────────────────────── */}
-      <motion.header
-        className="sticky top-0 z-20 flex h-14 items-center border-b px-4 md:px-6"
-        style={{ background: 'rgba(255,253,245,0.92)', backdropFilter: 'blur(12px)', borderColor: D.border }}
-        initial={{ opacity: 0, y: -8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={SPRING.SMOOTH}
+    <>
+      {/* ── PC サイドバー ──────────────────────────────────────────────────── */}
+      <aside
+        className="hidden lg:flex lg:flex-col fixed inset-y-0 left-0 z-30 w-52 border-r"
+        style={{ background: D.card, borderColor: D.border }}
       >
-        <div className="flex items-center gap-2.5 shrink-0">
+        <div className="flex h-14 shrink-0 items-center gap-2.5 border-b px-4" style={{ borderColor: D.border }}>
           <img src="/logo192.png" alt="家計かんり" className="h-8 w-8 shrink-0" style={{ borderRadius: '10px' }} />
           <span className="text-[15px] font-extrabold tracking-tight" style={{ color: D.text }}>家計かんり</span>
         </div>
-        <nav className="hidden flex-1 items-center justify-center gap-0.5 md:flex" aria-label="メインナビゲーション">
+        <nav className="flex-1 overflow-y-auto p-3 space-y-0.5" aria-label="メインメニュー">
           {NAV_ITEMS.map((item) => (
             <Link key={item.label} to={item.to}
               aria-current={item.active ? 'page' : undefined}
-              className="flex items-center gap-1.5 px-3 py-2 text-[13px] font-semibold"
+              className="flex w-full items-center gap-3 px-3 py-2.5 text-[13px] font-semibold"
               style={{
-                borderRadius: '10px',
+                borderRadius:   '10px',
                 background:     item.active ? D.brandLight : 'transparent',
                 color:          item.active ? D.brand : 'rgba(28,20,16,0.50)',
                 textDecoration: 'none',
-              }}>
-              <item.icon size={14} aria-hidden />
+              }}
+            >
+              <item.icon size={17} aria-hidden />
               {item.label}
             </Link>
           ))}
         </nav>
-        <div className="ml-auto flex shrink-0 items-center gap-2">
+        <div className="shrink-0 border-t px-3 py-2.5 flex items-center justify-between" style={{ borderColor: D.border }}>
           <button type="button" className="flex h-8 w-8 items-center justify-center"
             style={{ color: 'rgba(28,20,16,0.45)', borderRadius: '8px' }} aria-label="通知">
             <Bell size={17} />
@@ -491,17 +489,21 @@ export function PersonalSettingsPrototype() {
             className="flex h-8 w-8 items-center justify-center text-[12px] font-extrabold text-white"
             style={{
               background: `linear-gradient(135deg, ${D.brand}, ${D.brandDeep})`,
-              borderRadius: '9999px', boxShadow: '0 2px 8px rgba(241,136,64,0.30)',
+              borderRadius: '9999px',
+              boxShadow: '0 2px 8px rgba(241,136,64,0.30)',
               textDecoration: 'none',
             }}
             aria-label="マイページ">Y</Link>
         </div>
-      </motion.header>
+      </aside>
 
-      {/* ── Mini Preview Bar (mobile sticky) ──────────────────────────────── */}
-      <div className="sticky top-14 z-10 lg:hidden border-b"
-        style={{ background: 'rgba(255,253,245,0.95)', backdropFilter: 'blur(10px)', borderColor: D.border }}>
-        <div className="mx-auto max-w-7xl flex items-center gap-4 px-4 py-2.5">
+      <div className="min-h-screen pb-24 lg:pb-8 lg:pl-52" style={{ background: D.bg }}>
+
+
+        {/* ── Mini Preview Bar (mobile sticky) ────────────────────────────── */}
+        <div className="sticky top-0 z-10 lg:hidden border-b"
+          style={{ background: 'rgba(255,253,245,0.95)', backdropFilter: 'blur(10px)', borderColor: D.border }}>
+          <div className="flex items-center gap-4 px-4 py-2.5">
           <div className="shrink-0">
             <div className="text-[10px] font-semibold" style={{ color: D.muted }}>1日予算</div>
             <motion.div
@@ -542,13 +544,49 @@ export function PersonalSettingsPrototype() {
         </div>
       </div>
 
-      {/* ── Main ──────────────────────────────────────────────────────────── */}
-      <main className="mx-auto max-w-7xl px-4 py-4 md:px-6 md:py-5">
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_380px] lg:items-start lg:gap-5">
+        {/* ── Main ─────────────────────────────────────────────────────────── */}
+        <main className="px-4 py-4 md:px-6 md:py-5">
+        <div className={`grid grid-cols-1 gap-4 lg:items-start lg:gap-5 ${activeMenu === 'settings' ? 'lg:grid-cols-[160px_minmax(0,1fr)_300px]' : 'lg:grid-cols-[160px_minmax(0,1fr)]'}`}>
 
-          {/* Preview Card — PC only, right column, sticky */}
+          {/* ── PC Left Menu Sidebar ─────────────────────────────────────────── */}
+          <nav
+            className="hidden lg:block lg:col-start-1 lg:row-start-1 lg:sticky lg:top-[5.5rem]"
+            aria-label="設定メニュー"
+          >
+            <div className="rounded-2xl border overflow-hidden" style={{ background: D.card, borderColor: D.border, boxShadow: D.shadow }}>
+              <div className="px-4 pt-3 pb-2 text-[10px] font-bold tracking-widest uppercase" style={{ color: D.muted }}>
+                メニュー
+              </div>
+              {([
+                { key: 'settings', label: '設定',   icon: Settings  },
+                { key: 'guide',    label: 'ガイド', icon: BookOpen  },
+              ] as const).map((item) => {
+                const active = activeMenu === item.key
+                return (
+                  <button
+                    key={item.key}
+                    type="button"
+                    onClick={() => setActiveMenu(item.key)}
+                    className="flex w-full items-center gap-3 px-4 py-3.5 text-[13px] font-semibold text-left transition-colors hover:bg-black/[0.03]"
+                    style={{
+                      background: active ? D.brandLight : 'transparent',
+                      color:      active ? D.brandDeep : 'rgba(28,20,16,0.60)',
+                      borderLeft: active ? `3px solid ${D.brand}` : '3px solid transparent',
+                    }}
+                    aria-current={active ? 'page' : undefined}
+                  >
+                    <item.icon size={16} strokeWidth={active ? 2.3 : 2} />
+                    {item.label}
+                  </button>
+                )
+              })}
+              <div className="h-2" />
+            </div>
+          </nav>
+
+          {/* Preview Card — PC only, right column, sticky（設定タブのみ表示） */}
           <motion.div
-            className="hidden lg:block lg:col-start-2 lg:row-start-1 lg:sticky lg:top-[5.5rem]"
+            className={`lg:col-start-3 lg:row-start-1 lg:sticky lg:top-[5.5rem] ${activeMenu === 'settings' ? 'hidden lg:block' : 'hidden'}`}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ ...SPRING.SMOOTH, delay: 0.04 }}
@@ -650,8 +688,117 @@ export function PersonalSettingsPrototype() {
             </div>
           </motion.div>
 
-          {/* ── Form — left column ──────────────────────────────────────────── */}
-          <div className="space-y-4 lg:col-start-1 lg:row-start-1">
+          {/* ── Content column ──────────────────────────────────────────────── */}
+          <div className="space-y-4 lg:col-start-2 lg:row-start-1">
+
+            {/* SP top menu tabs */}
+            <div
+              className="flex rounded-xl p-1 gap-1 lg:hidden"
+              style={{ background: D.surface }}
+              role="tablist"
+              aria-label="設定メニュー"
+            >
+              {([
+                { key: 'settings', label: '設定',   icon: Settings  },
+                { key: 'guide',    label: 'ガイド', icon: BookOpen  },
+              ] as const).map((item) => {
+                const active = activeMenu === item.key
+                return (
+                  <button
+                    key={item.key}
+                    type="button"
+                    role="tab"
+                    aria-selected={active}
+                    onClick={() => setActiveMenu(item.key)}
+                    className="flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 text-[12px] font-bold transition-colors"
+                    style={{
+                      background: active ? D.card : 'transparent',
+                      color:      active ? D.brand : 'rgba(28,20,16,0.45)',
+                      boxShadow:  active ? D.shadow : 'none',
+                    }}
+                  >
+                    <item.icon size={13} strokeWidth={active ? 2.3 : 2} />
+                    {item.label}
+                  </button>
+                )
+              })}
+            </div>
+
+            {activeMenu === 'guide' ? (
+              /* ── ガイドタブ ─────────────────────────────────────────────── */
+              <motion.div
+                key="guide"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={SPRING.SMOOTH}
+              >
+                <SectionCard title="使い方ガイド" delay={0}>
+                  <div>
+                    {/* ホーム画面ガイド */}
+                    <Link
+                      to="/home?tour=1"
+                      className="flex items-center gap-3 px-4 py-3.5 transition-colors hover:bg-[#fff6ee]"
+                      style={{ textDecoration: 'none' }}
+                    >
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl"
+                        style={{ background: D.brandLight }}>
+                        <BookOpen size={16} style={{ color: D.brand }} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-[13px] font-bold" style={{ color: D.text }}>ホーム画面ガイド</div>
+                        <div className="text-[11px] mt-0.5" style={{ color: D.muted }}>ホーム画面の使い方を案内します</div>
+                      </div>
+                      <ChevronRight size={14} style={{ color: D.muted, flexShrink: 0 }} />
+                    </Link>
+
+                    {/* 管理設定ガイド（近日公開） */}
+                    <div className="flex items-center gap-3 px-4 py-3.5 opacity-50 cursor-not-allowed select-none border-t" style={{ borderColor: D.border }}>
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl"
+                        style={{ background: D.surface }}>
+                        <Settings size={16} style={{ color: D.muted }} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-[13px] font-bold" style={{ color: D.text }}>管理設定ガイド</div>
+                        <div className="text-[11px] mt-0.5" style={{ color: D.muted }}>設定画面の使い方を案内します</div>
+                      </div>
+                      <span
+                        className="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold"
+                        style={{ background: D.surface, color: D.muted }}
+                      >
+                        近日公開
+                      </span>
+                    </div>
+                  </div>
+                </SectionCard>
+              </motion.div>
+            ) : (
+              /* ── 設定フォーム ────────────────────────────────────────────── */
+              <>
+
+            {/* ── SP: アカウント（マイページ代替） ───────────────────────────── */}
+            <div className="lg:hidden rounded-2xl border overflow-hidden" style={{ background: D.card, borderColor: D.border, boxShadow: D.shadow }}>
+              <div className="flex items-center gap-3 px-4 py-4">
+                <div
+                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-[15px] font-extrabold text-white"
+                  style={{ background: `linear-gradient(135deg, ${D.brand}, ${D.brandDeep})`, boxShadow: '0 2px 8px rgba(241,136,64,0.28)' }}
+                >
+                  Y
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-[14px] font-bold leading-tight" style={{ color: D.text }}>Yamamoto</div>
+                  <div className="text-[11px] mt-0.5" style={{ color: D.muted }}>yamamoto@example.com</div>
+                </div>
+              </div>
+              <div className="border-t px-4 py-3" style={{ borderColor: D.border }}>
+                <button
+                  type="button"
+                  className="text-[13px] font-semibold"
+                  style={{ color: D.danger }}
+                >
+                  ログアウト
+                </button>
+              </div>
+            </div>
 
             {/* 給与 */}
             <SectionCard title="給与" delay={0.06} noClip>
@@ -799,34 +946,37 @@ export function PersonalSettingsPrototype() {
             >
               設定を保存する
             </motion.button>
+              </>
+            )}
           </div>
 
         </div>
-      </main>
+        </main>
 
-      {/* ── Mobile Bottom Nav ─────────────────────────────────────────────── */}
-      <nav className="fixed bottom-0 left-0 right-0 z-30 lg:hidden"
-        style={{
-          background: 'rgba(255,253,245,0.92)', backdropFilter: 'blur(16px)',
-          borderTop: `1px solid ${D.border}`,
-          paddingBottom: 'env(safe-area-inset-bottom, 0px)',
-        }}
-        aria-label="メインメニュー"
-      >
-        <div className="grid grid-cols-4 h-14">
-          {NAV_ITEMS.map((item) => (
-            <Link key={item.label} to={item.to}
-              aria-current={item.active ? 'page' : undefined}
-              className="flex flex-col items-center justify-center gap-0.5"
-              style={{ color: item.active ? D.brand : 'rgba(28,20,16,0.40)', textDecoration: 'none' }}>
-              <item.icon size={20} strokeWidth={item.active ? 2.4 : 2} aria-hidden />
-              <span className="text-[10px] font-bold leading-none">{item.label}</span>
-            </Link>
-          ))}
-        </div>
-      </nav>
+        {/* ── SP モバイルボトムナビ ──────────────────────────────────────────── */}
+        <nav className="fixed bottom-0 left-0 right-0 z-30 lg:hidden"
+          style={{
+            background: 'rgba(255,253,245,0.92)', backdropFilter: 'blur(16px)',
+            borderTop: `1px solid ${D.border}`,
+            paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+          }}
+          aria-label="メインメニュー"
+        >
+          <div className="grid grid-cols-4 h-14">
+            {NAV_ITEMS.map((item) => (
+              <Link key={item.label} to={item.to}
+                aria-current={item.active ? 'page' : undefined}
+                className="flex flex-col items-center justify-center gap-0.5"
+                style={{ color: item.active ? D.brand : 'rgba(28,20,16,0.40)', textDecoration: 'none' }}>
+                <item.icon size={20} strokeWidth={item.active ? 2.4 : 2} aria-hidden />
+                <span className="text-[10px] font-bold leading-none">{item.label}</span>
+              </Link>
+            ))}
+          </div>
+        </nav>
 
-      <Toast visible={saved} />
-    </div>
+        <Toast visible={saved} />
+      </div>
+    </>
   )
 }

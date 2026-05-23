@@ -43,6 +43,8 @@ export type TourStepDef = {
   freq?: string
   /** ポップオーバーをターゲット要素のどちら側に表示するか */
   side?: 'top' | 'bottom' | 'left' | 'right' | 'center'
+  /** PC（lg以上）での表示側。未指定の場合は side を使用 */
+  sidePC?: 'top' | 'bottom' | 'left' | 'right' | 'center'
 }
 
 export const HOME_TOUR_STEPS: TourStepDef[] = [
@@ -94,6 +96,7 @@ export const HOME_TOUR_STEPS: TourStepDef[] = [
     description:
       '直近7日の記録状況と節約達成をひと目で確認できます。\nアイコンをタップすると各日の支出明細が見られます。毎日記録するほど予測の精度が上がります。',
     side: 'bottom',
+    sidePC: 'left',   // PC では右カラムのため左側に表示
   },
 
   // ── 4: 最近の記録（入力内容の確認）────────────────────────────────────────
@@ -120,6 +123,7 @@ export const HOME_TOUR_STEPS: TourStepDef[] = [
     description:
       '全期間の支出記録を一覧・検索できます。\n期間フィルタやカテゴリ絞り込みで「あの出費はいくらだったか」をすぐに調べられます。',
     side: 'top',
+    sidePC: 'right',  // PC では左サイドバーのため右側に表示
   },
 
   // ── 6: 今月の貯蓄予測（週次チェック）──────────────────────────────────────
@@ -146,6 +150,7 @@ export const HOME_TOUR_STEPS: TourStepDef[] = [
     description:
       '収入・支出・貯蓄率など今月の家計全体をまとめて確認できます。\n先月比と貯蓄率を月末の振り返りに活用してください。',
     side: 'bottom',
+    sidePC: 'left',   // PC では右カラムのため左側に表示
   },
 
   // ── 8: レポート（カテゴリ分析・傾向把握）────────────────────────────────
@@ -159,6 +164,7 @@ export const HOME_TOUR_STEPS: TourStepDef[] = [
     description:
       '食費・交際費・日用品など、カテゴリ別の支出分析を確認できます。\nどのカテゴリで使いすぎているか傾向を把握し、翌月の予算調整に役立てましょう。',
     side: 'top',
+    sidePC: 'right',  // PC では左サイドバーのため右側に表示
   },
 
   // ── 9: 設定（目標・予算の管理）────────────────────────────────────────────
@@ -171,5 +177,6 @@ export const HOME_TOUR_STEPS: TourStepDef[] = [
     description:
       '収入・月予算・貯蓄目標などの基本設定はここから変更できます。\n収入が変わったときや貯蓄目標を見直したいときに設定を更新してください。',
     side: 'top',
+    sidePC: 'right',  // PC では左サイドバーのため右側に表示
   },
 ]

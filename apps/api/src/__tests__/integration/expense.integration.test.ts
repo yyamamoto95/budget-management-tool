@@ -235,7 +235,12 @@ describeIf('Expense 統合テスト（実 DB）', () => {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    newData: { amount: 1000, balanceType: 0, userId: 'user-1', date: '2024-01-01' },
+                    newData: {
+                        amount: 1000,
+                        balanceType: 0,
+                        userId: 'user-1',
+                        date: '2024-01-01',
+                    },
                 }),
             });
             expect(res.status).toBe(401);
@@ -300,7 +305,9 @@ describeIf('Expense 統合テスト（実 DB）', () => {
         });
 
         it('異常系 401: 未認証は 401 を返す', async () => {
-            const res = await testRequest(app, `${API_PATHS.EXPENSE}/some-id`, { method: 'PUT' });
+            const res = await testRequest(app, `${API_PATHS.EXPENSE}/some-id`, {
+                method: 'PUT',
+            });
             expect(res.status).toBe(401);
         });
     });
@@ -337,7 +344,9 @@ describeIf('Expense 統合テスト（実 DB）', () => {
         });
 
         it('異常系 401: 未認証は 401 を返す', async () => {
-            const res = await testRequest(app, `${API_PATHS.EXPENSE}/some-id`, { method: 'DELETE' });
+            const res = await testRequest(app, `${API_PATHS.EXPENSE}/some-id`, {
+                method: 'DELETE',
+            });
             expect(res.status).toBe(401);
         });
     });

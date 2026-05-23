@@ -150,23 +150,38 @@ export function MonthlyCalendar({ expenses, compactMode = false, onDaySelect, se
 
       {/* 曜日ヘッダー */}
       <div className="grid grid-cols-7 border-b border-[#e8c8b0] bg-[#fffdf5]">
-        {WEEK_DAYS.map((day, i) => (
-          <div
-            key={day}
-            className={[
-              "py-2 text-center text-xs font-extrabold",
-              i === 0 ? "text-[#f87171]" : i === 6 ? "text-[#35b5a2]" : "text-[#1c1410]/50",
-            ].join(" ")}
-          >
-            {day}
-          </div>
-        ))}
+        {WEEK_DAYS.map((day, i) => {
+          // 曜日の文字色: 日曜=赤、土曜=緑、平日=薄黒
+          let dayColor: string;
+          if (i === 0) dayColor = "text-[#f87171]";
+          else if (i === 6) dayColor = "text-[#35b5a2]";
+          else dayColor = "text-[#1c1410]/50";
+          return (
+            <div
+              key={day}
+              className={["py-2 text-center text-xs font-extrabold", dayColor].join(" ")}
+            >
+              {day}
+            </div>
+          );
+        })}
       </div>
 
       {/* 日付グリッド */}
       <div className={["grid flex-1 grid-cols-7", compactMode ? "grid-rows-6" : "grid-rows-6"].join(" ")}>
         {days.map((day, idx) => {
           const isSelected = selectedDate != null && day.dateStr === selectedDate;
+          // コンパクトモードの日付数字スタイル
+          let compactDayClass: string;
+          if (!day.isCurrentMonth) compactDayClass = "text-[#1c1410]/20";
+          else if (isSelected) compactDayClass = "bg-[#f18840] text-white";
+          else if (day.isToday) compactDayClass = "border-2 border-[#f18840] text-[#f18840]";
+          else compactDayClass = "text-[#1c1410]";
+          // 通常モードの日付数字スタイル
+          let normalDayClass: string;
+          if (!day.isCurrentMonth) normalDayClass = "text-[#1c1410]/20";
+          else if (day.isToday) normalDayClass = "rounded-full bg-[#f18840] px-1 text-white";
+          else normalDayClass = "text-[#1c1410]";
           return (
             <button
               key={day.dateStr + (day.isCurrentMonth ? "" : `-pad${idx}`)}
@@ -189,13 +204,7 @@ export function MonthlyCalendar({ expenses, compactMode = false, onDaySelect, se
                   <span
                     className={[
                       "flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold leading-none transition-colors",
-                      !day.isCurrentMonth
-                        ? "text-[#1c1410]/20"
-                        : isSelected
-                        ? "bg-[#f18840] text-white"
-                        : day.isToday
-                        ? "border-2 border-[#f18840] text-[#f18840]"
-                        : "text-[#1c1410]",
+                      compactDayClass,
                     ].join(" ")}
                   >
                     {day.date.getDate()}
@@ -214,14 +223,7 @@ export function MonthlyCalendar({ expenses, compactMode = false, onDaySelect, se
                 <>
                   {/* 通常: 日付数字 + 金額表示 */}
                   <span
-                    className={[
-                      "mb-0.5 text-xs font-bold",
-                      !day.isCurrentMonth
-                        ? "text-[#1c1410]/20"
-                        : day.isToday
-                        ? "rounded-full bg-[#f18840] px-1 text-white"
-                        : "text-[#1c1410]",
-                    ].join(" ")}
+                    className={["mb-0.5 text-xs font-bold", normalDayClass].join(" ")}
                   >
                     {day.date.getDate()}
                   </span>
