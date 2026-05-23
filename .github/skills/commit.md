@@ -84,3 +84,36 @@ git diff
 - 整合性チェックをパスしない限りコミットを進めない
 - `git push` はユーザーからの別途指示を待つ
 - メッセージは必ず日本語
+
+---
+
+## PR 作成時のチェック（push 後に PR を作る場合）
+
+コミット後に PR を作成する際は以下を必ず含める。
+
+### Issue 紐付け（必須）
+
+PR body の「関連 Issue」セクションに **`Closes #NNN`** を記載する。
+記載がない場合 `pr-checks.yml` の `Issue Link Check` が失敗し、マージがブロックされる。
+
+```
+Closes #123
+```
+
+複数 Issue を閉じる場合は複数行で記載する:
+
+```
+Closes #123
+Closes #456
+```
+
+### Issue 番号の特定方法
+
+1. ブランチ名が `feat/issue-132-xxx` 形式なら `#132` を閉じる
+2. 作業指示の Issue 番号を確認する
+3. 関連する Issue が複数あれば全て記載する
+
+### Issue がない場合
+
+`chore`・`docs`・`refactor` 等で対応 Issue がない場合でも、**先に Issue を作成してから PR を出す**。
+Issue があることで作業の背景・意図がトレースできる。`Issue Link Check` は Issue なし PR をブロックする。

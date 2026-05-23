@@ -48,6 +48,39 @@ permissions:
   issues: write    # デプロイ失敗時の Issue 自動作成に必要
 
 jobs:
+  # ─── セキュリティスキャン（main ブランチ） ──────────────────────────────────────
+  # PR 時は pr-checks.yml の security-scan が実行される。
+  # main への push 後にも同じ category: trivy-fs で SARIF をアップロードすることで
+  # GitHub Code Scanning の「設定が見つからない」警告を防ぐ。
+  security-scan:
+    name: Security Scan (FS)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run Trivy filesystem scan (SARIF)
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: fs
+          scan-ref: .
+          format: sarif
+          output: trivy-fs.sarif
+          severity: HIGH,CRITICAL
+          exit-code: "0"   # main では検出されても失敗させない（PR でブロック済みのため）
+          ignore-unfixed: true
+          trivyignores: .trivyignore
+          skip-dirs: usr/local/lib/node_modules/npm
+
+      - name: Upload scan results to GitHub Security
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-fs.sarif
+          category: trivy-fs  # pr-checks.yml と同じ category で統一
+
   # ─── 変更ファイルの検出 ──────────────────────────────────────────────────────
   detect-changes:
     name: Detect Changes

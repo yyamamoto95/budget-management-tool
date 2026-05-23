@@ -2,6 +2,7 @@
 # pr-checks.yml — PR 時の自動チェック（マージブロックのガードレール）
 #
 # フロー（全ジョブ並列実行）:
+#   0. issue-link-check  — PR body に Closes #NNN が含まれるか検証
 #   1. lint-typecheck    — lint + 型チェック
 #   2. nextjs-build      — Next.js プロダクションビルド（型エラーの早期検出）
 #   3. storybook-build   — Storybook ビルド確認
@@ -13,6 +14,7 @@
 #
 # ブランチ保護設定（GitHub Settings > Branches > main）:
 #   Require status checks to pass before merging に以下を登録すること:
+#   - Issue Link Check
 #   - Lint & Type Check
 #   - Next.js Build
 #   - Unit Test
@@ -30,8 +32,49 @@ on:
 
 permissions:
   contents: read
+  pull-requests: read
 
 jobs:
+  # ─── Issue リンクチェック ───────────────────────────────────────────────────
+  # PR body に "Closes #NNN" / "Fixes #NNN" / "Resolves #NNN" が含まれない場合に失敗する。
+  # 古い Issue を放置しないための最低限の強制ガードレール。
+  issue-link-check:
+    name: Issue Link Check
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    steps:
+      - name: Check PR body contains issue closing keyword
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+          BRANCH_NAME: ${{ github.head_ref }}
+        run: |
+          # PR body に Closes/Fixes/Resolves #NNN があるか確認
+          if ! echo "${PR_BODY}" | grep -qiE '(closes|fixes|resolves)\s+#[0-9]+'; then
+            echo "❌ PR の本文に Issue への参照が見つかりません。"
+            echo ""
+            echo "   .github/PULL_REQUEST_TEMPLATE.md の「🔗 関連 Issue」セクションに"
+            echo "   'Closes #NNN' の形式で Issue 番号を記載してください。"
+            echo ""
+            echo "   例:"
+            echo "     Closes #123"
+            echo "     Fixes #456"
+            echo "     Resolves #789"
+            exit 1
+          fi
+          echo "✅ Issue への参照を確認しました。"
+
+          # ブランチ名が issue-NNN パターンの場合、PR body との整合性を警告
+          BRANCH_ISSUE=$(echo "${BRANCH_NAME}" | grep -oE 'issue-([0-9]+)' | grep -oE '[0-9]+' | head -1)
+          if [ -n "${BRANCH_ISSUE}" ]; then
+            if echo "${PR_BODY}" | grep -qiE "(closes|fixes|resolves)\s+#${BRANCH_ISSUE}"; then
+              echo "✅ ブランチ名 (issue-${BRANCH_ISSUE}) と PR body の Issue 番号が一致しています。"
+            else
+              echo "⚠️  ブランチ名から Issue #${BRANCH_ISSUE} が検出されましたが、PR body に 'Closes #${BRANCH_ISSUE}' が見つかりません。"
+              echo "   意図的（複数 Issue 対応・チョア等）であれば無視してください。"
+            fi
+          fi
+
   # ─── lint + 型チェック ─────────────────────────────────────────────────────
   lint-typecheck:
     name: Lint & Type Check
