@@ -1078,6 +1078,20 @@
           "pr": 340
         }
       ]
+    },
+    {
+      "date": "2026-05-24",
+      "total_points": 2,
+      "pbis": [
+        {
+          "issue": 349,
+          "title": "[HIGH] CVE-2026-44574 が next で検出されました",
+          "size": "S",
+          "points": 2,
+          "cycle_time_hours": null,
+          "pr": 358
+        }
+      ]
     }
   ]
 }
