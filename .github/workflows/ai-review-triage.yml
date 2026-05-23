@@ -1,279 +1,50 @@
 # ============================================================
-# ai-review-triage.yml — Gemini Code Assist レビューの自律トリアージ
+# ai-review-triage.yml — Gemini レビュー検知 → ラベル付け
 #
-# フロー:
-#   1. Gemini Code Assist が PR レビューを投稿する
-#   2. このワークフローが起動し、Claude がレビュー内容を評価する
-#   3. 各指摘の妥当性（有効/無効/情報）と対応方針をコメントで投稿する
-#   4. 全指摘が「対応不要」と判断された場合、CI 通過後に自動マージを予約する
-#   5. 要修正の指摘がある場合、対応内容をまとめて再レビューを依頼する
+# 役割: Gemini Code Assist のレビュー投稿を検知して
+#       "needs-ai-triage" ラベルを PR に付与するだけ。
 #
-# 必要なシークレット（Settings > Secrets and variables > Actions）:
-#   ANTHROPIC_API_KEY — Claude API キー（claude-sonnet-4-6 を使用）
-#
-# 必要な権限（Settings > Actions > General > Workflow permissions）:
-#   Read and write permissions を有効にすること
+# 実際のトリアージ処理は Claude Code の /pr-triage スキルが行う。
+# → .github/skills/pr-triage.md を参照
 # ============================================================
 
-name: AI Review Triage
+name: AI Review Triage — Label
 
 on:
   pull_request_review:
     types: [submitted]
 
 permissions:
-  contents: write
   pull-requests: write
-  issues: write
 
 jobs:
-  triage:
-    name: Gemini レビューをトリアージする
-    # Gemini Code Assist のレビューのみを対象とする
+  label:
+    name: needs-ai-triage ラベルを付与する
     if: github.event.review.user.login == 'gemini-code-assist[bot]'
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 2
 
     steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      # ── Step 1: Gemini のレビューコメントを収集する ─────────────────────────
-      - name: レビューコメントを収集する
-        id: collect
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const pr     = context.payload.pull_request
-            const review = context.payload.review
-
-            // レビュー本文
-            const reviewBody = review.body || '(本文なし)'
-
-            // インラインコメントを取得（このレビューのもの）
-            const { data: allComments } = await github.rest.pulls.listReviewComments({
-              owner:       context.repo.owner,
-              repo:        context.repo.repo,
-              pull_number: pr.number,
-            })
-            const geminiComments = allComments.filter(c =>
-              c.pull_request_review_id === review.id
-            )
-
-            // 変更ファイル一覧を取得
-            const { data: files } = await github.rest.pulls.listFiles({
-              owner:       context.repo.owner,
-              repo:        context.repo.repo,
-              pull_number: pr.number,
-            })
-            const changedFiles = files.map(f =>
-              `${f.status} ${f.filename} (+${f.additions}/-${f.deletions})`
-            ).join('\n')
-
-            const output = {
-              pr_number:       pr.number,
-              pr_title:        pr.title,
-              review_id:       review.id,
-              review_state:    review.state,
-              review_body:     reviewBody,
-              inline_comments: geminiComments.map(c => ({
-                id:   c.id,
-                path: c.path,
-                line: c.line || c.original_line,
-                body: c.body,
-              })),
-              changed_files: changedFiles,
-            }
-
-            core.setOutput('data', JSON.stringify(output))
-            core.info(`収集完了: インラインコメント ${geminiComments.length} 件`)
-
-      # ── Step 2: Claude でトリアージ評価する ──────────────────────────────────
-      - name: Claude でトリアージ評価する
-        id: claude
-        env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          REVIEW_DATA: ${{ steps.collect.outputs.data }}
-          CONVENTIONS: |
-            ## プロジェクト規約の要点
-
-            ### TypeScript 全般
-            - `any` は禁止。`unknown` を使う
-            - 関数の引数・戻り値には型注釈を付与する
-            - `async/await` を使用し Promise.then() チェーンは避ける
-
-            ### バックエンド（DDD / Onion Architecture）
-            - Domain 層は外部ライブラリに依存しない
-            - 依存方向: Presentation → Application → Domain ← Infrastructure
-            - レイヤーを跨ぐ逆依存は規約違反
-
-            ### フロントエンド（Next.js）
-            - apps/web/src/ 配下では Radix UI プリミティブを直接 import しない（src/components/ui/ のラッパー経由）
-            - apps/web/src/components/ui/ 自体は Radix UI を import してよい（ラッパー本体のため）
-            - アイコンは lucide-react のみ使用
-
-            ### Sandbox（apps/sandbox/）
-            - プロトタイプ専用。ネイティブ HTML 要素・Radix 直接 import・コンポーネント行数超過は問題なし
-            - ただしセキュリティ問題（XSS・シークレットハードコード）は sandbox でも指摘有効
-
-            ### コミット・PR
-            - 日本語であること（規約。英語コメントへの指摘は不要）
-            - 絵文字使用禁止
-        run: |
-          set -euo pipefail
-
-          # Claude に渡すプロンプトを構築する
-          PROMPT="あなたはコードレビュートリアージ担当の AI です。
-          Gemini Code Assist が行った PR レビューの各指摘について、
-          下記のプロジェクト規約に照らして妥当性を判断し、
-          開発者が次に何をすべきかを明確にしてください。
-
-          ${CONVENTIONS}
-
-          ## 評価基準
-          - valid: プロジェクト規約違反であり修正が必要な指摘
-          - invalid: プロジェクトの方針と合わない指摘（sandbox への過剰な規約適用、意図的な設計への誤指摘など）
-          - info: 修正は任意だが参考になる提案
-
-          ## 出力形式（JSON のみ。説明文は不要）
-          {
-            \"summary\": \"全体評価を一言で（日本語）\",
-            \"all_clear\": true または false,
-            \"items\": [
-              {
-                \"target\": \"review_body または comment_id:<id>\",
-                \"verdict\": \"valid | invalid | info\",
-                \"reason\": \"判断理由（日本語・1〜2文）\",
-                \"action\": \"fix | accept | reject\",
-                \"priority\": \"critical | major | minor | nit\"
-              }
-            ]
-          }
-
-          ## Gemini のレビューデータ
-          $(echo "$REVIEW_DATA" | jq -r '.')"
-
-          RESPONSE=$(curl -sf https://api.anthropic.com/v1/messages \
-            -H "x-api-key: ${ANTHROPIC_API_KEY}" \
-            -H "anthropic-version: 2023-06-01" \
-            -H "content-type: application/json" \
-            -d "$(jq -n \
-              --arg content "$PROMPT" \
-              '{
-                model: "claude-sonnet-4-6",
-                max_tokens: 2048,
-                messages: [{ role: "user", content: $content }]
-              }'
-            )")
-
-          # レスポンスからテキスト部分を抽出する
-          CLAUDE_TEXT=$(echo "$RESPONSE" | jq -r '.content[0].text')
-
-          # JSON ブロックのみを抽出する（```json ... ``` に囲まれている場合も対応）
-          CLAUDE_JSON=$(echo "$CLAUDE_TEXT" | python3 -c "
-          import sys, re, json
-          text = sys.stdin.read()
-          # コードブロックを除去
-          text = re.sub(r'\`\`\`json\s*', '', text)
-          text = re.sub(r'\`\`\`\s*', '', text)
-          # 最初の { から最後の } までを抽出
-          m = re.search(r'\{.*\}', text, re.DOTALL)
-          if m:
-              parsed = json.loads(m.group())
-              print(json.dumps(parsed))
-          else:
-              print(json.dumps({'summary': 'パース失敗', 'all_clear': False, 'items': []}))
-          ")
-
-          echo "claude_json<<EOF" >> "$GITHUB_OUTPUT"
-          echo "$CLAUDE_JSON" >> "$GITHUB_OUTPUT"
-          echo "EOF" >> "$GITHUB_OUTPUT"
-
-          ALL_CLEAR=$(echo "$CLAUDE_JSON" | jq -r '.all_clear // false')
-          echo "all_clear=${ALL_CLEAR}" >> "$GITHUB_OUTPUT"
-
-          echo "評価完了: all_clear=${ALL_CLEAR}"
-          echo "$CLAUDE_JSON" | jq '.'
-
-      # ── Step 3: トリアージコメントを投稿する ────────────────────────────────
-      - name: トリアージコメントを投稿する
-        uses: actions/github-script@v7
-        env:
-          CLAUDE_JSON: ${{ steps.claude.outputs.claude_json }}
-          REVIEW_DATA: ${{ steps.collect.outputs.data }}
-        with:
-          script: |
-            const claude     = JSON.parse(process.env.CLAUDE_JSON)
-            const reviewData = JSON.parse(process.env.REVIEW_DATA)
-
-            const verdictLabel = { valid: '有効', invalid: '対象外', info: '情報' }
-            const verdictMark  = { valid: 'warning', invalid: 'white_check_mark', info: 'information_source' }
-            const actionLabel  = { fix: '要修正', accept: '対応不要', reject: '適用外' }
-            const priorityLabel = { critical: 'CRITICAL', major: 'MAJOR', minor: 'MINOR', nit: 'NIT' }
-
-            let body = `## AI レビュートリアージ結果\n\n`
-            body += `> Gemini Code Assist のレビューを Claude (claude-sonnet-4-6) が評価しました。\n\n`
-            body += `**総合評価**: ${claude.summary}\n\n`
-
-            const items = claude.items || []
-            if (items.length > 0) {
-              body += `### 指摘の評価\n\n`
-              body += `| # | 対象 | 判定 | 優先度 | 理由 | 対応 |\n`
-              body += `|---|------|------|--------|------|------|\n`
-              items.forEach((item, i) => {
-                const verdict  = verdictLabel[item.verdict]  || item.verdict
-                const action   = actionLabel[item.action]    || item.action
-                const priority = priorityLabel[item.priority] || item.priority || '-'
-                const target   = item.target || '-'
-                body += `| ${i+1} | ${target} | ${verdict} | ${priority} | ${item.reason} | **${action}** |\n`
-              })
-              body += `\n`
-            } else {
-              body += `> 個別指摘の評価はありません（レビュー本文のみ）。\n\n`
-            }
-
-            // 要修正の指摘をリストアップ
-            const fixItems = items.filter(i => i.action === 'fix')
-            if (fixItems.length > 0) {
-              body += `### 要修正の指摘（${fixItems.length} 件）\n\n`
-              fixItems.forEach((item, i) => {
-                body += `${i+1}. **[${item.priority?.toUpperCase() || 'MAJOR'}]** ${item.target} — ${item.reason}\n`
-              })
-              body += `\n`
-            }
-
-            body += `---\n`
-            if (claude.all_clear) {
-              body += `✅ **全指摘が対応不要と判断されました。CI が通り次第、自動マージを実行します。**`
-            } else {
-              body += `⚠️ **要修正の指摘が ${fixItems.length} 件あります。修正してコミットすると Gemini が再レビューします。**`
-            }
-
-            await github.rest.issues.createComment({
-              owner:        context.repo.owner,
-              repo:         context.repo.repo,
-              issue_number: reviewData.pr_number,
-              body,
-            })
-
-            core.info('トリアージコメント投稿完了')
-
-      # ── Step 4: 全指摘が対応不要 → CI 通過後に自動マージを予約する ────────────
-      - name: 自動マージを予約する（全指摘対応不要の場合）
-        if: steps.claude.outputs.all_clear == 'true'
+      - name: ラベルを付与する
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REVIEW_DATA: ${{ steps.collect.outputs.data }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
         run: |
-          PR_NUM=$(echo "$REVIEW_DATA" | jq -r '.pr_number')
+          # ラベルが存在しない場合は作成する
+          gh label create "needs-ai-triage" \
+            --color "E4B429" \
+            --description "Gemini Code Assist のレビュー待ちトリアージ" \
+            --repo "$REPO" 2>/dev/null || true
 
-          # auto-merge を有効化する（CI が通り次第マージされる）
-          gh pr merge "$PR_NUM" \
-            --auto \
-            --squash \
-            --repo "${{ github.repository }}" \
-            --subject "$(gh pr view "$PR_NUM" --repo "${{ github.repository }}" --json title -q .title)" \
-            || echo "auto-merge の設定に失敗しました（すでに設定済みまたは保護ルールにより不可）"
+          gh label create "ai-triaged" \
+            --color "0E8A16" \
+            --description "AI トリアージ完了" \
+            --repo "$REPO" 2>/dev/null || true
 
-          echo "自動マージを予約しました: PR #${PR_NUM}"
+          # PR にラベルを付与する
+          gh pr edit "$PR_NUMBER" \
+            --add-label "needs-ai-triage" \
+            --repo "$REPO"
+
+          echo "PR #${PR_NUMBER} に needs-ai-triage ラベルを付与しました"

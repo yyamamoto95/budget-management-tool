@@ -15,6 +15,7 @@
 | `/search` | `.github/skills/search.md` | 実装前の影響調査 |
 | `/commit` | `.github/skills/commit.md` | Conventional Commits 形式でのコミット |
 | `/pr` | `.github/skills/pr.md` | Pull Request の作成 |
+| `/pr-triage` | `.github/skills/pr-triage.md` | Gemini レビューの AI トリアージ |
 | `/sprint-start` | `.github/skills/sprint-start.md` | スプリントプランニング |
 | `/sprint-close` | `.github/skills/sprint-close.md` | スプリントクロージング |
 
