@@ -54,6 +54,26 @@ const eslintConfig = defineConfig([
       ],
     },
   },
+  // セキュリティ・型安全強制ルール（本番コードのみ。テストはモック都合で一部除外）
+  {
+    files: ["**/*.{ts,tsx}"],
+    ignores: ["**/__tests__/**", "**/*.stories.tsx", "**/components/ui/**"],
+    rules: {
+      // XSS 防止: dangerouslySetInnerHTML の直接使用を禁止する
+      "react/no-danger": "error",
+      // 任意コード実行防止: eval() を禁止する
+      "no-eval": "error",
+      // 型安全: 'as any' キャストを禁止する（型定義を見直すこと）
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector: "TSAsExpression[typeAnnotation.type='TSAnyKeyword']",
+          message:
+            "'as any' は禁止です。型定義を見直すか、unknown を使用してください。",
+        },
+      ],
+    },
+  },
 ]);
 
 export default eslintConfig;
