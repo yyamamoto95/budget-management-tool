@@ -960,7 +960,7 @@ Closes #123
 |--------|------|
 | **必須キーワード** | `Closes #NNN` / `Fixes #NNN` / `Resolves #NNN`（大文字小文字不問） |
 | **複数 Issue** | 複数行で列挙する |
-| **Issue がない場合** | 先に Issue を作成してから PR を出す。`chore`・`docs` でも Issue を作成する |
+| **Issue がない場合** | 先に Issue を作成してから PR を出す。`chore`・`docs`・`refactor` 等でも Issue を作成する |
 | **ブランチ名との一致** | `feat/issue-132-xxx` ブランチなら `Closes #132` が含まれることが望ましい（不一致は警告のみ） |
 
 ### なぜ全 PR に Issue が必要か
