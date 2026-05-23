@@ -10,6 +10,10 @@
             "suspicious": {
                 "noExplicitAny": "error"
             },
+            "correctness": {
+                "noUnusedImports": "error",
+                "noUnusedVariables": "error"
+            },
             "security": {
                 "noGlobalEval": "error"
             },

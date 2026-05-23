@@ -61,8 +61,11 @@ const eslintConfig = defineConfig([
     rules: {
       // XSS 防止: dangerouslySetInnerHTML の直接使用を禁止する
       "react/no-danger": "error",
-      // 任意コード実行防止: eval() を禁止する
+      // 任意コード実行防止: eval() / new Function() を禁止する
       "no-eval": "error",
+      "no-new-func": "error",
+      // XSS 防止: javascript: スキームを href に使用することを禁止する
+      "no-script-url": "error",
       // 型安全: 'as any' キャストを禁止する（型定義を見直すこと）
       "no-restricted-syntax": [
         "error",
@@ -71,6 +74,11 @@ const eslintConfig = defineConfig([
           message:
             "'as any' は禁止です。型定義を見直すか、unknown を使用してください。",
         },
+      ],
+      // 未使用変数・引数を警告ではなくエラーにする（本番コードに未使用コードを残さない）
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
       ],
     },
   },

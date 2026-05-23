@@ -75,10 +75,13 @@ export class GetExpenditureAnalysisUseCase {
         });
 
         const totalMonthlyAmount = categories.reduce((s, c) => s + c.monthlyAmount, 0);
-        // 全体偏差値: 全カテゴリ統計平均合計との比較（簡易）
-        const overallMean = categories.reduce((s, c) => s + c.monthlyAmount / (c.deviation === 50 ? 1 : 1), 0);
         const avgDeviation = Math.round(categories.reduce((s, c) => s + c.deviation, 0) / categories.length);
 
-        return { month: monthStr, categories, totalDeviation: avgDeviation, totalMonthlyAmount };
+        return {
+            month: monthStr,
+            categories,
+            totalDeviation: avgDeviation,
+            totalMonthlyAmount,
+        };
     }
 }
