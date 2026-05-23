@@ -93,7 +93,7 @@ git diff
 
 ### Issue 紐付け（必須）
 
-PR body の「🔗 関連 Issue」セクションに **`Closes #NNN`** を記載する。
+PR body の「関連 Issue」セクションに **`Closes #NNN`** を記載する。
 記載がない場合 `pr-checks.yml` の `Issue Link Check` が失敗し、マージがブロックされる。
 
 ```
