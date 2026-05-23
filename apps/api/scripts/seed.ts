@@ -21,7 +21,6 @@ if (process.env.NODE_ENV !== 'production') {
     require('dotenv').config({ path: path.resolve(__dirname, '../../../.env') });
 }
 
-// biome-ignore lint/suspicious/noExplicitAny: bcrypt は CommonJS モジュールのため require を使用
 const bcrypt = require('bcrypt') as {
     hash: (data: string, rounds: number) => Promise<string>;
 };

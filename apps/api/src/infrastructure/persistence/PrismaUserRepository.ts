@@ -3,7 +3,6 @@ import type { UpdateUserInput } from '@budget/common';
 import { User } from '../../domain/models/User';
 import type { IUserRepository } from '../../domain/repositories/IUserRepository';
 
-// biome-ignore lint/suspicious/noExplicitAny: bcrypt は CommonJS モジュールのため require を使用
 const bcrypt = require('bcrypt') as {
     hash: (data: string, rounds: number) => Promise<string>;
     compare: (data: string, encrypted: string) => Promise<boolean>;
