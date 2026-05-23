@@ -365,6 +365,35 @@ export class ExpenseAggregator {
 }
 ```
 
+### マスターテーブル設計
+
+選択肢・区分値など「変更頻度が低く、FE が選択 UI に使うテーブル」（マスターテーブル）には以下のカラムを必ず追加する。
+
+| カラム | 型 | 説明 |
+|--------|-----|------|
+| `display_order` | `Int` | FE の選択 UI での表示順。小さいほど先頭。重複は禁止。 |
+| `is_deleted` | `Boolean @default(false)` | 論理削除フラグ。レコードを物理削除せずに非活性化する。 |
+
+**論理削除の運用ルール:**
+- 廃止するレコードは `is_deleted = true` に更新する（物理削除禁止）
+- リポジトリ層のデフォルトクエリは `is_deleted = false` のみを返す
+- API レスポンスには論理削除済みレコードを含めない（廃止済み選択肢をユーザーに見せない）
+- 既存データが廃止済みカテゴリを参照している場合でも、そのレコード自体は削除しない
+
+**なぜ論理削除か:**
+- ユーザーの過去データが参照している categoryId を物理削除すると FK 違反になる
+- 廃止した選択肢への参照が残っていても履歴として保持できる
+
+```prisma
+// マスターテーブルの例
+model CategoryList {
+  id           Int      @id @default(autoincrement())
+  displayOrder Int      @map("display_order")   // 必須
+  isDeleted    Boolean  @default(false) @map("is_deleted")  // 必須
+  // ...その他のフィールド
+}
+```
+
 ### パフォーマンス
 
 - **N+1 を回避する**: ループ内でクエリを発行しない。関連データは `include` / `JOIN` でまとめて取得する
