@@ -20,6 +20,11 @@ export function MonthlyOverviewCard({ expenses }: Props) {
 
   const isPositive = remaining > 0;
   const isNegative = remaining < 0;
+  // 残額の符号文字
+  let remainingSign: string;
+  if (isPositive) remainingSign = "+";
+  else if (isNegative) remainingSign = "-";
+  else remainingSign = "";
 
   return (
     <section
@@ -60,7 +65,7 @@ export function MonthlyOverviewCard({ expenses }: Props) {
                 : "var(--color-income)",
             }}
           >
-            {isPositive ? "+" : isNegative ? "-" : ""}¥{Math.abs(remaining).toLocaleString("ja-JP")}
+            {remainingSign}¥{Math.abs(remaining).toLocaleString("ja-JP")}
           </p>
         </div>
       </div>

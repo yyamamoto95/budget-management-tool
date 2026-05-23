@@ -78,7 +78,7 @@ export function InitialSetupWizard() {
                     <div
                         key={i}
                         className="h-1.5 w-8 rounded-full transition-colors duration-300"
-                        style={{ background: i < step ? "var(--color-brand-primary)" : i === step ? "var(--color-brand-primary)" : "#e5e7eb" }}
+                        style={{ background: i <= step ? "var(--color-brand-primary)" : "#e5e7eb" }}
                     />
                 ))}
             </div>
