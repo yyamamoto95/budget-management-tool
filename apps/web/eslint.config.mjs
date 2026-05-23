@@ -80,6 +80,15 @@ const eslintConfig = defineConfig([
         "error",
         { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
       ],
+      // 変数宣言: const 優先・var 禁止
+      "prefer-const": "error",
+      "no-var": "error",
+      // 可読性: ネスト三項演算子を禁止する
+      "no-nested-ternary": "error",
+      // デバッグコード禁止: console.log/debug を本番コードに残さない
+      "no-console": ["error", { allow: ["error", "warn"] }],
+      // 引数の数: 4つ以上はオブジェクト引数に変換する
+      "max-params": ["error", 3],
     },
   },
 ]);

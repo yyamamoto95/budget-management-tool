@@ -10,12 +10,120 @@
 
 - `any` の使用は原則禁止。やむを得ない場合は理由をコメントし `unknown` を検討する
 - `as` キャストは原則禁止。`as unknown as T` のような強制キャストは型チェックを完全に回避するため特に禁止。型が合わない場合は型定義・ロジック自体を見直す
+- `!` 非nullアサーション演算子は禁止。`null` / `undefined` の可能性がある場合は型ガード・optional chaining・早期リターンで対処する
 - 型推論を優先するが、関数の引数と戻り値には必ず型注釈を付与する
 
 ### 非同期処理
 
 - `async/await` を使用し、`Promise.then()` は避ける
 - `try-catch` によるエラーハンドリングを適切に行い、握りつぶさない
+
+### `null` と `undefined` の使い分け
+
+プロジェクト内で混在しないよう統一する。
+
+| 用途 | 使う値 |
+|------|--------|
+| 「値が存在しない」ことを明示的に表す | `null` |
+| 省略可能な引数・プロパティのデフォルト | `undefined` |
+| Optional chaining の結果（`?.`） | `undefined`（言語仕様に従う） |
+
+```typescript
+// OK: 存在しないリソースは null で返す
+async function findUser(id: string): Promise<User | null> { ... }
+
+// OK: 省略可能な引数は undefined
+function createExpense(amount: number, note?: string) { ... }
+```
+
+### 引数の数
+
+引数が **4つ以上** の関数はオブジェクト引数に変換する。順序の取り違えを防ぎ、引数の追加・省略が容易になる。
+
+```typescript
+// NG: 引数が多く順序を間違えやすい
+function createExpense(userId: string, amount: number, categoryId: number, date: string, note: string) { ... }
+
+// OK: オブジェクト引数
+function createExpense(params: {
+  userId: string;
+  amount: number;
+  categoryId: number;
+  date: string;
+  note?: string;
+}) { ... }
+```
+
+### デバッグコードの禁止
+
+`console.log` / `console.debug` などのデバッグ出力を本番コードに残してはならない。ロギングが必要な場合はプロジェクトの logger モジュールを使用する。`console.error` / `console.warn` はやむを得ない場合のみ許容する。
+
+### 条件分岐・三項演算子
+
+#### 三項演算子
+
+条件・値ともに短くシンプルな場合のみ使用する。
+
+```typescript
+// OK: 条件も値も短い
+const label = isActive ? '有効' : '無効';
+const fee = isPremium ? 0 : 500;
+
+// NG: ネスト三項（何が返るか追いにくい → if/switch に書き直す）
+const status = isActive ? isPremium ? 'premium' : 'normal' : 'inactive';
+
+// NG: 式が長い（if に分けるべき）
+const result = user.subscription.plan === 'premium' && user.isVerified
+  ? calculatePremiumDiscount(user, cart)
+  : calculateStandardPrice(cart);
+```
+
+#### if / switch の使い分け
+
+| 使う場面 | 構文 |
+|----------|------|
+| 真偽判定・範囲チェック・複合条件 | `if` |
+| 3ケース以上の離散値（enum・union型） | `switch` |
+
+`switch` では **exhaustive check** を付けてケース追加漏れをコンパイルエラーで検出する：
+
+```typescript
+switch (category) {
+  case 'food':      return 40000;
+  case 'transport': return 15000;
+  case 'medical':   return 10000;
+  default:
+    category satisfies never; // union に新値が追加されたらここでコンパイルエラー
+}
+```
+
+#### 早期リターンによるネスト低減
+
+条件の否定で早期リターンし、ネストの深さを抑える：
+
+```typescript
+// NG: ネストが深い
+function process(user: User | null) {
+  if (user) {
+    if (user.isActive) {
+      return doWork(user);
+    }
+  }
+}
+
+// OK: 早期リターン
+function process(user: User | null) {
+  if (!user) return;
+  if (!user.isActive) return;
+  return doWork(user);
+}
+```
+
+### 変数宣言
+
+- **`const` を優先する**: 再代入が不要な変数はすべて `const` で宣言する
+- **`let` は再代入が必要な場合のみ**: ループカウンタや後から代入する変数に限定する
+- **`var` は禁止**: スコープが関数スコープになるため使用しない
 
 ### マジックナンバーの排除
 
@@ -25,6 +133,9 @@
 
 - **未使用コードは必ず削除する**: 未使用の変数・関数・import・型定義はコードベースに残さない
 - **命名は用途に追従させる**: リファクタリングや仕様変更で役割が変わった変数・関数は命名も同時に更新する。古い名前が残ると次の変更者が誤認する
+- **後方互換実装は原則禁止**: 実現可能な限り、旧インターフェース維持のための互換レイヤー・フォールバック・分岐は作らない。変更が必要な場合は参照・影響範囲をすべて特定し、一括で修正して負債を残さない
+  - 禁止例: 削除済みシンボルの re-export、旧フィールド名を残すための alias、`if (legacy)` 分岐
+  - 例外: 外部公開 API・ライブラリの SemVer 上の互換維持が必要な場合は許可するが、その旨をコメントで明示する
 
 ### 環境変数
 
@@ -34,8 +145,141 @@
 ### コメント・ドキュメント方針
 
 - **必要な情報だけを残す**: コメントや JSDoc は必要な場合に必要な情報のみ記載する。論理名などドメインロジックが変わったとき差分が膨らむため、自明な説明は書かない
-- **陳腐化した情報は削除する**: 過去の経緯・古い仕様のコメントアウトは誤認の原因になるため積極的に除去する
 - **意図的な例外には必ずコメントを残す**: 一般的な実装と異なる、あるいは「なぜこうなっているか」が一見わからない箇所には、意図を明確に説明するコメントを付ける
+- コメントと実装の同期・陳腐化の排除については **`## 保守性 > 古い情報を残さない`** セクションを参照
+
+---
+
+## 保守性
+
+### 負債を残さない
+
+#### TODO / FIXME の管理
+
+コードに課題を残す場合は **Issue 番号を必ず付ける**。番号のない TODO は禁止。
+
+```typescript
+// NG: 誰がいつ解消するか不明
+// TODO: エラーハンドリングを改善する
+
+// OK: Issue にトレースできる
+// TODO(#123): レート制限エラー時のリトライロジックを追加する
+```
+
+解消済みの TODO は削除する。Issue がクローズされても TODO が残るのは古い情報になる。
+
+#### 暫定実装の明示
+
+ハードコード・暫定ロジックをサイレントに残すことを禁止する。残す場合は理由と Issue 番号を明示する。
+
+```typescript
+// NG: なぜこの値か、いつ直すか不明
+const MAX_ITEMS = 100;
+
+// OK: 暫定であることと理由が明確
+const MAX_ITEMS = 100; // TODO(#456): ページネーション実装後に制限を撤廃する
+```
+
+---
+
+### 古い情報を残さない
+
+#### コメントと実装の同期
+
+ロジックを変更したとき、**同じ箇所のコメントを必ず同時に更新する**。実装と乖離したコメントは削除する。
+
+```typescript
+// NG: コメントと実装が矛盾している（コメントを更新し忘れた）
+// 月次合計を計算する
+function calcWeeklyTotal(expenses: Expense[]) { ... }
+
+// OK: コメントと実装が一致している
+// 週次合計を計算する
+function calcWeeklyTotal(expenses: Expense[]) { ... }
+```
+
+#### OpenAPI スペックと実装の同期
+
+- レスポンス型・リクエストボディ・パスパラメータを変更したら **`openapi.yaml` を同時更新する**
+- `pnpm codegen` が SSOT。スペックと実装が乖離した状態でコミットしない
+- codegen 後の型エラーは「スペックが正しく、実装を直す」という方向で解消する
+
+---
+
+### 誤解を生まない
+
+#### boolean 変数・プロパティの命名
+
+`is` / `has` / `can` / `should` プレフィックスを必須とする。
+
+```typescript
+// NG: 値が何を表すか不明
+const active = true;
+const flag = false;
+const check = user.verified;
+
+// OK: 意味が明確
+const isActive = true;
+const hasPermission = false;
+const isVerified = user.verified;
+```
+
+`flag` / `flg` / `check` / `result` のような意味のない名前は禁止。
+
+#### 否定形の変数名禁止
+
+否定形の変数名は二重否定を生み読みにくくなる。変数は肯定形で定義し、否定は参照側で行う。
+
+```typescript
+// NG: 二重否定が生まれる
+const isNotReady = !initialized;
+if (!isNotReady) { ... } // 「not not ready」= ready
+
+// OK: 肯定形で定義
+const isReady = initialized;
+if (!isReady) { ... }
+```
+
+#### 副作用のある関数の命名
+
+DB 書き込み・状態変更・外部通知を伴う関数は、名前から副作用が読み取れる動詞を使う。
+
+| 操作 | 推奨プレフィックス |
+|------|----------------|
+| 作成 | `create` / `register` |
+| 更新 | `update` / `save` |
+| 削除 | `delete` / `remove` |
+| 送信 | `send` / `notify` / `publish` |
+| 取得（副作用なし） | `get` / `find` / `fetch` / `list` |
+
+`process` は副作用の有無が不明なため、より具体的な動詞に置き換える。ただし DDD UseCase クラスの `execute()` メソッドおよびイベントハンドラの `handle()` はパターン上の慣習のため除外する。
+
+#### 関数の単一責務
+
+1関数は1つの責務のみを持つ。「〜かつ〜する」という名前や説明になったら分割のサイン。
+
+```typescript
+// NG: バリデーションと保存が混在
+async function validateAndSaveExpense(data: unknown) { ... }
+
+// OK: 責務を分離
+async function validateExpenseInput(data: unknown): ExpenseInput { ... }
+async function saveExpense(input: ExpenseInput): Expense { ... }
+```
+
+#### 型で意図を表現（ブランド型）
+
+`string` / `number` だけでは何の値か分からない引数は、型エイリアスやブランド型で意味を持たせる。
+
+```typescript
+// NG: 引数が全部 string で取り違えが起きる
+function getExpense(userId: string, expenseId: string) { ... }
+
+// OK: 型で意味を表現
+type UserId = string & { readonly _brand: 'UserId' };
+type ExpenseId = string & { readonly _brand: 'ExpenseId' };
+function getExpense(userId: UserId, expenseId: ExpenseId) { ... }
+```
 
 ---
 
@@ -48,12 +292,86 @@
 | Infrastructure | `apps/api/src/infrastructure/` | 外部接続（DB, API）の詳細はここに閉じ込める |
 | Presentation | `apps/api/src/presentation/` | リクエストバリデーションを行い、不正なデータはユースケースに渡さない |
 
+### ドメインロジックの集約（必須）
+
+ビジネスロジックは必ずドメイン層に集約する。UseCase・Presentation 層にロジックが漏れ出ることを禁止する。
+
+#### ドメインエンティティへの閉じ込め
+
+ビジネスルール・計算・状態変化はドメインエンティティのメソッドとして実装する。
+
+```typescript
+// NG: ビジネスロジックが UseCase 層に漏れている
+class ApproveExpenseUseCase {
+  async execute(id: string) {
+    const expense = await this.repo.findById(id);
+    if (expense.status !== 'pending') throw new Error('承認できない状態');
+    if (expense.amount > 100000) throw new Error('上限超過');
+    expense.status = 'approved'; // 状態変更も UseCase が担っている
+    await this.repo.save(expense);
+  }
+}
+
+// OK: ルールと状態変化をエンティティに閉じ込める
+class Expense {
+  approve(): void {
+    if (this.status !== 'pending') throw new DomainError('承認できない状態');
+    if (this.amount > 100000) throw new DomainError('上限超過');
+    this.status = 'approved';
+  }
+}
+
+class ApproveExpenseUseCase {
+  async execute(id: string) {
+    const expense = await this.repo.findById(id);
+    expense.approve(); // ルールはエンティティが知っている
+    await this.repo.save(expense);
+  }
+}
+```
+
+#### ドメインサービスの使いどころ
+
+複数エンティティにまたがるロジック、または単一エンティティに閉じ込めると責務が過剰になる場合は **ドメインサービス**（`apps/api/src/domain/services/`）を作成する。
+
+```typescript
+// 例: 複数エンティティを参照して判定するロジック
+class XDayCalculatorService {
+  calculate(balance: Balance, expenses: Expense[]): number { ... }
+}
+```
+
+エンティティに属さないロジックをそのまま UseCase に書くことは禁止。ドメインサービスとして切り出す。
+
+#### utils との区別
+
+`utils/` はドメインに依存しない **純粋な汎用関数** のみ配置する。ドメイン概念（`Expense`・`Balance`・`UserId` 等）を引数・戻り値に含む関数は `utils/` に置かない。
+
+| 配置先 | 基準 | 例 |
+|--------|------|-----|
+| `utils/` | ドメイン非依存・汎用 | 日付フォーマット・文字列トリム・配列ユーティリティ |
+| `domain/entities/` | 1エンティティのルール・計算 | `Expense.approve()` / `Balance.isNegative()` |
+| `domain/services/` | 複数エンティティにまたがるロジック | `XDayCalculatorService` |
+
+```typescript
+// NG: ドメインロジックが utils に混入している
+// utils/expenseUtils.ts
+export function calcMonthlyTotal(expenses: Expense[]): number { ... }
+
+// OK: ドメインサービスとして配置
+// domain/services/ExpenseAggregator.ts
+export class ExpenseAggregator {
+  calcMonthlyTotal(expenses: Expense[]): number { ... }
+}
+```
+
 ### パフォーマンス
 
 - **N+1 を回避する**: ループ内でクエリを発行しない。関連データは `include` / `JOIN` でまとめて取得する
 - **JOIN 数を抑える**: JOIN が掛け算になり結果セットが爆発しないよう、必要な関連のみを取得する。大量データの多段 JOIN は OOM の原因になる
 - **DB 接続数を管理する**: コネクションプールの上限を意識し、不要なコネクションを長時間保持しない
 - **トランザクションを適切に張る**: 複数テーブルへの書き込みは必ずトランザクションでまとめる。読み取り専用クエリには不要なトランザクションを張らない
+- **SELECT クエリには必ず ORDER BY を付ける**: DB の返却順序は保証されない。リポジトリ層のすべての SELECT クエリに `orderBy` を明示し、順序不定によるフレーキーテスト・表示バグを防ぐ
 
 ### セキュリティ
 
@@ -75,6 +393,21 @@
 
 #### ドメインエラーとインフラエラーの分離
 - DB 接続エラー・外部 API エラーは Infrastructure 層でキャッチし、ドメインエラー（`DomainError` 等）に変換して上位に伝播させる。生の Prisma エラーや HTTP エラーをそのまま上位層に漏らさない
+
+### API 設計
+
+#### レスポンス型の後方互換性
+
+フィールドの **削除・リネーム・型変更** は既存クライアントを壊す破壊的変更。変更の種類によって手順を使い分ける。
+
+| 変更種別 | 破壊的変更 | 手順 |
+|----------|-----------|------|
+| フィールド追加 | なし（後方互換） | 通常の実装変更で可 |
+| フィールド削除・リネーム | あり | `openapi.yaml` を先に更新 → `pnpm codegen` で型エラー確認 → 実装修正 |
+| 型変更（`string` → `number` 等） | あり | 同上 |
+
+- `pnpm codegen` が SSOT。codegen 後の型エラーは「スペックが正しく、実装を直す」方向で解消する
+- スペックと実装が乖離した状態でコミットしない
 
 ---
 
@@ -157,6 +490,8 @@
 
 ### 必須テストケース
 
+#### 全テスト共通
+
 すべてのテストで以下の網羅を意識する。
 
 | ケース | 内容 |
@@ -164,6 +499,56 @@
 | 正常系 | 期待する入力で期待する出力が得られること |
 | 異常系 | 不正な入力・エラー時に適切なハンドリングが行われること |
 | 境界値 | 最小値・最大値・空文字・`null`・`0` などの境界を検証すること |
+
+#### 引数・パラメータの網羅（UT / 統合テスト）
+
+関数・APIの引数・クエリパラメータは **組み合わせを網羅的にテストする**。`test.each` を活用してケースを明示的に列挙する。
+
+```typescript
+// ✅ パラメータごとに網羅
+test.each([
+  { sortBy: 'date', order: 'asc',  expected: [expense1, expense2] },
+  { sortBy: 'date', order: 'desc', expected: [expense2, expense1] },
+  { sortBy: 'amount', order: 'asc', expected: [expense1, expense2] },
+])('sortBy=$sortBy order=$order のとき正しい順序で返る', async ({ sortBy, order, expected }) => {
+  const res = await getExpenses({ sortBy, order });
+  expect(res.map((e) => e.id)).toEqual(expected.map((e) => e.id));
+});
+```
+
+#### BE 統合テスト（API エンドポイント）のカバレッジ要件
+
+- **全エンドポイントに統合テストを用意する**。未テストのエンドポイントを残してはならない
+- 各エンドポイントで以下のケースを必ず含める：
+
+| ケース | 内容 |
+|--------|------|
+| 正常系 | 期待するリクエストで期待するレスポンス・DB 状態になること |
+| バリデーションエラー | 不正な入力値で 400 が返ること |
+| 未認証 | 認証なしリクエストで 401 が返ること |
+| 認可エラー | 他ユーザーのリソースへのアクセスで 403 / 404 が返ること |
+| 存在しないリソース | 該当データなしで 404 が返ること |
+
+#### 検索・ソート・フィルタの網羅
+
+検索クエリ・ソート・フィルタがある場合、**DBに実データを投入した上で結果が正しいことを検証する**。
+
+- **ソート**: 昇順・降順それぞれで順序を検証する。同値の場合のタイブレーク順序も確認する
+- **フィルタ**: 単独条件・複数条件の AND 組み合わせ・条件なし（全件）を検証する
+- **空結果**: 該当データなしのとき空配列が返ること
+- **ページネーション**: 1ページ目・中間ページ・最終ページ・空リストを検証する
+
+```typescript
+it('検索: categoryId フィルタで該当カテゴリのみ返る', async () => {
+  const food    = await createTestExpense({ categoryId: 1 });
+  const medical = await createTestExpense({ categoryId: 5 });
+
+  const res = await request(app).get('/expenses?categoryId=1');
+
+  expect(res.body.map((e: Expense) => e.id)).toContain(food.id);
+  expect(res.body.map((e: Expense) => e.id)).not.toContain(medical.id);
+});
+```
 
 ### テスト品質基準
 
@@ -176,8 +561,68 @@
 #### アサーションを意味のあるものにする
 
 - `expect(true).toBe(true)` のようなトートロジーは禁止
-- エラーケースは「エラーが投げられること」だけでなく「エラーの種類・メッセージ」まで検証する
+- **エラーの型とメッセージを両方検証する**:
+
+  ```typescript
+  // ❌ 型のみ（メッセージが変わってもパスしてしまう）
+  await expect(fn()).rejects.toBeInstanceOf(ValidationError);
+
+  // ✅ 型 + メッセージ両方
+  await expect(fn()).rejects.toThrow(new ValidationError('金額は正の値を入力してください'));
+  // または
+  const err = await fn().catch((e) => e);
+  expect(err).toBeInstanceOf(ValidationError);
+  expect(err.message).toBe('金額は正の値を入力してください');
+  ```
+
+- **成功時も具体的なフィールド値まで検証する**:
+
+  ```typescript
+  // ❌ 存在確認のみ（値の中身が正しいか分からない）
+  expect(result).toBeDefined();
+  expect(result.success).toBe(true);
+
+  // ✅ 期待する値を具体的に検証
+  expect(result.id).toMatch(/^[0-9A-Z]{26}$/); // ulid形式
+  expect(result.amount).toBe(1000);
+  expect(result.category).toBe('food');
+  ```
+
 - `expect` が 0 件のテストは存在してはならない（`assertions` を明示するか削除する）
+
+#### 1テスト1関心
+
+- 1つの `it` / `test` ブロックで検証する関心事は1つに絞る
+- `expect` の件数は **原則3件以内**。それを超える場合は `describe` / `it` を分割できないか検討する
+- 「〜かつ〜かつ〜を検証する」というテスト名になったら分割のサイン
+
+#### 非同期の確実な待機
+
+FE テストで `waitFor` を使う場合、コールバック内でアサーションを完結させる：
+
+```typescript
+// ❌ waitFor の外で mock.calls にアクセスすると競合が起きる
+await waitFor(() => expect(mockFn).toHaveBeenCalled());
+expect(mockFn.mock.calls[0][0]).toBe('expected'); // 競合の可能性
+
+// ✅ waitFor 内でアサーションを完結させる
+await waitFor(() => {
+  expect(mockFn).toHaveBeenCalledWith('expected');
+});
+```
+
+#### 境界値の網羅
+
+「境界値を検証すること」だけでなく、以下を明示的に含める：
+
+| ケース | 例 |
+|--------|-----|
+| ゼロ | `amount = 0` |
+| 負数 | `amount = -1` |
+| 最大値 | スキーマ上限ちょうど |
+| 最大値 + 1 | スキーマ上限を1超過 |
+| 空文字列 | `name = ''` |
+| 最大文字長 | `name.length === MAX_LENGTH` |
 
 #### モック方針
 
@@ -185,17 +630,205 @@
 - **プロジェクト内部ロジックはモックしない**: ユースケース・ドメインロジックは実コードで動かす（統合テストで担保する）
 - `vi.mock()` の過剰使用は「テストが通っても実装が壊れている」状態を生む
 
+#### モック初期化の統一
+
+`beforeEach` でのモック管理は `vi.clearAllMocks()` に統一する：
+
+```typescript
+// ❌ 個別リセット（漏れが起きやすい）
+beforeEach(() => {
+  mockFn.mockReset();
+  anotherMock.mockClear();
+});
+
+// ✅ 一括クリア
+beforeEach(() => {
+  vi.clearAllMocks(); // すべてのモックの呼び出し履歴をリセット
+});
+```
+
+`vi.resetAllMocks()`（実装も消える）や `vi.restoreAllMocks()`（スパイを元に戻す）との使い分けを意識する。
+
 #### テストの独立性
 
 - 各テストは他のテストの実行順序・実行有無に依存してはならない
 - 統合テストは `beforeEach` で `resetDatabase()` を呼び出し、テスト間の状態汚染を防ぐ
-- **固定 ID のハードコード禁止**: テストデータの ID は必ず `ulid()` で動的生成する（固定 ID は他テストと衝突する原因になる）
+- **固定 ID のハードコード禁止**: テストデータの ID は必ず `ulid()` で動的生成する
+  - 固定 ID は並列実行時に衝突し、テスト間で暗黙の順序依存を生む
+  - `createTestUser()` などのファクトリ関数を経由することで ID 生成ポリシーを一元管理できる
 
 #### テストデータの明示性
 
 - テストデータにマジックナンバー・マジック文字列を使わない
 - データの意図が変数名や `describe` のコンテキストから読み取れること
 - 例: `const amount = 0` より `const BOUNDARY_AMOUNT = 0 // 境界値: ゼロ円`
+- テスト固有の定数は `it` ブロック内に閉じ込め、スコープを最小にする
+
+#### スナップショットテスト
+
+UI コンポーネントのレンダリング検証には `toMatchInlineSnapshot` を使い、スナップショットを変更差分として追跡できるようにする：
+
+```typescript
+// ✅ インラインスナップショット（変更がコードレビューで視認できる）
+expect(container.innerHTML).toMatchInlineSnapshot(`
+  "<div class="card">...</div>"
+`);
+
+// ❌ 外部ファイルスナップショット（差分が .snap ファイルに隠れる）
+expect(container).toMatchSnapshot();
+```
+
+#### テスト内コメント（why コメント）
+
+非自明なセットアップや境界値には **なぜその値なのか** を1行コメントで添える：
+
+```typescript
+// ✅ 境界値の意図が明確
+const amount = 10_000_001; // 上限 1000万円を1円超過
+
+// ✅ モック設定の理由が明確
+mockGetUser.mockResolvedValueOnce(null); // 退会済みユーザーを模倣
+```
+
+### DB 整合性チェック（統合テスト）
+
+BE の統合テスト（API エンドポイント・UseCase × 実 DB）では、DB の状態を直接検証することで「SQL ミス・Prisma クエリの誤り」を検出する。
+
+#### テストケースごとのデータ投入とクリーンアップ
+
+- **各テストケースは自分が必要なデータを自分で投入する**。他テストのデータに依存してはならない
+- `beforeEach` でテストデータを投入し、`afterEach` で削除する（または `beforeEach` でリセット後に投入）
+- クリーンアップは `try/finally` または `afterEach` で **例外時も必ず実行されること** を保証する
+
+```typescript
+describe('POST /expenses', () => {
+  let testUser: User;
+
+  beforeEach(async () => {
+    testUser = await createTestUser(); // 動的 ID で投入
+  });
+
+  afterEach(async () => {
+    await db.expense.deleteMany({ where: { userId: testUser.id } });
+    await db.user.delete({ where: { id: testUser.id } });
+  });
+});
+```
+
+#### GET 系: DBデータとレスポンスの対応を検証
+
+- テストデータを投入した後、API を呼び出し、**レスポンスの各フィールドが DB の値と一致することを検証する**
+- 意図しないカラムからの値漏洩がないことも確認する（例: `password_hash` が混入していないか）
+
+```typescript
+it('GET /expenses/:id — DBの値がレスポンスに正しく反映される', async () => {
+  const expense = await createTestExpense({ amount: 1500, categoryId: 2 });
+
+  const res = await request(app).get(`/expenses/${expense.id}`);
+
+  expect(res.body.amount).toBe(1500);
+  expect(res.body.categoryId).toBe(2);
+  // 意図しないフィールドが含まれていないこと
+  expect(res.body).not.toHaveProperty('deletedAt');
+  expect(res.body).not.toHaveProperty('internalNote');
+});
+```
+
+#### 書き込み系: DB の操作結果を直接検証
+
+- **意図したカラムに正しく保存・更新・削除されているか** を DB を直接参照して確認する
+- **意図しないカラム・レコードが変更されていないか** を明示的に検証する
+
+```typescript
+it('POST /expenses — 指定カラムのみ書き込まれ、他レコードは変更されない', async () => {
+  const otherExpense = await createTestExpense({ amount: 500 }); // 別ユーザーのデータ
+
+  await request(app).post('/expenses').send({ amount: 1000, categoryId: 1 });
+
+  // 意図したレコードが作成されている
+  const created = await db.expense.findFirst({ where: { amount: 1000 } });
+  expect(created).not.toBeNull();
+  expect(created!.categoryId).toBe(1);
+
+  // 他のレコードが変更されていない
+  const unchanged = await db.expense.findUnique({ where: { id: otherExpense.id } });
+  expect(unchanged!.amount).toBe(500); // 変わっていないこと
+});
+```
+
+#### クリーンアップの確実な保証
+
+- テスト終了後（成功・失敗問わず）に投入データが残らないこと
+- `afterEach` のクリーンアップが漏れた場合に後続テストが汚染されないよう、`beforeEach` の先頭でも前回残渣を削除するパターンを推奨する
+
+```typescript
+beforeEach(async () => {
+  // 前回のテストが失敗してクリーンアップされていない場合に備えてリセット
+  await db.expense.deleteMany({ where: { userId: testUser.id } });
+  // 改めてテストデータを投入
+  testUser = await createTestUser();
+});
+```
+
+#### 認証・認可の網羅
+
+各 API エンドポイントの統合テストに **認証・認可のネガティブケースを必ず含める**。
+
+| ケース | 検証内容 |
+|--------|---------|
+| 未認証リクエスト | Authorization ヘッダなしで 401 が返ること |
+| 他ユーザーのリソースアクセス | 自分以外のリソース ID を指定したとき 403 または 404 が返ること（存在を漏洩しない） |
+| 削除済みユーザー | 退会済みユーザーのトークンで 401 が返ること |
+
+```typescript
+it('他ユーザーの支出は取得できない', async () => {
+  const otherUser = await createTestUser();
+  const expense   = await createTestExpense({ userId: otherUser.id });
+
+  const res = await request(app)
+    .get(`/expenses/${expense.id}`)
+    .set('Authorization', `Bearer ${currentUserToken}`);
+
+  // 存在するが他ユーザーのリソース → 404（存在を教えない）
+  expect(res.status).toBe(404);
+});
+```
+
+---
+
+### 機能デグレ防止
+
+#### テストの消去・弱体化の禁止
+
+- バグ修正・リファクタリング時に、既存テストを **削除・`skip`・アサーションの緩和** によって CI をパスさせることを禁止する
+- テストが壊れた場合は「テストを直す」のではなく「実装が正しいかを確認する」
+
+#### バグ修正時の再現テスト必須
+
+- 修正したバグは必ず **「修正前に失敗し、修正後に通る」テストを追加** してからコミットする
+- 再現テストがないバグ修正は同じバグの再発を防げない
+
+#### 主要ユーザーフローの E2E カバレッジ確保
+
+コアとなるユーザーフローは E2E テストが存在することを確保する。UT・統合テストだけでは画面間の繋ぎの崩壊を検出できない。
+
+| フロー | テストの存在確認 |
+|--------|----------------|
+| ログイン → ダッシュボード表示 | `e2e/` に存在すること |
+| 支出登録 → 一覧反映 | `e2e/` に存在すること |
+| X-Day 確認（主要計算フロー） | `e2e/` に存在すること |
+
+#### 変更シンボルの参照確認
+
+- 関数・型・定数を変更・削除した場合は、**参照箇所を `grep` または Serena `find_referencing_symbols` で確認** し、影響範囲のテストが存在することを確認する
+- 参照先にテストがない場合は追加するか、影響ないことをコメントで明示する
+
+#### DB マイグレーション後の整合性検証
+
+- マイグレーションを伴う変更（カラム追加・削除・型変更・NULL 制約変更）は、**統合テストで既存データへの影響がないことを確認** してからマージする
+- 特に `NOT NULL` カラムの追加・`DEFAULT` なし追加は既存レコードを壊す可能性がある
+
+---
 
 ### 禁止事項
 
@@ -205,6 +838,8 @@
 | `any` の使用 | 通常の型規約と同様に禁止 |
 | UT で DB に直接アクセス | ユニットテストの責務から外れる。統合テストで行う |
 | 統合テストで外部 HTTP をモックせず呼び出す | テスト環境の外部依存を作らない |
+| 既存テストの削除・skip によるCI通過 | デグレ検出機能を破壊する |
+| バグ修正に再現テストを付けないこと | 同一バグの再発を防げない |
 
 ---
 
