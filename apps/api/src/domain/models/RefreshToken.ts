@@ -35,7 +35,14 @@ export class RefreshToken {
 
         return {
             token,
-            domain: new RefreshToken({ id: ulid(), tokenHash, userId, expiresAt, revokedAt: null, createdAt: now }),
+            domain: new RefreshToken({
+                id: ulid(),
+                tokenHash,
+                userId,
+                expiresAt,
+                revokedAt: null,
+                createdAt: now,
+            }),
         };
     }
 

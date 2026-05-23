@@ -94,7 +94,10 @@ describeIf('Auth 統合テスト（実 DB）', () => {
             const res = await testRequest(app, API_PATHS.LOGIN, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userId: 'nonexistent-user', password: 'password123' }),
+                body: JSON.stringify({
+                    userId: 'nonexistent-user',
+                    password: 'password123',
+                }),
             });
 
             expect(res.status).toBe(401);
@@ -146,10 +149,15 @@ describeIf('Auth 統合テスト（実 DB）', () => {
             const { users } = await seedTestData({ pattern: 'minimal' });
             const client = new TestAgent(app);
 
-            await client.login(API_PATHS.LOGIN, { userId: users[0].userId, password: 'password123' });
+            await client.login(API_PATHS.LOGIN, {
+                userId: users[0].userId,
+                password: 'password123',
+            });
 
             // refreshToken を含めた body を送信（Content-Type: application/json + 空 body は Malformed JSON になるため）
-            const res = await client.post(API_PATHS.LOGOUT, { refreshToken: client.getRefreshToken() });
+            const res = await client.post(API_PATHS.LOGOUT, {
+                refreshToken: client.getRefreshToken(),
+            });
             expect(res.status).toBe(200);
             expect((res.body as Record<string, unknown>).result).toBe('success');
         });
@@ -163,8 +171,13 @@ describeIf('Auth 統合テスト（実 DB）', () => {
             const { users } = await seedTestData({ pattern: 'minimal' });
             const client = new TestAgent(app);
 
-            await client.login(API_PATHS.LOGIN, { userId: users[0].userId, password: 'password123' });
-            await client.post(API_PATHS.LOGOUT, { refreshToken: client.getRefreshToken() });
+            await client.login(API_PATHS.LOGIN, {
+                userId: users[0].userId,
+                password: 'password123',
+            });
+            await client.post(API_PATHS.LOGOUT, {
+                refreshToken: client.getRefreshToken(),
+            });
 
             // JWT はログアウト後も有効期限まで有効なため、トークンなしでのアクセスを検証する
             const res = await testRequest(app, API_PATHS.EXPENSE);

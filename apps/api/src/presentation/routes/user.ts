@@ -68,7 +68,10 @@ const createUserRoute = createRoute({
     summary: 'ユーザー登録',
     security: [{ bearerAuth: [] }],
     request: {
-        body: { content: { 'application/json': { schema: CreateUserBodySchema } }, required: true },
+        body: {
+            content: { 'application/json': { schema: CreateUserBodySchema } },
+            required: true,
+        },
     },
     responses: {
         201: {
@@ -94,7 +97,10 @@ const updateUserRoute = createRoute({
     security: [{ bearerAuth: [] }],
     request: {
         params: UserIdParamSchema,
-        body: { content: { 'application/json': { schema: UpdateUserBodySchema } }, required: true },
+        body: {
+            content: { 'application/json': { schema: UpdateUserBodySchema } },
+            required: true,
+        },
     },
     responses: {
         200: {

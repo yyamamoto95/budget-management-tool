@@ -12,7 +12,9 @@ export class PrismaSecurityAnswerRepository implements ISecurityAnswerRepository
     constructor(private readonly prisma: PrismaClient) {}
 
     async listQuestions(): Promise<{ id: number; text: string }[]> {
-        return this.prisma.securityQuestionPreset.findMany({ orderBy: { id: 'asc' } });
+        return this.prisma.securityQuestionPreset.findMany({
+            orderBy: { id: 'asc' },
+        });
     }
 
     async findQuestionByUserId(userId: string): Promise<{ questionId: number; questionText: string } | null> {
@@ -21,11 +23,16 @@ export class PrismaSecurityAnswerRepository implements ISecurityAnswerRepository
             include: { question: true },
         });
         if (!answer) return null;
-        return { questionId: answer.questionId, questionText: answer.question.text };
+        return {
+            questionId: answer.questionId,
+            questionText: answer.question.text,
+        };
     }
 
     async verifyAnswer(userId: string, plaintextAnswer: string): Promise<boolean> {
-        const answer = await this.prisma.userSecurityAnswer.findUnique({ where: { userId } });
+        const answer = await this.prisma.userSecurityAnswer.findUnique({
+            where: { userId },
+        });
         if (!answer) return false;
         return bcrypt.compare(plaintextAnswer.trim().toLowerCase(), answer.answerHash);
     }

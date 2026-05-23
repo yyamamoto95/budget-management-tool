@@ -52,7 +52,10 @@ describe('LlmClient', () => {
         });
 
         expect(mockMessagesCreate).toHaveBeenCalledWith(
-            expect.objectContaining({ model: 'claude-haiku-4-5-20251001', max_tokens: 300 })
+            expect.objectContaining({
+                model: 'claude-haiku-4-5-20251001',
+                max_tokens: 300,
+            })
         );
     });
 

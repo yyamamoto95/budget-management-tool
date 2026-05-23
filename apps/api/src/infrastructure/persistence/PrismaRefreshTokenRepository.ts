@@ -32,7 +32,9 @@ export class PrismaRefreshTokenRepository implements IRefreshTokenRepository {
     }
 
     async findByHash(tokenHash: string): Promise<RefreshToken | null> {
-        const record = await this.prisma.refreshToken.findUnique({ where: { tokenHash } });
+        const record = await this.prisma.refreshToken.findUnique({
+            where: { tokenHash },
+        });
         return record ? toDomain(record) : null;
     }
 

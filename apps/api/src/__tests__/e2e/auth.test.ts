@@ -177,7 +177,10 @@ describe('POST /api/logout', () => {
         const app = buildApp();
         const client = new TestAgent(app);
 
-        await client.login('/api/login', { userId: 'user-1', password: 'password123' });
+        await client.login('/api/login', {
+            userId: 'user-1',
+            password: 'password123',
+        });
         const refreshToken = client.getRefreshToken();
 
         const res = await client.post('/api/logout', { refreshToken });
@@ -248,7 +251,10 @@ describe('認証済みルートのアクセス制御', () => {
         const app = buildApp();
         const client = new TestAgent(app);
 
-        await client.login('/api/login', { userId: 'user-1', password: 'password123' });
+        await client.login('/api/login', {
+            userId: 'user-1',
+            password: 'password123',
+        });
         const res = await client.get('/api/expense');
         expect(res.status).toBe(200);
     });

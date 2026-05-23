@@ -63,7 +63,10 @@ export const LogoutResponseSchema = z
 
 export const ExpenseResponseSchema = z
     .object({
-        id: z.string().openapi({ description: 'Expense ID (ULID)', example: '01ARZ3NDEKTSV4RRFFQ69G5FAV' }),
+        id: z.string().openapi({
+            description: 'Expense ID (ULID)',
+            example: '01ARZ3NDEKTSV4RRFFQ69G5FAV',
+        }),
         amount: z.number().int().openapi({ description: '金額（円）', example: 1000 }),
         balanceType: z.union([z.literal(0), z.literal(1)]).openapi({
             description: '収支区分: 0=支出, 1=収入',
@@ -146,7 +149,10 @@ export const UpdateExpenseBodySchema = z
     .openapi('UpdateExpenseBody');
 
 export const IdParamSchema = z.object({
-    id: z.string().openapi({ description: 'リソース ID (ULID)', example: '01ARZ3NDEKTSV4RRFFQ69G5FAV' }),
+    id: z.string().openapi({
+        description: 'リソース ID (ULID)',
+        example: '01ARZ3NDEKTSV4RRFFQ69G5FAV',
+    }),
 });
 
 export const ExpenseParseRequestSchema = z
@@ -186,7 +192,10 @@ export const ExpenseParseResponseSchema = z
 
 export const BudgetResponseSchema = z
     .object({
-        id: z.string().openapi({ description: 'Budget ID (ULID)', example: '01ARZ3NDEKTSV4RRFFQ69G5FAV' }),
+        id: z.string().openapi({
+            description: 'Budget ID (ULID)',
+            example: '01ARZ3NDEKTSV4RRFFQ69G5FAV',
+        }),
         amount: z.number().int().openapi({ description: '金額（円）', example: 1000 }),
         balanceType: z.union([z.literal(0), z.literal(1)]).openapi({
             description: '収支区分: 0=支出, 1=収入',
@@ -220,13 +229,22 @@ export const UserStatusSchema = z
 
 export const UserResponseSchema = z
     .object({
-        userId: z.string().openapi({ description: 'ユーザーID', example: '01ARZ3NDEKTSV4RRFFQ69G5FAV' }),
+        userId: z.string().openapi({
+            description: 'ユーザーID',
+            example: '01ARZ3NDEKTSV4RRFFQ69G5FAV',
+        }),
         userName: z.string().openapi({ description: 'ユーザー名', example: '山田太郎' }),
         email: z.string().nullable().openapi({ description: 'メールアドレス', example: 'taro@example.com' }),
         role: UserRoleSchema,
         status: UserStatusSchema,
-        createdAt: z.string().openapi({ description: '作成日時 (ISO 8601)', example: '2026-04-13T00:00:00.000Z' }),
-        updatedAt: z.string().openapi({ description: '更新日時 (ISO 8601)', example: '2026-04-13T00:00:00.000Z' }),
+        createdAt: z.string().openapi({
+            description: '作成日時 (ISO 8601)',
+            example: '2026-04-13T00:00:00.000Z',
+        }),
+        updatedAt: z.string().openapi({
+            description: '更新日時 (ISO 8601)',
+            example: '2026-04-13T00:00:00.000Z',
+        }),
     })
     .openapi('UserResponse');
 
@@ -276,7 +294,10 @@ export const UpdateUserBodySchema = z
     .openapi('UpdateUserBody');
 
 export const UserIdParamSchema = z.object({
-    userId: z.string().openapi({ description: 'ユーザーID', example: '01ARZ3NDEKTSV4RRFFQ69G5FAV' }),
+    userId: z.string().openapi({
+        description: 'ユーザーID',
+        example: '01ARZ3NDEKTSV4RRFFQ69G5FAV',
+    }),
 });
 
 // ─── 自己登録 (Register) ──────────────────────────────────────────
@@ -288,13 +309,19 @@ export const RegisterBodySchema = z
             .min(3, 'ユーザー名は3文字以上で入力してください')
             .max(30, 'ユーザー名は30文字以内で入力してください')
             .regex(/^[a-zA-Z0-9_-]+$/, '半角英数字・アンダースコア・ハイフンのみ使用できます')
-            .openapi({ description: 'ログインIDを兼ねるユーザー名', example: 'yamada_taro' }),
+            .openapi({
+                description: 'ログインIDを兼ねるユーザー名',
+                example: 'yamada_taro',
+            }),
         displayName: z
             .string()
             .min(1, '表示名を入力してください')
             .max(50, '表示名は50文字以内で入力してください')
             .optional()
-            .openapi({ description: '表示名（省略時はuserIdと同値）', example: '山田太郎' }),
+            .openapi({
+                description: '表示名（省略時はuserIdと同値）',
+                example: '山田太郎',
+            }),
         password: z
             .string()
             .min(8, 'パスワードは8文字以上で入力してください')
@@ -324,7 +351,10 @@ export const CheckUserNameResponseSchema = z
 export const SecurityQuestionSchema = z
     .object({
         id: z.number().int().openapi({ description: '質問ID', example: 1 }),
-        text: z.string().openapi({ description: '質問文', example: '幼少期に住んでいた町・村の名前は？' }),
+        text: z.string().openapi({
+            description: '質問文',
+            example: '幼少期に住んでいた町・村の名前は？',
+        }),
     })
     .openapi('SecurityQuestion');
 
@@ -346,7 +376,10 @@ export const SaveSecurityAnswerBodySchema = z
 export const RecoveryQuestionResponseSchema = z
     .object({
         questionId: z.number().int().openapi({ description: '質問ID', example: 1 }),
-        questionText: z.string().openapi({ description: '質問文', example: '幼少期に住んでいた町・村の名前は？' }),
+        questionText: z.string().openapi({
+            description: '質問文',
+            example: '幼少期に住んでいた町・村の名前は？',
+        }),
     })
     .openapi('RecoveryQuestionResponse');
 
@@ -462,7 +495,9 @@ export const UpsertUserSettingsBodySchema = z
             .min(0, '固定費は0以上の値を入力してください')
             .openapi({ description: '月次固定費合計（円）', example: 80000 }),
         initialSetupCompleted: z
-            .boolean({ invalid_type_error: '初回設定完了フラグは真偽値で入力してください' })
+            .boolean({
+                invalid_type_error: '初回設定完了フラグは真偽値で入力してください',
+            })
             .optional()
             .openapi({ description: '初回設定完了フラグ', example: true }),
     })

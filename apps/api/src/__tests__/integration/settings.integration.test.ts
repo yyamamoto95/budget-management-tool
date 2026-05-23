@@ -141,7 +141,10 @@ describeIf('Settings 統合テスト（実 DB）', () => {
             });
 
             const getRes = await agent.get('/api/settings');
-            expect(getRes.body).toMatchObject({ initialSetupCompleted: true, totalAssets: 100000 });
+            expect(getRes.body).toMatchObject({
+                initialSetupCompleted: true,
+                totalAssets: 100000,
+            });
         });
 
         it('正常系: 給料日1日・固定費0円で保存できる', async () => {
@@ -226,7 +229,12 @@ describeIf('Settings 統合テスト（実 DB）', () => {
             const res = await testRequest(app, '/api/settings', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ totalAssets: 1000000, monthlyIncome: 0, paydayDay: 25, fixedExpenses: 0 }),
+                body: JSON.stringify({
+                    totalAssets: 1000000,
+                    monthlyIncome: 0,
+                    paydayDay: 25,
+                    fixedExpenses: 0,
+                }),
             });
             expect(res.status).toBe(401);
         });

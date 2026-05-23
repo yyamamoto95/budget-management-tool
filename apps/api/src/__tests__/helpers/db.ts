@@ -111,7 +111,10 @@ export async function seedTestData({ pattern }: { pattern: SeedPattern }): Promi
             const budgets = await testPrisma.$transaction(
                 expenseData.map((data) => testPrisma.budgetList.create({ data }))
             );
-            return { users: [{ userId: user.userId }], budgets: budgets.map((b) => ({ id: b.id })) };
+            return {
+                users: [{ userId: user.userId }],
+                budgets: budgets.map((b) => ({ id: b.id })),
+            };
         }
 
         // ----------------------------------------------------------
@@ -166,7 +169,10 @@ export async function seedTestData({ pattern }: { pattern: SeedPattern }): Promi
             const budgets = await testPrisma.$transaction(
                 entriesData.map((data) => testPrisma.budgetList.create({ data }))
             );
-            return { users: [{ userId: manager.userId }], budgets: budgets.map((b) => ({ id: b.id })) };
+            return {
+                users: [{ userId: manager.userId }],
+                budgets: budgets.map((b) => ({ id: b.id })),
+            };
         }
 
         // ----------------------------------------------------------
@@ -227,7 +233,10 @@ export async function seedTestData({ pattern }: { pattern: SeedPattern }): Promi
             const budgets = await testPrisma.$transaction(
                 edgeData.map((data) => testPrisma.budgetList.create({ data }))
             );
-            return { users: [{ userId: user.userId }], budgets: budgets.map((b) => ({ id: b.id })) };
+            return {
+                users: [{ userId: user.userId }],
+                budgets: budgets.map((b) => ({ id: b.id })),
+            };
         }
     }
 }
