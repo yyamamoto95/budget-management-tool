@@ -18,7 +18,7 @@
  *   すべて spring。staggerChildren ウォーターフォール。useReducedMotion 尊重。
  */
 
-import { useState, useMemo, useRef, useEffect, type ReactNode } from "react";
+import { useState, useMemo, useRef, useEffect, createElement, type ReactNode } from "react";
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 import { HomeTour } from "../components/HomeTour";
 import { Link } from "react-router-dom";
@@ -29,6 +29,7 @@ import {
     useMotionValue,
     useSpring,
     useReducedMotion,
+    type PanInfo,
 } from "framer-motion";
 
 const MotionLink = motion(Link);
@@ -37,7 +38,7 @@ import {
     Home, BarChart2, Settings,
     Bell, BellOff, Plus, Check, Receipt,
     Wallet,
-    ChevronRight, ChevronDown, Delete,
+    ChevronLeft, ChevronRight, ChevronDown, Delete,
     TrendingDown, TrendingUp, AlertTriangle, AlertCircle, CheckCircle2, HelpCircle, MinusCircle, X,
     ArrowUpRight, ArrowDownRight, Sparkles,
     PenLine,
@@ -384,6 +385,66 @@ function groupByDate(list: Expense[]) {
     });
 }
 
+// ─── スワイプ削除対応レコード行（SP: スワイプ左で削除ボタン / PC: リンクのみ） ──
+
+function RecordItem({
+    it, date, isIncome, hasBorderBottom, index,
+}: {
+    it: Expense
+    date: string
+    isIncome: boolean
+    hasBorderBottom: boolean
+    index: number
+}) {
+    const acc     = categoryAccent(it.categoryName, isIncome)
+    const iconComp = categoryIconComp(it.categoryName, isIncome)
+
+    return (
+        <MotionLink
+            to={`/meisai?date=${date}`}
+            className="flex w-full items-center gap-3 px-4 py-2.5"
+            style={{
+                textDecoration: "none",
+                borderBottom: hasBorderBottom ? `1px solid ${C.border}` : "none",
+            }}
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.04, duration: 0.15, ease: "easeOut" }}
+            whileTap={{ backgroundColor: "rgba(28,20,16,0.03)" }}
+        >
+            <div
+                className="flex h-8 w-8 shrink-0 items-center justify-center"
+                style={{ background: acc.bg, borderRadius: "9px" }}
+                aria-hidden
+            >
+                {createElement(iconComp, { size: 14, style: { color: acc.fg } })}
+            </div>
+            <div className="min-w-0 flex-1">
+                <div className="truncate text-[13px] font-semibold" style={{ color: C.text }}>
+                    {it.content?.trim() || it.categoryName}
+                </div>
+                <div className="mt-0.5 flex items-center gap-1.5">
+                    <span
+                        className="inline-flex items-center px-1.5 text-[10px] font-semibold leading-[16px]"
+                        style={{ background: acc.bg, color: acc.fg, borderRadius: "4px" }}
+                    >
+                        {it.categoryName}
+                    </span>
+                    <span className="text-[10px]" style={{ color: "rgba(28,20,16,0.22)" }}>
+                        {it.time}
+                    </span>
+                </div>
+            </div>
+            <div
+                className="shrink-0 text-[14px] font-bold tabular-nums"
+                style={{ color: isIncome ? C.income : C.text, letterSpacing: "-0.01em" }}
+            >
+                {isIncome ? "+" : "−"}¥{it.amount.toLocaleString("ja-JP")}
+            </div>
+        </MotionLink>
+    )
+}
+
 // ─── クイック入力フォーム（Drawer / Modal 共用） ─────────────────────────────
 
 type QECProps = {
@@ -452,17 +513,23 @@ function SegmentControl({ balanceType, setBalanceType }: {
     );
 }
 
-/** 金額表示パネル */
-function AmountPanel({ balanceType, amountStr, onClear, previewRemaining, titleNode }: {
+/** 金額表示パネル
+ *  onChange が渡された場合（PC modal）: 金額テキストが直接キーボード入力可能な input になる
+ *  onChange がない場合（SP drawer）: 表示のみ
+ */
+function AmountPanel({ balanceType, amountStr, onClear, previewRemaining, titleNode, onChange }: {
     balanceType: 0 | 1
     amountStr: string
     onClear: () => void
     previewRemaining: number | null
     titleNode: React.ReactNode
+    onChange?: (v: string) => void
 }) {
+    const brandColor = balanceType === 0 ? C.brandDeep : C.incomeDeep
+    const showRemaining = previewRemaining !== null && amountStr !== "" && Number(amountStr) > 0
+
     return (
         <motion.div
-            layout
             className="relative overflow-hidden rounded-2xl px-5 py-4"
             style={{
                 background: balanceType === 0
@@ -470,32 +537,52 @@ function AmountPanel({ balanceType, amountStr, onClear, previewRemaining, titleN
                     : `linear-gradient(135deg, ${C.incomeLight}, #d4f5ef)`,
                 border: `1.5px solid ${balanceType === 0 ? "rgba(241,136,64,0.22)" : "rgba(53,181,162,0.22)"}`,
             }}
-            transition={SPRING.base}
         >
             {titleNode}
-            <div
-                className="hero-number text-4xl font-black mt-1"
-                style={{ color: balanceType === 0 ? C.brandDeep : C.incomeDeep, letterSpacing: "-0.03em" }}
-            >
-                ¥{amountStr === "" ? "0" : Number(amountStr).toLocaleString("ja-JP")}
-            </div>
-            {previewRemaining !== null && amountStr !== "" && Number(amountStr) > 0 && (
-                <motion.div
-                    initial={{ opacity: 0, y: 6 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={SPRING.quick}
-                    className="mt-1.5 text-[11px]"
-                    style={{ color: C.muted }}
-                >
-                    記録後の残り：
-                    <span
-                        className="font-bold tabular-nums ml-0.5"
-                        style={{ color: previewRemaining < MOCK.dailyBudget * 0.2 ? "#f43f5e" : C.text }}
-                    >
-                        {formatYen(previewRemaining)}
+
+            {/* 金額 — PC modal は直接入力可、SP は表示のみ */}
+            <div className="flex items-baseline gap-0.5 mt-1">
+                <span className="hero-number text-4xl font-black" style={{ color: brandColor, letterSpacing: "-0.03em" }}>¥</span>
+                {onChange ? (
+                    <input
+                        autoFocus
+                        type="text"
+                        inputMode="numeric"
+                        value={amountStr}
+                        onChange={(e) => {
+                            const v = e.target.value.replace(/[^0-9]/g, "")
+                            if (v === "" || Number(v) <= 9_999_999) onChange(v)
+                        }}
+                        placeholder="0"
+                        className="hero-number text-4xl font-black bg-transparent outline-none flex-1 min-w-0 w-full"
+                        style={{ color: brandColor, letterSpacing: "-0.03em" }}
+                        aria-label="金額"
+                    />
+                ) : (
+                    <span className="hero-number text-4xl font-black" style={{ color: brandColor, letterSpacing: "-0.03em" }}>
+                        {amountStr === "" ? "0" : Number(amountStr).toLocaleString("ja-JP")}
                     </span>
-                </motion.div>
-            )}
+                )}
+            </div>
+
+            {/* 記録後の残り — 常時レンダリング（opacity制御で高さを固定） */}
+            <div
+                className="mt-1.5 text-[11px] transition-opacity duration-150"
+                style={{
+                    color:         C.muted,
+                    opacity:       showRemaining ? 1 : 0,
+                    pointerEvents: showRemaining ? "auto" : "none",
+                }}
+            >
+                記録後の残り：
+                <span
+                    className="font-bold tabular-nums ml-0.5"
+                    style={{ color: previewRemaining !== null && previewRemaining < MOCK.dailyBudget * 0.2 ? "#f43f5e" : C.text }}
+                >
+                    {previewRemaining !== null ? formatYen(previewRemaining) : ""}
+                </span>
+            </div>
+
             <AnimatePresence>
                 {amountStr !== "" && (
                     <motion.button
@@ -695,34 +782,12 @@ function QuickEntryContent(p: QECProps) {
                             amountStr={p.amountStr}
                             onClear={p.onClear}
                             previewRemaining={p.previewRemaining}
+                            onChange={p.setAmountStr}
                             titleNode={
                                 <span className="text-[10px] font-semibold" style={{ color: C.muted }}>
                                     {p.balanceType === 0 ? "支出金額" : "収入金額"}
                                 </span>
                             }
-                        />
-                        {/* PC キーボード入力フィールド */}
-                        <input
-                            autoFocus
-                            type="text"
-                            inputMode="numeric"
-                            className="w-full px-3 py-2 text-right font-bold tabular-nums outline-none transition-colors"
-                            style={{
-                                fontSize:     '18px',
-                                border:       `1.5px solid ${C.border}`,
-                                borderRadius: R.input,
-                                background:   C.bg,
-                                color:        C.text,
-                            }}
-                            onFocus={(e) => { e.currentTarget.style.borderColor = C.brand; e.currentTarget.style.background = C.brandLight }}
-                            onBlur={(e)  => { e.currentTarget.style.borderColor = C.border; e.currentTarget.style.background = C.bg }}
-                            value={p.amountStr}
-                            onChange={(e) => {
-                                const v = e.target.value.replace(/[^0-9]/g, '')
-                                if (v === '' || Number(v) <= 9_999_999) p.setAmountStr(v)
-                            }}
-                            placeholder="キーボードで入力"
-                            aria-label="金額をキーボードで入力"
                         />
                         <Numpad onKey={p.handleNumKey} />
                     </div>
@@ -901,6 +966,28 @@ export function HomePrototype() {
     // ⑤ 初回設定完了後の空状態デモトグル
     const [isFirstSetup, setIsFirstSetup] = useState(false);
 
+    // ── SP スワイプカルーセル（今日の状況・今月の貯蓄予測・今月のサマリー）────
+    const CAROUSEL_COUNT  = 3
+    const CAROUSEL_LABELS = ['今日の状況', '今月の貯蓄予測', '今月のサマリー'] as const
+    const [carouselIdx,        setCarouselIdx]        = useState(0)
+    const [carouselDir,        setCarouselDir]        = useState<1 | -1>(1)
+    const [carouselHintPlayed, setCarouselHintPlayed] = useState(false)
+
+    function goCarousel(nextIdx: number) {
+        if (nextIdx < 0 || nextIdx >= CAROUSEL_COUNT) return
+        setCarouselDir(nextIdx > carouselIdx ? 1 : -1)
+        setCarouselIdx(nextIdx)
+    }
+    function handleCarouselDragEnd(_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) {
+        if      (info.offset.x < -40) goCarousel(carouselIdx + 1)
+        else if (info.offset.x >  40) goCarousel(carouselIdx - 1)
+    }
+    const carouselSlideVariants = {
+        enter:  (dir: number) => ({ x: dir > 0 ? '100%' : '-100%', opacity: 0 }),
+        center: { x: 0, opacity: 1, transition: { type: 'spring' as const, stiffness: 320, damping: 30 } },
+        exit:   (dir: number) => ({ x: dir > 0 ? '-100%' : '100%', opacity: 0, transition: { duration: 0.14 } }),
+    }
+
     // ── 計算値 ────────────────────────────────────────────────────────────────
     const netMonth    = MOCK.monthSummary.income - MOCK.monthSummary.expense;
     const savingsRate = Math.round((netMonth / MOCK.monthSummary.income) * 100);
@@ -979,7 +1066,9 @@ export function HomePrototype() {
     ).length
     const weekRecordedCount = MOCK.weeklyData.filter(d => d.recorded).length
 
-    const grouped = useMemo(() => groupByDate(MOCK.recentExpenses), []);
+    const [expenses] = useState<Expense[]>(() => [...MOCK.recentExpenses])
+
+    const grouped = useMemo(() => groupByDate(expenses), [expenses]);
 
     // ── カテゴリ固定ロジック ──────────────────────────────────────────────────
     const allCategories = balanceType === 0 ? EXPENSE_CATEGORIES : INCOME_CATEGORIES;
@@ -1216,104 +1305,6 @@ export function HomePrototype() {
 
         <div className="min-h-screen pb-32 tap-highlight lg:pb-28 lg:pl-52" style={{ background: C.bg, color: C.text }}>
 
-            {/* ─── SP: ベル + アバター（ヘッダー廃止後の代替） ─── */}
-            <div className="lg:hidden flex items-center justify-end gap-2 px-4 pt-3 pb-1">
-                <div className="relative">
-                    <motion.button
-                        type="button"
-                        onClick={() => setNotifPanelOpen((p) => !p)}
-                        whileTap={{ scale: 0.82 }}
-                        transition={SPRING.snap}
-                        className="relative flex h-8 w-8 items-center justify-center tap-highlight"
-                        style={{ color: "rgba(28,20,16,0.45)", borderRadius: "8px" }}
-                        aria-label="通知"
-                        aria-expanded={notifPanelOpen}
-                    >
-                        <Bell size={17} />
-                        <AnimatePresence>
-                            {alerts.length > 0 && (
-                                <motion.span
-                                    initial={{ scale: 0 }}
-                                    animate={{ scale: 1 }}
-                                    exit={{ scale: 0 }}
-                                    transition={SPRING.quick}
-                                    className="absolute right-0.5 top-0.5 flex h-4 w-4 items-center justify-center rounded-full border-2 border-white text-[9px] font-extrabold text-white"
-                                    style={{ background: "#f43f5e" }}
-                                >
-                                    {alerts.length}
-                                </motion.span>
-                            )}
-                        </AnimatePresence>
-                    </motion.button>
-
-                    {/* 通知パネル（SP: 下方向に展開） */}
-                    <AnimatePresence>
-                        {notifPanelOpen && (
-                            <motion.div
-                                initial={{ opacity: 0, y: -8, scale: 0.95 }}
-                                animate={{ opacity: 1, y: 0,  scale: 1    }}
-                                exit={{ opacity: 0, y: -8, scale: 0.95 }}
-                                transition={SPRING.quick}
-                                className="absolute right-0 top-10 z-50 w-72 overflow-hidden border"
-                                style={{
-                                    borderRadius: R.card,
-                                    background:   C.card,
-                                    borderColor:  C.borderStrong,
-                                    boxShadow:    C.shadowMd,
-                                }}
-                            >
-                                <div className="flex items-center justify-between border-b px-4 py-3" style={{ borderColor: C.border }}>
-                                    <span className="text-sm font-bold" style={{ color: C.text }}>通知</span>
-                                    <button type="button" onClick={() => setNotifPanelOpen(false)} style={{ color: C.muted }} aria-label="パネルを閉じる">
-                                        <X size={14} />
-                                    </button>
-                                </div>
-                                {alerts.length === 0 ? (
-                                    <div className="flex flex-col items-center gap-2 px-4 py-8" style={{ color: C.muted }}>
-                                        <BellOff size={20} />
-                                        <span className="text-xs">新しい通知はありません</span>
-                                    </div>
-                                ) : (
-                                    <div>
-                                        {alerts.map((alert) => {
-                                            const aColor = alert.type === "danger" ? "#f43f5e" : "#f59e0b";
-                                            return (
-                                                <div key={alert.id} className="flex items-start gap-3 border-b px-4 py-3 last:border-0" style={{ borderColor: C.border }}>
-                                                    {alert.type === "danger"
-                                                        ? <TrendingDown  size={13} style={{ color: aColor, flexShrink: 0, marginTop: 1 }} />
-                                                        : <AlertTriangle size={13} style={{ color: aColor, flexShrink: 0, marginTop: 1 }} />
-                                                    }
-                                                    <span className="flex-1 text-xs leading-relaxed" style={{ color: C.text }}>{alert.message}</span>
-                                                    <button type="button" onClick={() => setAlerts((p) => p.filter((a) => a.id !== alert.id))} style={{ color: C.muted, flexShrink: 0 }} aria-label="通知を閉じる">
-                                                        <X size={12} />
-                                                    </button>
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-                                )}
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-                </div>
-
-                <MotionLink
-                    to="/my-page"
-                    whileTap={{ scale: 0.90 }}
-                    transition={SPRING.snap}
-                    className="flex h-8 w-8 items-center justify-center text-[12px] font-extrabold text-white tap-highlight"
-                    style={{
-                        background:     `linear-gradient(135deg, ${C.brand}, ${C.brandDeep})`,
-                        borderRadius:   R.badge,
-                        boxShadow:      "0 2px 8px rgba(241,136,64,0.30)",
-                        textDecoration: "none",
-                    }}
-                    aria-label="マイページ"
-                >
-                    {MOCK.userId}
-                </MotionLink>
-            </div>
-
             {/* 通知パネルのオーバーレイ（クリックで閉じる） */}
             <AnimatePresence>
                 {notifPanelOpen && (
@@ -1330,32 +1321,118 @@ export function HomePrototype() {
             {/* ─── メインコンテンツ ─────────────────────────────────────────── */}
             <main className="mx-auto max-w-7xl px-4 py-4 md:px-6 md:py-5">
 
-                {/* ⑤ 初回設定デモトグル */}
-                <div className="mb-3 flex items-center justify-end gap-2">
-                    <span className="text-[10px] font-semibold" style={{ color: C.muted }}>
-                        デモ: 初回設定完了後の空状態
-                    </span>
-                    <button
-                        type="button"
-                        onClick={() => setIsFirstSetup((p) => !p)}
-                        className="flex h-6 w-11 items-center rounded-full border transition-colors"
-                        style={{
-                            background:  isFirstSetup ? C.brand : "rgba(28,20,16,0.12)",
-                            borderColor: isFirstSetup ? C.brandDeep : "transparent",
-                        }}
-                        aria-pressed={isFirstSetup}
-                        aria-label="初回設定デモを切り替え"
-                    >
-                        <motion.div
-                            layout
-                            transition={SPRING.quick}
-                            className="h-4 w-4 rounded-full bg-white"
+                {/* ⑤ 初回設定デモトグル + SP通知ベル */}
+                <div className="mb-3 flex items-center justify-between">
+                    {/* Bell — SP のみ（コンテンツ先頭に自然に配置） */}
+                    <div className="relative lg:hidden">
+                        <motion.button
+                            type="button"
+                            onClick={() => setNotifPanelOpen((p) => !p)}
+                            whileTap={{ scale: 0.82 }}
+                            transition={SPRING.snap}
+                            className="relative flex h-8 w-8 items-center justify-center tap-highlight"
+                            style={{ color: "rgba(28,20,16,0.45)", borderRadius: "8px" }}
+                            aria-label="通知"
+                            aria-expanded={notifPanelOpen}
+                        >
+                            <Bell size={17} />
+                            <AnimatePresence>
+                                {alerts.length > 0 && (
+                                    <motion.span
+                                        initial={{ scale: 0 }}
+                                        animate={{ scale: 1 }}
+                                        exit={{ scale: 0 }}
+                                        transition={SPRING.quick}
+                                        className="absolute right-0.5 top-0.5 flex h-4 w-4 items-center justify-center rounded-full border-2 border-white text-[9px] font-extrabold text-white"
+                                        style={{ background: "#f43f5e" }}
+                                    >
+                                        {alerts.length}
+                                    </motion.span>
+                                )}
+                            </AnimatePresence>
+                        </motion.button>
+
+                        {/* 通知パネル（下方向に展開） */}
+                        <AnimatePresence>
+                            {notifPanelOpen && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: -8, scale: 0.95 }}
+                                    animate={{ opacity: 1, y: 0,  scale: 1    }}
+                                    exit={{ opacity: 0, y: -8, scale: 0.95 }}
+                                    transition={SPRING.quick}
+                                    className="absolute left-0 top-10 z-50 w-72 overflow-hidden border"
+                                    style={{
+                                        borderRadius: R.card,
+                                        background:   C.card,
+                                        borderColor:  C.borderStrong,
+                                        boxShadow:    C.shadowMd,
+                                    }}
+                                >
+                                    <div className="flex items-center justify-between border-b px-4 py-3" style={{ borderColor: C.border }}>
+                                        <span className="text-sm font-bold" style={{ color: C.text }}>通知</span>
+                                        <button type="button" onClick={() => setNotifPanelOpen(false)} style={{ color: C.muted }} aria-label="パネルを閉じる">
+                                            <X size={14} />
+                                        </button>
+                                    </div>
+                                    {alerts.length === 0 ? (
+                                        <div className="flex flex-col items-center gap-2 px-4 py-8" style={{ color: C.muted }}>
+                                            <BellOff size={20} />
+                                            <span className="text-xs">新しい通知はありません</span>
+                                        </div>
+                                    ) : (
+                                        <div>
+                                            {alerts.map((alert) => {
+                                                const aColor = alert.type === "danger" ? "#f43f5e" : "#f59e0b";
+                                                return (
+                                                    <div key={alert.id} className="flex items-start gap-3 border-b px-4 py-3 last:border-0" style={{ borderColor: C.border }}>
+                                                        {alert.type === "danger"
+                                                            ? <TrendingDown  size={13} style={{ color: aColor, flexShrink: 0, marginTop: 1 }} />
+                                                            : <AlertTriangle size={13} style={{ color: aColor, flexShrink: 0, marginTop: 1 }} />
+                                                        }
+                                                        <span className="flex-1 text-xs leading-relaxed" style={{ color: C.text }}>{alert.message}</span>
+                                                        <button type="button" onClick={() => setAlerts((p) => p.filter((a) => a.id !== alert.id))} style={{ color: C.muted, flexShrink: 0 }} aria-label="通知を閉じる">
+                                                            <X size={12} />
+                                                        </button>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </div>
+
+                    {/* PC では左を空ける */}
+                    <div className="hidden lg:block" />
+
+                    {/* デモトグル（右寄せ） */}
+                    <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-semibold" style={{ color: C.muted }}>
+                            デモ: 初回設定完了後の空状態
+                        </span>
+                        <button
+                            type="button"
+                            onClick={() => setIsFirstSetup((p) => !p)}
+                            className="flex h-6 w-11 items-center rounded-full border transition-colors"
                             style={{
-                                marginLeft: isFirstSetup ? "24px" : "4px",
-                                boxShadow: "0 1px 3px rgba(0,0,0,0.15)",
+                                background:  isFirstSetup ? C.brand : "rgba(28,20,16,0.12)",
+                                borderColor: isFirstSetup ? C.brandDeep : "transparent",
                             }}
-                        />
-                    </button>
+                            aria-pressed={isFirstSetup}
+                            aria-label="初回設定デモを切り替え"
+                        >
+                            <motion.div
+                                layout
+                                transition={SPRING.quick}
+                                className="h-4 w-4 rounded-full bg-white"
+                                style={{
+                                    marginLeft: isFirstSetup ? "24px" : "4px",
+                                    boxShadow: "0 1px 3px rgba(0,0,0,0.15)",
+                                }}
+                            />
+                        </button>
+                    </div>
                 </div>
 
                 {/* ── ⑤ 初回設定完了後の空状態 ─────────────────────────────── */}
@@ -1429,13 +1506,228 @@ export function HomePrototype() {
                     </motion.div>
 
                 ) : (<>
-                    {/* ─── 通常ダッシュボード（レイアウト D: 時間軸セクション分け） ──
-                     * 今日 / 今月 / 最近の記録 の3セクションで整理
-                     * SP: 全1カラム縦積み  /  PC: 各セクション内 2カラム
+                    {/* ─── 通常ダッシュボード ──────────────────────────────────────
+                     * SP: 3枚スワイプカルーセル（今日の状況・今月の貯蓄予測・今月のサマリー）
+                     * PC: 2カラムグリッド（Block 1〜4 全表示）
                      */}
 
+                    {/* ── SP: スワイプカルーセル ───────────────────────────────── */}
                     <motion.div
-                        className="grid grid-cols-1 gap-3 lg:grid-cols-2"
+                        className="lg:hidden"
+                        variants={pageItemVariants}
+                        initial="hidden"
+                        animate="visible"
+                    >
+                        <div
+                            className="border overflow-hidden"
+                            style={{ borderRadius: R.card, background: C.card, borderColor: C.border, boxShadow: C.shadow }}
+                        >
+                            {/* スワイプ可能エリア */}
+                            <motion.div
+                                drag="x"
+                                dragConstraints={{ left: 0, right: 0 }}
+                                dragElastic={0.04}
+                                onDragEnd={handleCarouselDragEnd}
+                                style={{ touchAction: 'pan-y', cursor: 'grab', minHeight: 260, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}
+                                whileDrag={{ cursor: 'grabbing' }}
+                                animate={carouselHintPlayed ? {} : { x: [0, -5, 3, 0] }}
+                                transition={carouselHintPlayed ? {} : { duration: 0.7, delay: 0.8, ease: 'easeInOut' }}
+                                onAnimationComplete={() => setCarouselHintPlayed(true)}
+                            >
+                                <AnimatePresence mode="wait" custom={carouselDir}>
+                                    {/* Slide 0: 今日の状況 + 今週の記録 */}
+                                    {carouselIdx === 0 && (
+                                        <motion.div
+                                            key="today"
+                                            data-tour="block-today"
+                                            custom={carouselDir}
+                                            variants={carouselSlideVariants}
+                                            initial="enter"
+                                            animate="center"
+                                            exit="exit"
+                                            className="p-4"
+                                        >
+                                            <div className="mb-3 flex items-center justify-between">
+                                                <span className="text-[13px] font-bold" style={{ color: C.text }}>今日の状況</span>
+                                                <span className="px-2.5 py-0.5 text-[10px] font-bold" style={{ borderRadius: R.badge, background: todayStatusBadge.bg, color: todayStatusBadge.color }}>{todayStatusBadge.label}</span>
+                                            </div>
+                                            <div className="mb-1.5 flex justify-between text-[11px]" style={{ color: C.muted }}>
+                                                <span>今日の支出</span>
+                                                <span className="tabular-nums font-semibold">{formatYen(todayTotalExpense)} / {formatYen(MOCK.dailyBudget)}</span>
+                                            </div>
+                                            <ProgressBar pct={Math.min(100, Math.round(todaySpendPct * 100))} delay={0.1} gradient={todaySpendPct <= 0.8 ? "linear-gradient(90deg, #34d399, #35b5a2)" : todaySpendPct <= 1.0 ? "linear-gradient(90deg, #f9a8d4, #e879a3)" : "linear-gradient(90deg, #fb7185, #f43f5e)"} />
+                                            <div className="mt-3 flex items-center gap-2 rounded-xl px-3 py-2.5" style={{ background: savingsInsight.bg }}>
+                                                <savingsInsight.Icon size={13} style={{ color: savingsInsight.color, flexShrink: 0 }} />
+                                                <span className="text-[11px] font-semibold leading-tight" style={{ color: savingsInsight.color }}>{savingsInsight.message}</span>
+                                            </div>
+                                            {/* 今週の記録 */}
+                                            <div data-tour="block-streak" className="mt-3 pt-3 border-t" style={{ borderColor: C.border }}>
+                                                <div className="mb-2 flex items-center justify-between">
+                                                    <span className="text-[13px] font-bold" style={{ color: C.text }}>今週の記録</span>
+                                                    <span className="text-[11px] font-semibold tabular-nums" style={{ color: C.muted }}>{weekAchievedCount} / {weekRecordedCount}日 節約達成</span>
+                                                </div>
+                                                <div className="grid grid-cols-7 gap-1">
+                                                    {MOCK.weeklyData.map((day) => {
+                                                        const TODAY_DATE = "2026-05-16"
+                                                        const isToday    = day.date === TODAY_DATE
+                                                        const isFuture   = day.date > TODAY_DATE
+                                                        const achieved   = !isFuture && day.recorded && day.expense <= MOCK.dailyBudget
+                                                        const over       = !isFuture && day.recorded && day.expense > MOCK.dailyBudget
+                                                        const unrecorded = !isFuture && !day.recorded
+                                                        const streakState: StreakState = achieved ? "achieved" : over ? "over" : unrecorded ? "unrecorded" : "future"
+                                                        const Icon  = achieved ? CheckCircle2 : over ? AlertCircle : unrecorded ? HelpCircle : MinusCircle
+                                                        const color = achieved ? C.brand : over ? "#f43f5e" : unrecorded ? "rgba(28,20,16,0.38)" : "rgba(28,20,16,0.15)"
+                                                        const tooltipContent = <StreakTooltipContent dow={day.dow} date={day.date} state={streakState} expense={day.expense} dailyBudget={MOCK.dailyBudget} />
+                                                        const [, mm, dd] = day.date.split("-")
+                                                        const dateLabel = `${parseInt(mm)}/${parseInt(dd)}(${day.dow})`
+                                                        return (
+                                                            <StreakTooltip key={day.dow} content={isFuture ? null : tooltipContent}>
+                                                                <span className="text-[8px] font-semibold leading-none tabular-nums" style={{ color: isToday ? C.brand : C.muted }}>{dateLabel}</span>
+                                                                <Icon size={22} strokeWidth={2} style={{ color }} />
+                                                            </StreakTooltip>
+                                                        )
+                                                    })}
+                                                </div>
+                                            </div>
+                                        </motion.div>
+                                    )}
+
+                                    {/* Slide 1: 今月の貯蓄予測 */}
+                                    {carouselIdx === 1 && (
+                                        <motion.div
+                                            key="forecast"
+                                            data-tour="block-savings-forecast"
+                                            custom={carouselDir}
+                                            variants={carouselSlideVariants}
+                                            initial="enter"
+                                            animate="center"
+                                            exit="exit"
+                                            className="p-4"
+                                        >
+                                            <div className="mb-3 flex items-center justify-between">
+                                                <span className="text-[13px] font-bold" style={{ color: C.text }}>今月の貯蓄予測</span>
+                                                <span className="px-2 py-0.5 text-[10px] font-bold" style={{ borderRadius: R.badge, background: savingsBadge.bg, color: savingsBadge.color }}>{savingsBadge.label}</span>
+                                            </div>
+                                            <div className="text-[10px] font-semibold mb-0.5" style={{ color: C.muted }}>月末予測残高</div>
+                                            <div className="mb-3 flex items-baseline gap-1.5">
+                                                <span className="hero-number font-black" style={{ color: projectedSavings >= 0 ? C.income : "#f43f5e", fontSize: "clamp(1.6rem, 5vw, 2rem)", letterSpacing: "-0.03em" }}>{projectedSavings >= 0 ? "+" : "−"}{formatYen(Math.abs(projectedSavings))}</span>
+                                                <span className="text-[11px] font-semibold" style={{ color: C.muted }}>{projectedSavings >= 0 ? "貯まる見込み" : "不足見込み"}</span>
+                                            </div>
+                                            <div className="mb-1 flex justify-between text-[10px]" style={{ color: C.muted }}>
+                                                <span>{formatYen(MOCK.monthSummary.expense)} 使用</span>
+                                                <span>目標貯蓄 {formatYen(MOCK.savingsGoal)}</span>
+                                            </div>
+                                            <div className="relative h-2 rounded-full overflow-hidden" style={{ background: "rgba(28,20,16,0.06)" }}>
+                                                <motion.div className="absolute h-full" initial={{ width: 0 }} animate={{ width: `${actualExpensePct}%` }} transition={{ ...SPRING.bar, delay: 0.1 }} style={{ background: savingsBarColor.solid, borderRadius: "9999px 0 0 9999px" }} />
+                                                <motion.div className="absolute h-full" initial={{ width: 0 }} animate={{ width: `${Math.max(0, Math.min(100 - actualExpensePct, projectedExpensePct - actualExpensePct))}%` }} transition={{ ...SPRING.bar, delay: 0.25 }} style={{ left: `${actualExpensePct}%`, background: savingsBarColor.light }} />
+                                                <div className="absolute top-0 h-full w-0.5" style={{ left: `${targetLinePct}%`, background: "rgba(28,20,16,0.28)" }} />
+                                            </div>
+                                            <div className="mt-1 text-right text-[10px]" style={{ color: C.muted }}>{dayOfMonth}日経過 / {daysInMonth}日</div>
+                                            <div className="mt-3 grid grid-cols-3 gap-2 pt-3 border-t" style={{ borderColor: C.border }}>
+                                                {[
+                                                    { label: "残り予算",  value: formatYen(remainingBudget),                   color: remainingBudget >= 0      ? C.text : "#f43f5e" },
+                                                    { label: "残り日数",  value: `あと${remainingDays}日`,                      color: C.text },
+                                                    { label: "1日の目安", value: formatYen(Math.max(0, dailyRemainingBudget)), color: dailyRemainingBudget >= 0 ? C.text : "#f43f5e" },
+                                                ].map(item => (
+                                                    <div key={item.label} className="text-center">
+                                                        <div className="text-[9px] font-semibold mb-0.5" style={{ color: C.muted }}>{item.label}</div>
+                                                        <div className="text-[12px] font-extrabold tabular-nums" style={{ color: item.color }}>{item.value}</div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </motion.div>
+                                    )}
+
+                                    {/* Slide 2: 今月のサマリー */}
+                                    {carouselIdx === 2 && (() => {
+                                        const lastMonthDailyAvg = MOCK.lastMonthExpense / 30
+                                        const thisMonthDailyAvg = MOCK.monthSummary.expense / dayOfMonth
+                                        const momPct   = Math.round((thisMonthDailyAvg / lastMonthDailyAvg - 1) * 100)
+                                        const momSaved = momPct < 0
+                                        const sRate    = Math.round((netMonth / MOCK.monthSummary.income) * 100)
+                                        return (
+                                            <motion.div
+                                                key="summary"
+                                                data-tour="block-summary"
+                                                custom={carouselDir}
+                                                variants={carouselSlideVariants}
+                                                initial="enter"
+                                                animate="center"
+                                                exit="exit"
+                                                className="p-4 overflow-hidden"
+                                            >
+                                                <div className="mb-1 flex items-center justify-between">
+                                                    <span className="text-[13px] font-bold" style={{ color: C.text }}>今月のサマリー</span>
+                                                    <span className="font-mono text-[11px]" style={{ color: C.muted }}>{MOCK.monthSummary.label}</span>
+                                                </div>
+                                                <div className="mb-3 flex items-end gap-2">
+                                                    <span className="hero-number text-3xl font-black" style={{ color: C.income, letterSpacing: "-0.02em" }}><SpringNumber value={netMonth} format={formatYen} /></span>
+                                                    <motion.span initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} transition={{ ...SPRING.base, delay: 0.4 }} className="mb-0.5 flex items-center gap-0.5 text-xs font-semibold" style={{ color: savingsRate >= 20 ? C.income : "#f59e0b" }}><ArrowUpRight size={12} />{savingsRate}%</motion.span>
+                                                </div>
+                                                <div className="space-y-1.5 mb-3">
+                                                    {[
+                                                        { label: "収入", value: formatYen(MOCK.monthSummary.income), color: C.income, icon: ArrowUpRight },
+                                                        { label: "支出", value: formatYen(MOCK.monthSummary.expense), color: C.brand, icon: ArrowDownRight },
+                                                    ].map((item) => (
+                                                        <div key={item.label} className="flex items-center justify-between">
+                                                            <span className="flex items-center gap-1 text-[11px]" style={{ color: item.color }}><item.icon size={11} />{item.label}</span>
+                                                            <span className="hero-number text-[13px] font-bold tabular-nums" style={{ color: C.text }}>{item.value}</span>
+                                                        </div>
+                                                    ))}
+                                                    <div className="border-t pt-1.5 flex items-center justify-between" style={{ borderColor: C.border }}>
+                                                        <span className="flex items-center gap-1 text-[11px]" style={{ color: C.muted }}><Wallet size={10} />収支差</span>
+                                                        <span className="hero-number text-[13px] font-extrabold tabular-nums" style={{ color: netMonth >= 0 ? C.income : "#f43f5e" }}>{formatYenSigned(netMonth)}</span>
+                                                    </div>
+                                                </div>
+                                                <div className="grid grid-cols-2 gap-2">
+                                                    <div className="flex flex-col gap-0.5 rounded-xl px-3 py-2.5" style={{ background: momSaved ? C.incomeLight : "rgba(244,63,94,0.06)" }}>
+                                                        <span className="text-[9px] font-semibold" style={{ color: C.muted }}>先月比 支出</span>
+                                                        <span className="text-[18px] font-extrabold tabular-nums" style={{ color: momSaved ? C.income : "#f43f5e", letterSpacing: "-0.02em" }}>{momPct > 0 ? "+" : ""}{momPct}%</span>
+                                                        <span className="text-[9px]" style={{ color: C.muted }}>{momSaved ? `月換算で${formatYen(Math.round((lastMonthDailyAvg - thisMonthDailyAvg) * 30))}節約` : "先月より支出増"}</span>
+                                                    </div>
+                                                    <div className="flex flex-col gap-0.5 rounded-xl px-3 py-2.5" style={{ background: C.incomeLight }}>
+                                                        <span className="text-[9px] font-semibold" style={{ color: C.muted }}>今月の貯蓄率</span>
+                                                        <span className="text-[18px] font-extrabold tabular-nums" style={{ color: C.income, letterSpacing: "-0.02em" }}>{sRate}%</span>
+                                                        <span className="text-[9px]" style={{ color: C.muted }}>収入の{sRate}%を貯蓄ペース</span>
+                                                    </div>
+                                                </div>
+                                            </motion.div>
+                                        )
+                                    })()}
+                                </AnimatePresence>
+                            </motion.div>
+
+                            {/* ── インジケーター行: ＜ ドット ＞ ── */}
+                            <div className="flex items-center justify-center gap-2 px-4 py-2.5 border-t" style={{ borderColor: C.border }}>
+                                <motion.button type="button" onClick={() => goCarousel(carouselIdx - 1)} disabled={carouselIdx === 0}
+                                    whileTap={{ scale: 0.85 }}
+                                    className="flex h-6 w-6 items-center justify-center rounded-full transition-opacity disabled:opacity-25"
+                                    style={{ color: C.brand }} aria-label="前のカード">
+                                    <ChevronLeft size={15} strokeWidth={2.5} />
+                                </motion.button>
+                                {CAROUSEL_LABELS.map((label, i) => (
+                                    <motion.button key={i} type="button"
+                                        onClick={() => { setCarouselDir(i > carouselIdx ? 1 : -1); setCarouselIdx(i) }}
+                                        aria-label={label}
+                                        aria-current={i === carouselIdx ? 'true' : undefined}
+                                        animate={{ width: i === carouselIdx ? 20 : 6, background: i === carouselIdx ? C.brand : 'rgba(28,20,16,0.18)' }}
+                                        transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                                        style={{ height: 6, borderRadius: 9999 }}
+                                    />
+                                ))}
+                                <motion.button type="button" onClick={() => goCarousel(carouselIdx + 1)} disabled={carouselIdx === CAROUSEL_COUNT - 1}
+                                    whileTap={{ scale: 0.85 }}
+                                    className="flex h-6 w-6 items-center justify-center rounded-full transition-opacity disabled:opacity-25"
+                                    style={{ color: C.brand }} aria-label="次のカード">
+                                    <ChevronRight size={15} strokeWidth={2.5} />
+                                </motion.button>
+                            </div>
+                        </div>
+                    </motion.div>
+
+                    {/* ── PC: 2カラムグリッド（Block 1〜4 全表示） ─────────────── */}
+                    <motion.div
+                        className="hidden lg:grid lg:grid-cols-2 gap-3"
                         variants={pageContainerVariants}
                         initial="hidden"
                         animate="visible"
@@ -1491,6 +1783,7 @@ export function HomePrototype() {
                                 })}
                             </div>
                         </motion.div>
+
                         {/* Block 3: 今月の貯蓄予測 */}
                         <motion.div data-tour="block-savings-forecast" variants={pageItemVariants} className="border p-4" style={{ borderRadius: R.card, background: C.card, borderColor: C.border, boxShadow: C.shadow }}>
                             <div className="mb-3 flex items-center justify-between">
@@ -1621,57 +1914,17 @@ export function HomePrototype() {
                                         )}
                                     </div>
 
-                                    {/* アイテム */}
-                                    {group.items.map((it, i) => {
-                                        const isIncome = it.balanceType === 1;
-                                        const acc      = categoryAccent(it.categoryName, isIncome);
-                                        const Icon     = categoryIconComp(it.categoryName, isIncome);
-                                        return (
-                                            <motion.button
-                                                key={it.id}
-                                                type="button"
-                                                initial={{ opacity: 0, y: 4 }}
-                                                animate={{ opacity: 1, y: 0 }}
-                                                transition={{ delay: i * 0.04, duration: 0.15, ease: "easeOut" }}
-                                                className="flex w-full items-center gap-3 px-4 py-2.5 text-left"
-                                                style={{
-                                                    borderBottom: i < group.items.length - 1
-                                                        ? `1px solid ${C.border}`
-                                                        : "none",
-                                                }}
-                                            >
-                                                <div
-                                                    className="flex h-8 w-8 shrink-0 items-center justify-center"
-                                                    style={{ background: acc.bg, borderRadius: "9px" }}
-                                                    aria-hidden
-                                                >
-                                                    <Icon size={14} style={{ color: acc.fg }} />
-                                                </div>
-                                                <div className="min-w-0 flex-1">
-                                                    <div className="truncate text-[13px] font-semibold" style={{ color: C.text }}>
-                                                        {it.content?.trim() || it.categoryName}
-                                                    </div>
-                                                    <div className="mt-0.5 flex items-center gap-1.5">
-                                                        <span
-                                                            className="inline-flex items-center px-1.5 text-[10px] font-semibold leading-[16px]"
-                                                            style={{ background: acc.bg, color: acc.fg, borderRadius: "4px" }}
-                                                        >
-                                                            {it.categoryName}
-                                                        </span>
-                                                        <span className="text-[10px]" style={{ color: "rgba(28,20,16,0.22)" }}>
-                                                            {it.time}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                                <div
-                                                    className="shrink-0 text-[14px] font-bold tabular-nums"
-                                                    style={{ color: isIncome ? C.income : C.text, letterSpacing: "-0.01em" }}
-                                                >
-                                                    {isIncome ? "+" : "−"}¥{it.amount.toLocaleString("ja-JP")}
-                                                </div>
-                                            </motion.button>
-                                        );
-                                    })}
+                                    {/* アイテム — タップで明細へ遷移（編集・削除は明細で行う） */}
+                                    {group.items.map((it, i) => (
+                                        <RecordItem
+                                            key={it.id}
+                                            it={it}
+                                            date={group.date}
+                                            isIncome={it.balanceType === 1}
+                                            hasBorderBottom={i < group.items.length - 1}
+                                            index={i}
+                                        />
+                                    ))}
                                 </div>
                             ))}
                         </div>

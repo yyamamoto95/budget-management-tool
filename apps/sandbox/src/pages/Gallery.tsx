@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { ArrowRight, CalendarDays, Palette, LayoutDashboard, PieChart, TrendingUp, Settings, CircleUser, Monitor, Wand2, Rows3, BarChart2, Receipt, Layers, PiggyBank, SunMedium, Shapes } from 'lucide-react'
+import { ArrowRight, Palette, LayoutDashboard, PieChart, TrendingUp, Settings, CircleUser, Monitor, Wand2, Rows3, BarChart2, Receipt, Layers, PiggyBank, SunMedium, Shapes } from 'lucide-react'
 
 type PrototypeCard = {
   path: string
@@ -11,14 +11,6 @@ type PrototypeCard = {
 }
 
 const prototypes: PrototypeCard[] = [
-  {
-    path: '/calendar-page',
-    title: 'カレンダーページ刷新',
-    description: '月/週ビュー切替（ユーザー設定対応）。大カレンダー+ログ常時表示。週ビューは週予算バー+7日カード+週全体ログ。',
-    icon: CalendarDays,
-    issue: '#183 #184',
-    status: 'ready',
-  },
   {
     path: '/daily-budget-card-palette',
     title: 'カラーパレット比較（DailyBudgetCard）',

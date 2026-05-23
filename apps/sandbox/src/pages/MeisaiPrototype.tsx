@@ -662,14 +662,14 @@ export function MeisaiPrototype() {
               </div>
 
               {/* 選択日の記録 */}
-              <AnimatePresence>
+              <AnimatePresence mode="wait">
                 {selectedDay !== null && (
                   <motion.div
                     key={selectedDay}
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{    opacity: 0, y: -4 }}
-                    transition={SPRING.QUICK}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{    opacity: 0 }}
+                    transition={{ duration: 0.12 }}
                     className="rounded-2xl overflow-hidden"
                     style={{ background: D.card, border: `1px solid ${D.border}`, boxShadow: D.shadow }}
                   >

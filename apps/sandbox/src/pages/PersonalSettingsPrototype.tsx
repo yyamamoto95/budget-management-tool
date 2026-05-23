@@ -499,22 +499,6 @@ export function PersonalSettingsPrototype() {
 
       <div className="min-h-screen pb-24 lg:pb-8 lg:pl-52" style={{ background: D.bg }}>
 
-        {/* ── SP: ベル + アバター ─────────────────────────────────────────── */}
-        <div className="lg:hidden flex items-center justify-end gap-2 px-4 pt-3 pb-1">
-          <button type="button" className="flex h-8 w-8 items-center justify-center"
-            style={{ color: 'rgba(28,20,16,0.45)', borderRadius: '8px' }} aria-label="通知">
-            <Bell size={17} />
-          </button>
-          <Link to="/my-page"
-            className="flex h-8 w-8 items-center justify-center text-[12px] font-extrabold text-white"
-            style={{
-              background: `linear-gradient(135deg, ${D.brand}, ${D.brandDeep})`,
-              borderRadius: '9999px',
-              boxShadow: '0 2px 8px rgba(241,136,64,0.30)',
-              textDecoration: 'none',
-            }}
-            aria-label="マイページ">Y</Link>
-        </div>
 
         {/* ── Mini Preview Bar (mobile sticky) ────────────────────────────── */}
         <div className="sticky top-0 z-10 lg:hidden border-b"
@@ -562,7 +546,7 @@ export function PersonalSettingsPrototype() {
 
         {/* ── Main ─────────────────────────────────────────────────────────── */}
         <main className="px-4 py-4 md:px-6 md:py-5">
-        <div className={`grid grid-cols-1 gap-4 lg:items-start lg:gap-5 ${activeMenu === 'settings' ? 'lg:grid-cols-[160px_1fr_380px]' : 'lg:grid-cols-[160px_1fr]'}`}>
+        <div className={`grid grid-cols-1 gap-4 lg:items-start lg:gap-5 ${activeMenu === 'settings' ? 'lg:grid-cols-[160px_minmax(0,1fr)_300px]' : 'lg:grid-cols-[160px_minmax(0,1fr)]'}`}>
 
           {/* ── PC Left Menu Sidebar ─────────────────────────────────────────── */}
           <nav
@@ -570,6 +554,9 @@ export function PersonalSettingsPrototype() {
             aria-label="設定メニュー"
           >
             <div className="rounded-2xl border overflow-hidden" style={{ background: D.card, borderColor: D.border, boxShadow: D.shadow }}>
+              <div className="px-4 pt-3 pb-2 text-[10px] font-bold tracking-widest uppercase" style={{ color: D.muted }}>
+                メニュー
+              </div>
               {([
                 { key: 'settings', label: '設定',   icon: Settings  },
                 { key: 'guide',    label: 'ガイド', icon: BookOpen  },
@@ -580,19 +567,20 @@ export function PersonalSettingsPrototype() {
                     key={item.key}
                     type="button"
                     onClick={() => setActiveMenu(item.key)}
-                    className="flex w-full items-center gap-2.5 px-4 py-3 text-[13px] font-semibold text-left transition-colors"
+                    className="flex w-full items-center gap-3 px-4 py-3.5 text-[13px] font-semibold text-left transition-colors hover:bg-black/[0.03]"
                     style={{
                       background: active ? D.brandLight : 'transparent',
-                      color:      active ? D.brand : 'rgba(28,20,16,0.55)',
+                      color:      active ? D.brandDeep : 'rgba(28,20,16,0.60)',
                       borderLeft: active ? `3px solid ${D.brand}` : '3px solid transparent',
                     }}
                     aria-current={active ? 'page' : undefined}
                   >
-                    <item.icon size={15} strokeWidth={active ? 2.3 : 2} />
+                    <item.icon size={16} strokeWidth={active ? 2.3 : 2} />
                     {item.label}
                   </button>
                 )
               })}
+              <div className="h-2" />
             </div>
           </nav>
 
@@ -786,6 +774,31 @@ export function PersonalSettingsPrototype() {
             ) : (
               /* ── 設定フォーム ────────────────────────────────────────────── */
               <>
+
+            {/* ── SP: アカウント（マイページ代替） ───────────────────────────── */}
+            <div className="lg:hidden rounded-2xl border overflow-hidden" style={{ background: D.card, borderColor: D.border, boxShadow: D.shadow }}>
+              <div className="flex items-center gap-3 px-4 py-4">
+                <div
+                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-[15px] font-extrabold text-white"
+                  style={{ background: `linear-gradient(135deg, ${D.brand}, ${D.brandDeep})`, boxShadow: '0 2px 8px rgba(241,136,64,0.28)' }}
+                >
+                  Y
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-[14px] font-bold leading-tight" style={{ color: D.text }}>Yamamoto</div>
+                  <div className="text-[11px] mt-0.5" style={{ color: D.muted }}>yamamoto@example.com</div>
+                </div>
+              </div>
+              <div className="border-t px-4 py-3" style={{ borderColor: D.border }}>
+                <button
+                  type="button"
+                  className="text-[13px] font-semibold"
+                  style={{ color: D.danger }}
+                >
+                  ログアウト
+                </button>
+              </div>
+            </div>
 
             {/* 給与 */}
             <SectionCard title="給与" delay={0.06} noClip>

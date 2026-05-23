@@ -36,20 +36,26 @@ type SpotRect = { x: number; y: number; w: number; h: number }
 const SPOT_PADDING = 8
 
 function getTargetRect(selector: string): SpotRect | null {
-  const el = document.querySelector(selector)
-  if (!el) return null
-  const r = el.getBoundingClientRect()
-  return {
-    x: r.left - SPOT_PADDING,
-    y: r.top  - SPOT_PADDING,
-    w: r.width  + SPOT_PADDING * 2,
-    h: r.height + SPOT_PADDING * 2,
+  // 同じ selector が複数ある場合（SP/PC 出し分け要素など）は
+  // 表示中の要素（width > 0）を優先して返す
+  const els = document.querySelectorAll(selector)
+  for (const el of Array.from(els)) {
+    const r = el.getBoundingClientRect()
+    if (r.width > 0 && r.height > 0) {
+      return {
+        x: r.left - SPOT_PADDING,
+        y: r.top  - SPOT_PADDING,
+        w: r.width  + SPOT_PADDING * 2,
+        h: r.height + SPOT_PADDING * 2,
+      }
+    }
   }
+  return null
 }
 
 // ── ポップオーバー位置計算 ────────────────────────────────────────────────────
 const POPOVER_W_MAX = 320
-const POPOVER_H     = 260   // 概算高さ（スペース不足チェック用）
+const POPOVER_H     = 340   // 保守的な最大高さ（スペース不足チェック・クランプ用）
 const POPOVER_GAP   = 14
 
 /** ビューポート幅に応じたポップオーバー幅を返す */
@@ -76,7 +82,9 @@ function calcPopoverPos(
 
   const { x, y, w, h } = spotRect
   const cx = x + w / 2
-  const clampX = (v: number) => Math.max(16, Math.min(vw - popoverW - 16, v))
+  const clampX   = (v: number) => Math.max(16, Math.min(vw - popoverW - 16, v))
+  // ポップオーバーが画面下端を超えないようにクランプ
+  const clampTop = (v: number) => Math.max(16, Math.min(vh - POPOVER_H - 16, v))
 
   // スペース不足のとき自動反転
   const spaceBelow = vh - (y + h)
@@ -89,16 +97,16 @@ function calcPopoverPos(
   }
 
   if (preferred === 'bottom') {
-    return { left: clampX(cx - popoverW / 2), top: y + h + POPOVER_GAP }
+    return { left: clampX(cx - popoverW / 2), top: clampTop(y + h + POPOVER_GAP) }
   }
   if (preferred === 'top') {
     return { left: clampX(cx - popoverW / 2), top: Math.max(16, y - POPOVER_H - POPOVER_GAP) }
   }
   if (preferred === 'right') {
-    return { left: Math.min(vw - popoverW - 16, x + w + POPOVER_GAP), top: Math.max(16, y + h / 2 - POPOVER_H / 2) }
+    return { left: Math.min(vw - popoverW - 16, x + w + POPOVER_GAP), top: clampTop(Math.max(16, y + h / 2 - POPOVER_H / 2)) }
   }
   // left
-  return { left: Math.max(16, x - popoverW - POPOVER_GAP), top: Math.max(16, y + h / 2 - POPOVER_H / 2) }
+  return { left: Math.max(16, x - popoverW - POPOVER_GAP), top: clampTop(Math.max(16, y + h / 2 - POPOVER_H / 2)) }
 }
 
 // ── メインコンポーネント ──────────────────────────────────────────────────────
@@ -137,6 +145,14 @@ export function HomeTour() {
     window.addEventListener('resize', updateSpot)
     return () => window.removeEventListener('resize', updateSpot)
   }, [active, updateSpot])
+
+  // ガイド中はスクロール禁止
+  useEffect(() => {
+    if (!active) return
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = prev }
+  }, [active])
 
   function startTour() {
     setStepIdx(0)
