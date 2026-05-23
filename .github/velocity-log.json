@@ -1090,6 +1090,14 @@
           "points": 2,
           "cycle_time_hours": null,
           "pr": 358
+        },
+        {
+          "issue": 359,
+          "title": "feat: PR の Issue 紐付けを機械強制する仕組みを追加",
+          "size": "unknown",
+          "points": null,
+          "cycle_time_hours": null,
+          "pr": 359
         }
       ]
     }
