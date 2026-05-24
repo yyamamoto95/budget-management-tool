@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { ArrowRight, Palette, LayoutDashboard, PieChart, TrendingUp, Settings, CircleUser, Monitor, Wand2, Rows3, BarChart2, Receipt, Layers, PiggyBank, SunMedium, Shapes } from 'lucide-react'
+import { ArrowRight, LayoutDashboard, PieChart, Settings, CircleUser, Wand2, BarChart2, Receipt, Layers, PiggyBank, SunMedium, Shapes } from 'lucide-react'
 
 type PrototypeCard = {
   path: string
@@ -11,14 +11,6 @@ type PrototypeCard = {
 }
 
 const prototypes: PrototypeCard[] = [
-  {
-    path: '/daily-budget-card-palette',
-    title: 'カラーパレット比較（DailyBudgetCard）',
-    description: 'SAFE/CAUTION/DANGER の3ステートを3パレットパターンで横並び比較。現行との対比も掲載。',
-    icon: Palette,
-    issue: '#133',
-    status: 'wip',
-  },
   {
     path: '/home',
     title: 'ホーム画面',
@@ -36,22 +28,6 @@ const prototypes: PrototypeCard[] = [
     status: 'wip',
   },
   {
-    path: '/asset-outlook-ab',
-    title: '長期指標 — A/B/C スワイプ比較（SP）',
-    description: '資産ランウェイ / 今月の貯蓄額 / 年間ペース の3パターン。今日のサマリー統合、スワイプUI。',
-    icon: TrendingUp,
-    issue: 'sandbox',
-    status: 'wip',
-  },
-  {
-    path: '/asset-outlook-pc-ab',
-    title: '長期指標 — PC レイアウト比較',
-    description: '全パターン同時表示 / タブ切替 / 表示非表示トグル の3レイアウト比較。',
-    icon: Monitor,
-    issue: 'sandbox',
-    status: 'wip',
-  },
-  {
     path: '/personal-settings',
     title: '個人設定 — 現行',
     description: '2カラムレイアウト。左:フォーム / 右:プレビューカード sticky。貯蓄目標・収入配分バー付き。',
@@ -64,14 +40,6 @@ const prototypes: PrototypeCard[] = [
     title: '個人設定 B — ウィザード',
     description: '給与→固定費→残高→貯蓄→確認の5ステップ。スライドアニメーション。',
     icon: Wand2,
-    issue: '#283',
-    status: 'wip',
-  },
-  {
-    path: '/settings-e',
-    title: '個人設定 E — コンパクトリスト',
-    description: '全設定を1リストに集約。+/−ステッパーで素早く調整。スクロール不要な高密度レイアウト。',
-    icon: Rows3,
     issue: '#283',
     status: 'wip',
   },
