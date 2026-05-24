@@ -36,7 +36,7 @@ export async function resetDatabase(): Promise<void> {
 async function ensureCategoryListSeeded(): Promise<void> {
     await testPrisma.$executeRawUnsafe(`
         INSERT IGNORE INTO category_list
-            (id, key, name, color, bg, balance_type, display_order, is_system, is_deleted)
+            (id, \`key\`, name, color, bg, balance_type, display_order, is_system, is_deleted)
         VALUES
             (1,  'food',          '食費',         '#f18840', '#fef5ee', 0, 1,  true, false),
             (2,  'daily',         '日用品',        '#a78bfa', '#f5f3ff', 0, 2,  true, false),
