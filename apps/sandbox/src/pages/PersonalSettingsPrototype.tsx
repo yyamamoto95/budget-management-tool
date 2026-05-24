@@ -14,7 +14,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   Check, TrendingUp, Zap, Car, ShoppingBag,
   Wallet, Heart, Calendar, Settings, PiggyBank,
-  ChevronLeft, ChevronRight, ChevronDown, BookOpen,
+  ChevronLeft, ChevronRight, ChevronDown, BookOpen, Home,
 } from 'lucide-react'
 import { SandboxLayout } from '../components/SandboxLayout'
 
