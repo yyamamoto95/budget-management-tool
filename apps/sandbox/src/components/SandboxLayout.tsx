@@ -17,7 +17,7 @@ export type SandboxPage = 'home' | 'meisai' | 'report' | 'settings'
 
 const NAV_ITEMS = [
   { label: 'ホーム',   icon: Home,     to: '/home',              page: 'home'     },
-  { label: '明細',     icon: Receipt,  to: '/meisai',            page: 'meisai'   },
+  { label: '明細',     icon: Receipt,  to: '/records',           page: 'meisai'   },
   { label: 'レポート', icon: BarChart2, to: '/report',            page: 'report'   },
   { label: '設定',     icon: Settings, to: '/personal-settings', page: 'settings' },
 ] as const satisfies { label: string; icon: React.ElementType; to: string; page: SandboxPage }[]

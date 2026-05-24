@@ -259,7 +259,7 @@ export function ReportPrototype() {
             </div>
 
             {/* ── フッター: 明細へのリンク ─────────────────────────────────── */}
-            <Link to="/meisai"
+            <Link to="/records"
               className="flex items-center justify-center gap-2 rounded-md py-3.5 text-[13px] font-bold"
               style={{
                 background:     D.brandLight,

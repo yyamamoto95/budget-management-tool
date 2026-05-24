@@ -401,7 +401,7 @@ function RecordItem({
 
     return (
         <MotionLink
-            to={`/meisai?date=${date}`}
+            to={`/records?date=${date}`}
             className="flex w-full items-center gap-3 px-4 py-2.5"
             style={{
                 textDecoration: "none",
@@ -1173,7 +1173,7 @@ export function HomePrototype() {
             <nav className="flex-1 overflow-y-auto p-3 space-y-0.5" aria-label="メインメニュー">
                 {[
                     { label: "ホーム",   icon: Home,      to: "/home",              active: true  },
-                    { label: "明細",     icon: Receipt,   to: "/meisai",            active: false },
+                    { label: "明細",     icon: Receipt,   to: "/records",            active: false },
                     { label: "レポート", icon: BarChart2,  to: "/report",            active: false },
                     { label: "設定",     icon: Settings,   to: "/personal-settings", active: false },
                 ].map((item) => (
@@ -1883,7 +1883,7 @@ export function HomePrototype() {
                             <div className="flex items-center justify-between border-b px-4 py-3" style={{ borderColor: C.border }}>
                                 <span className="text-sm font-bold" style={{ color: C.text }}>最近の記録</span>
                                 <MotionLink
-                                    to="/meisai?period=all"
+                                    to="/records?period=all"
                                     whileTap={{ scale: 0.92 }}
                                     transition={SPRING.snap}
                                     className="flex items-center gap-0.5 text-[12px] font-semibold tap-highlight"
@@ -1951,7 +1951,7 @@ export function HomePrototype() {
                     {/* 左2項目 */}
                     {[
                         { label: "ホーム", icon: Home,    to: "/home",   active: true  },
-                        { label: "明細",   icon: Receipt, to: "/meisai", active: false },
+                        { label: "明細",   icon: Receipt, to: "/records", active: false },
                     ].map((item) => (
                         <Link key={item.label} to={item.to}
                             aria-current={item.active ? "page" : undefined}
