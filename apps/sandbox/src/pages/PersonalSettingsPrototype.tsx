@@ -12,10 +12,11 @@ import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  Check, TrendingUp, Home, Zap, Car, ShoppingBag,
-  Wallet, Heart, Bell, Calendar, BarChart2, Settings, PiggyBank,
-  ChevronLeft, ChevronRight, ChevronDown, Receipt, BookOpen,
+  Check, TrendingUp, Zap, Car, ShoppingBag,
+  Wallet, Heart, Calendar, Settings, PiggyBank,
+  ChevronLeft, ChevronRight, ChevronDown, BookOpen,
 } from 'lucide-react'
+import { SandboxLayout } from '../components/SandboxLayout'
 
 // ─── Spring ──────────────────────────────────────────────────────────────────
 const SPRING = {
@@ -25,22 +26,7 @@ const SPRING = {
   SMOOTH: { type: 'spring', stiffness: 200, damping: 26 },
 } as const
 
-// ─── Design Tokens ───────────────────────────────────────────────────────────
-const D = {
-  bg:          '#fffdf5',
-  card:        '#ffffff',
-  text:        '#1c1410',
-  muted:       'rgba(28,20,16,0.45)',
-  border:      'rgba(28,20,16,0.08)',
-  shadow:      '0 2px 12px rgba(28,20,16,0.08), 0 0 0 1px rgba(28,20,16,0.06)',
-  brand:       '#f18840',
-  brandDeep:   '#e8622a',
-  brandLight:  '#fff6ee',
-  income:      '#35b5a2',
-  danger:      '#f43f5e',
-  caution:     '#f59e0b',
-  surface:     '#f5f3ef',
-} as const
+import { D } from '../components/SandboxCard'
 
 // ─── State ───────────────────────────────────────────────────────────────────
 const INITIAL_STATE = {
@@ -89,7 +75,7 @@ function AmountField({
       {/* − ボタン */}
       <motion.button
         type="button"
-        className="h-9 w-9 shrink-0 rounded-xl flex items-center justify-center text-base font-bold select-none"
+        className="h-9 w-9 shrink-0 rounded-md flex items-center justify-center text-base font-bold select-none"
         style={{ background: D.surface, color: D.muted }}
         onMouseDown={(e) => e.preventDefault()} // blur を抑止して先にクリックを処理
         onClick={() => onChange(Math.max(0, value - step))}
@@ -102,7 +88,7 @@ function AmountField({
 
       {/* 入力フィールド */}
       <div
-        className="flex flex-1 items-center gap-1.5 rounded-xl border px-3 py-2 transition-colors"
+        className="flex flex-1 items-center gap-1.5 rounded-md border px-3 py-2 transition-colors"
         style={{
           borderColor: focused ? D.brand : D.border,
           background:  focused ? D.brandLight : D.surface,
@@ -131,7 +117,7 @@ function AmountField({
       {/* + ボタン */}
       <motion.button
         type="button"
-        className="h-9 w-9 shrink-0 rounded-xl flex items-center justify-center text-base font-bold select-none"
+        className="h-9 w-9 shrink-0 rounded-md flex items-center justify-center text-base font-bold select-none"
         style={{ background: D.surface, color: D.muted }}
         onMouseDown={(e) => e.preventDefault()}
         onClick={() => onChange(value + step)}
@@ -214,7 +200,7 @@ function SalaryDayPicker({ value, onChange }: { value: number; onChange: (v: num
     <div className="flex flex-col gap-2">
       {/* 行1: ラベル + よくある日チップ（メイン選択） */}
       <div className="flex items-center gap-3">
-        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg"
+        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md"
           style={{ background: D.surface }}>
           <Calendar size={14} style={{ color: D.brand }} />
         </div>
@@ -222,7 +208,7 @@ function SalaryDayPicker({ value, onChange }: { value: number; onChange: (v: num
         <div className="flex-1 flex items-center justify-end gap-1.5 overflow-x-auto">
           {COMMON_DAYS.map(d => (
             <motion.button key={d} type="button"
-              className="h-9 w-9 rounded-xl text-sm font-bold shrink-0"
+              className="h-9 w-9 rounded-md text-sm font-bold shrink-0"
               style={{
                 background: value === d ? D.brand   : D.surface,
                 color:      value === d ? '#ffffff' : D.text,
@@ -259,7 +245,7 @@ function SalaryDayPicker({ value, onChange }: { value: number; onChange: (v: num
 
           <button ref={triggerRef} type="button"
             onClick={handleToggle}
-            className="flex items-center gap-1 rounded-xl px-2.5 py-1.5 font-bold text-sm tabular-nums"
+            className="flex items-center gap-1 rounded-md px-2.5 py-1.5 font-bold text-sm tabular-nums"
             style={{
               background: open ? D.brandLight : D.surface,
               border:     `1.5px solid ${open ? D.brand : 'transparent'}`,
@@ -328,7 +314,7 @@ function SalaryDayPicker({ value, onChange }: { value: number; onChange: (v: num
                         onClick={() => { onChange(d); setOpen(false) }}
                         role="option"
                         aria-selected={d === value}
-                        className="h-8 w-8 rounded-lg text-[12px] font-bold flex items-center justify-center transition-colors"
+                        className="h-8 w-8 rounded-md text-[12px] font-bold flex items-center justify-center transition-colors"
                         style={{
                           background: d === value
                             ? D.brand
@@ -374,7 +360,7 @@ function SectionCard({ title, children, delay = 0, noClip = false }: {
           {title}
         </span>
       </div>
-      <div className="rounded-2xl border"
+      <div className="rounded-md border"
         style={{
           background: D.card, borderColor: D.border, boxShadow: D.shadow,
           overflow: noClip ? 'visible' : 'hidden',
@@ -405,14 +391,6 @@ function Toast({ visible }: { visible: boolean }) {
     </AnimatePresence>
   )
 }
-
-// ─── Nav ─────────────────────────────────────────────────────────────────────
-const NAV_ITEMS = [
-  { label: 'ホーム',   icon: Home,     to: '/home',              active: false },
-  { label: '明細',     icon: Receipt,  to: '/meisai',            active: false },
-  { label: 'レポート', icon: BarChart2, to: '/report',            active: false },
-  { label: '設定',     icon: Settings, to: '/personal-settings', active: true  },
-] as const
 
 // ─── Main ────────────────────────────────────────────────────────────────────
 export function PersonalSettingsPrototype() {
@@ -453,51 +431,7 @@ export function PersonalSettingsPrototype() {
   }
 
   return (
-    <>
-      {/* ── PC サイドバー ──────────────────────────────────────────────────── */}
-      <aside
-        className="hidden lg:flex lg:flex-col fixed inset-y-0 left-0 z-30 w-52 border-r"
-        style={{ background: D.card, borderColor: D.border }}
-      >
-        <div className="flex h-14 shrink-0 items-center gap-2.5 border-b px-4" style={{ borderColor: D.border }}>
-          <img src="/logo192.png" alt="家計かんり" className="h-8 w-8 shrink-0" style={{ borderRadius: '10px' }} />
-          <span className="text-[15px] font-extrabold tracking-tight" style={{ color: D.text }}>家計かんり</span>
-        </div>
-        <nav className="flex-1 overflow-y-auto p-3 space-y-0.5" aria-label="メインメニュー">
-          {NAV_ITEMS.map((item) => (
-            <Link key={item.label} to={item.to}
-              aria-current={item.active ? 'page' : undefined}
-              className="flex w-full items-center gap-3 px-3 py-2.5 text-[13px] font-semibold"
-              style={{
-                borderRadius:   '10px',
-                background:     item.active ? D.brandLight : 'transparent',
-                color:          item.active ? D.brand : 'rgba(28,20,16,0.50)',
-                textDecoration: 'none',
-              }}
-            >
-              <item.icon size={17} aria-hidden />
-              {item.label}
-            </Link>
-          ))}
-        </nav>
-        <div className="shrink-0 border-t px-3 py-2.5 flex items-center justify-between" style={{ borderColor: D.border }}>
-          <button type="button" className="flex h-8 w-8 items-center justify-center"
-            style={{ color: 'rgba(28,20,16,0.45)', borderRadius: '8px' }} aria-label="通知">
-            <Bell size={17} />
-          </button>
-          <Link to="/my-page"
-            className="flex h-8 w-8 items-center justify-center text-[12px] font-extrabold text-white"
-            style={{
-              background: `linear-gradient(135deg, ${D.brand}, ${D.brandDeep})`,
-              borderRadius: '9999px',
-              boxShadow: '0 2px 8px rgba(241,136,64,0.30)',
-              textDecoration: 'none',
-            }}
-            aria-label="マイページ">Y</Link>
-        </div>
-      </aside>
-
-      <div className="min-h-screen pb-24 lg:pb-8 lg:pl-52" style={{ background: D.bg }}>
+    <SandboxLayout currentPage="settings">
 
 
         {/* ── Mini Preview Bar (mobile sticky) ────────────────────────────── */}
@@ -545,53 +479,52 @@ export function PersonalSettingsPrototype() {
       </div>
 
         {/* ── Main ─────────────────────────────────────────────────────────── */}
-        <main className="px-4 py-4 md:px-6 md:py-5">
-        <div className={`grid grid-cols-1 gap-4 lg:items-start lg:gap-5 ${activeMenu === 'settings' ? 'lg:grid-cols-[160px_minmax(0,1fr)_300px]' : 'lg:grid-cols-[160px_minmax(0,1fr)]'}`}>
+        <main className="px-4 pt-4 pb-4 md:px-6 md:pt-3 md:pb-5">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-[320px_minmax(0,1fr)] lg:items-start lg:gap-5">
 
-          {/* ── PC Left Menu Sidebar ─────────────────────────────────────────── */}
-          <nav
-            className="hidden lg:block lg:col-start-1 lg:row-start-1 lg:sticky lg:top-[5.5rem]"
-            aria-label="設定メニュー"
-          >
-            <div className="rounded-2xl border overflow-hidden" style={{ background: D.card, borderColor: D.border, boxShadow: D.shadow }}>
-              <div className="px-4 pt-3 pb-2 text-[10px] font-bold tracking-widest uppercase" style={{ color: D.muted }}>
-                メニュー
+          {/* ── PC 左カラム: メニュー + プレビュー ──────────────────────────── */}
+          <div className="hidden lg:flex lg:flex-col lg:gap-4 lg:col-start-1 lg:row-start-1 lg:sticky lg:top-4">
+
+            {/* メニュー */}
+            <nav aria-label="設定メニュー">
+              <div className="rounded-md border overflow-hidden" style={{ background: D.card, borderColor: D.border, boxShadow: D.shadow }}>
+                {([
+                  { key: 'settings', label: '設定',   icon: Settings  },
+                  { key: 'guide',    label: 'ガイド', icon: BookOpen  },
+                ] as const).map((item) => {
+                  const active = activeMenu === item.key
+                  return (
+                    <button
+                      key={item.key}
+                      type="button"
+                      onClick={() => setActiveMenu(item.key)}
+                      className="flex w-full items-center gap-3 px-4 py-3.5 text-[13px] font-semibold text-left transition-colors hover:bg-black/[0.03]"
+                      style={{
+                        background: active ? D.brandLight : 'transparent',
+                        color:      active ? D.brandDeep : 'rgba(28,20,16,0.60)',
+                        borderLeft: active ? `3px solid ${D.brand}` : '3px solid transparent',
+                      }}
+                      aria-current={active ? 'page' : undefined}
+                    >
+                      <item.icon size={16} strokeWidth={active ? 2.3 : 2} />
+                      {item.label}
+                    </button>
+                  )
+                })}
+                <div className="h-2" />
               </div>
-              {([
-                { key: 'settings', label: '設定',   icon: Settings  },
-                { key: 'guide',    label: 'ガイド', icon: BookOpen  },
-              ] as const).map((item) => {
-                const active = activeMenu === item.key
-                return (
-                  <button
-                    key={item.key}
-                    type="button"
-                    onClick={() => setActiveMenu(item.key)}
-                    className="flex w-full items-center gap-3 px-4 py-3.5 text-[13px] font-semibold text-left transition-colors hover:bg-black/[0.03]"
-                    style={{
-                      background: active ? D.brandLight : 'transparent',
-                      color:      active ? D.brandDeep : 'rgba(28,20,16,0.60)',
-                      borderLeft: active ? `3px solid ${D.brand}` : '3px solid transparent',
-                    }}
-                    aria-current={active ? 'page' : undefined}
-                  >
-                    <item.icon size={16} strokeWidth={active ? 2.3 : 2} />
-                    {item.label}
-                  </button>
-                )
-              })}
-              <div className="h-2" />
-            </div>
-          </nav>
+            </nav>
 
-          {/* Preview Card — PC only, right column, sticky（設定タブのみ表示） */}
-          <motion.div
-            className={`lg:col-start-3 lg:row-start-1 lg:sticky lg:top-[5.5rem] ${activeMenu === 'settings' ? 'hidden lg:block' : 'hidden'}`}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ ...SPRING.SMOOTH, delay: 0.04 }}
-          >
-            <div className="relative rounded-3xl overflow-hidden p-5"
+            {/* プレビューカード（設定タブのみ） */}
+            <AnimatePresence>
+            {activeMenu === 'settings' && (
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{    opacity: 0, y: 8  }}
+                transition={{ ...SPRING.SMOOTH, delay: 0.04 }}
+              >
+            <div className="relative rounded-md overflow-hidden p-5"
               style={{ background: D.card, border: `1px solid ${D.border}`, boxShadow: D.shadow }}>
               <motion.div className="absolute rounded-full pointer-events-none"
                 style={{ width: 200, height: 200, top: -80, right: -70,
@@ -601,15 +534,6 @@ export function PersonalSettingsPrototype() {
               />
               <div className="relative">
                 {/* プレビューバッジ */}
-                <div className="flex items-center justify-between mb-1">
-                  <div className="text-[11px] font-semibold" style={{ color: D.muted }}>1日に使えるお金</div>
-                  <div
-                    className="flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-bold"
-                    style={{ background: D.surface, color: 'rgba(28,20,16,0.35)', letterSpacing: '0.04em' }}
-                  >
-                    プレビュー
-                  </div>
-                </div>
                 <motion.div key={dailyBudget}
                   className="text-[52px] font-extrabold leading-none tabular-nums"
                   style={{ color: budgetColor, letterSpacing: '-0.02em' }}
@@ -639,7 +563,7 @@ export function PersonalSettingsPrototype() {
                 </div>
 
                 {/* 内訳（読み取り専用） */}
-                <div className="rounded-xl p-3 mb-4 space-y-1.5 text-[11px]"
+                <div className="rounded-md p-3 mb-4 space-y-1.5 text-[11px]"
                   style={{ background: D.surface, cursor: 'default', userSelect: 'none' }}>
                   {[
                     { label: '月収',     value: state.monthlyIncome, color: D.text,   bold: false, hide: false },
@@ -675,7 +599,7 @@ export function PersonalSettingsPrototype() {
                         : '未設定',
                     },
                   ].map((chip, i) => (
-                    <motion.div key={chip.label} className="rounded-lg p-2"
+                    <motion.div key={chip.label} className="rounded-md p-2"
                       style={{ background: '#f0ede8' }}
                       initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
                       transition={{ ...SPRING.BASE, delay: 0.1 + i * 0.04 }}>
@@ -686,14 +610,18 @@ export function PersonalSettingsPrototype() {
                 </div>
               </div>
             </div>
-          </motion.div>
+            </motion.div>
+            )}
+            </AnimatePresence>
+
+          </div>{/* /左カラム */}
 
           {/* ── Content column ──────────────────────────────────────────────── */}
           <div className="space-y-4 lg:col-start-2 lg:row-start-1">
 
             {/* SP top menu tabs */}
             <div
-              className="flex rounded-xl p-1 gap-1 lg:hidden"
+              className="flex rounded-md p-1 gap-1 lg:hidden"
               style={{ background: D.surface }}
               role="tablist"
               aria-label="設定メニュー"
@@ -710,7 +638,7 @@ export function PersonalSettingsPrototype() {
                     role="tab"
                     aria-selected={active}
                     onClick={() => setActiveMenu(item.key)}
-                    className="flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 text-[12px] font-bold transition-colors"
+                    className="flex flex-1 items-center justify-center gap-1.5 rounded-md py-2 text-[12px] font-bold transition-colors"
                     style={{
                       background: active ? D.card : 'transparent',
                       color:      active ? D.brand : 'rgba(28,20,16,0.45)',
@@ -740,7 +668,7 @@ export function PersonalSettingsPrototype() {
                       className="flex items-center gap-3 px-4 py-3.5 transition-colors hover:bg-[#fff6ee]"
                       style={{ textDecoration: 'none' }}
                     >
-                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl"
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md"
                         style={{ background: D.brandLight }}>
                         <BookOpen size={16} style={{ color: D.brand }} />
                       </div>
@@ -753,7 +681,7 @@ export function PersonalSettingsPrototype() {
 
                     {/* 管理設定ガイド（近日公開） */}
                     <div className="flex items-center gap-3 px-4 py-3.5 opacity-50 cursor-not-allowed select-none border-t" style={{ borderColor: D.border }}>
-                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl"
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md"
                         style={{ background: D.surface }}>
                         <Settings size={16} style={{ color: D.muted }} />
                       </div>
@@ -776,7 +704,7 @@ export function PersonalSettingsPrototype() {
               <>
 
             {/* ── SP: アカウント（マイページ代替） ───────────────────────────── */}
-            <div className="lg:hidden rounded-2xl border overflow-hidden" style={{ background: D.card, borderColor: D.border, boxShadow: D.shadow }}>
+            <div className="lg:hidden rounded-md border overflow-hidden" style={{ background: D.card, borderColor: D.border, boxShadow: D.shadow }}>
               <div className="flex items-center gap-3 px-4 py-4">
                 <div
                   className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-[15px] font-extrabold text-white"
@@ -868,12 +796,12 @@ export function PersonalSettingsPrototype() {
               <SectionCard title="貯蓄目標" delay={0.16}>
                 <div className="px-4 pt-3.5 pb-6 space-y-3">
                   <div className="flex items-center gap-2 mb-0.5">
-                    <div className="flex h-7 w-7 items-center justify-center rounded-lg"
+                    <div className="flex h-7 w-7 items-center justify-center rounded-md"
                       style={{ background: D.surface }}>
                       <PiggyBank size={14} style={{ color: D.brand }} />
                     </div>
                     <div
-                      className="inline-flex rounded-xl p-0.5 gap-0.5"
+                      className="inline-flex rounded-md p-0.5 gap-0.5"
                       style={{ background: D.surface }}
                       role="tablist"
                       aria-label="貯蓄目標の期間"
@@ -884,7 +812,7 @@ export function PersonalSettingsPrototype() {
                           <motion.button key={mode}
                             role="tab" aria-selected={active} type="button"
                             onClick={() => switchSavingsMode(mode)}
-                            className="px-3 py-1 rounded-lg text-xs font-bold"
+                            className="px-3 py-1 rounded-md text-xs font-bold"
                             style={{
                               background: active ? D.card    : 'transparent',
                               color:      active ? D.brand   : D.muted,
@@ -936,7 +864,7 @@ export function PersonalSettingsPrototype() {
 
             {/* 保存 */}
             <motion.button type="button"
-              className="w-full py-4 rounded-2xl text-sm font-extrabold text-white"
+              className="w-full py-4 rounded-md text-sm font-extrabold text-white"
               style={{ background: D.brand, boxShadow: `0 4px 20px ${D.brand}40` }}
               whileTap={{ scale: 0.97 }}
               onClick={handleSave}
@@ -953,30 +881,7 @@ export function PersonalSettingsPrototype() {
         </div>
         </main>
 
-        {/* ── SP モバイルボトムナビ ──────────────────────────────────────────── */}
-        <nav className="fixed bottom-0 left-0 right-0 z-30 lg:hidden"
-          style={{
-            background: 'rgba(255,253,245,0.92)', backdropFilter: 'blur(16px)',
-            borderTop: `1px solid ${D.border}`,
-            paddingBottom: 'env(safe-area-inset-bottom, 0px)',
-          }}
-          aria-label="メインメニュー"
-        >
-          <div className="grid grid-cols-4 h-14">
-            {NAV_ITEMS.map((item) => (
-              <Link key={item.label} to={item.to}
-                aria-current={item.active ? 'page' : undefined}
-                className="flex flex-col items-center justify-center gap-0.5"
-                style={{ color: item.active ? D.brand : 'rgba(28,20,16,0.40)', textDecoration: 'none' }}>
-                <item.icon size={20} strokeWidth={item.active ? 2.4 : 2} aria-hidden />
-                <span className="text-[10px] font-bold leading-none">{item.label}</span>
-              </Link>
-            ))}
-          </div>
-        </nav>
-
         <Toast visible={saved} />
-      </div>
-    </>
+    </SandboxLayout>
   )
 }

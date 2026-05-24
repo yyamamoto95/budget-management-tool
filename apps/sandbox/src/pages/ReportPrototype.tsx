@@ -7,27 +7,10 @@
 import { Link } from 'react-router-dom'
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import {
-  Home, Receipt, BarChart2, Settings,
-  Bell, ArrowRight,
-} from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
 import { EXPENSE_CATEGORY_TOKENS as ET } from '../tokens/categoryTokens'
-
-// ── Design tokens ──────────────────────────────────────────────────────────────
-const D = {
-  bg:         '#fffdf5',
-  card:       '#ffffff',
-  text:       '#1c1410',
-  muted:      'rgba(28,20,16,0.45)',
-  border:     'rgba(28,20,16,0.08)',
-  shadow:     '0 2px 12px rgba(28,20,16,0.08), 0 0 0 1px rgba(28,20,16,0.06)',
-  brand:      '#f18840',
-  brandDeep:  '#e8622a',
-  brandLight: '#fff6ee',
-  income:     '#35b5a2',
-  danger:     '#f43f5e',
-  surface:    '#f5f3ef',
-} as const
+import { D } from '../components/SandboxCard'
+import { SandboxLayout } from '../components/SandboxLayout'
 
 const SPRING = {
   SNAP:   { type: 'spring', stiffness: 600, damping: 35 },
@@ -35,14 +18,6 @@ const SPRING = {
   BASE:   { type: 'spring', stiffness: 300, damping: 28 },
   SMOOTH: { type: 'spring', stiffness: 200, damping: 26 },
 } as const
-
-// ── Nav ────────────────────────────────────────────────────────────────────────
-const NAV_ITEMS = [
-  { label: 'ホーム',   icon: Home,     to: '/home',              active: false },
-  { label: '明細',     icon: Receipt,  to: '/meisai',            active: false },
-  { label: 'レポート', icon: BarChart2, to: '/report',            active: true  },
-  { label: '設定',     icon: Settings, to: '/personal-settings', active: false },
-] as const
 
 // ── Mock data ──────────────────────────────────────────────────────────────────
 type Period = 'week' | 'month' | 'lastMonth'
@@ -106,81 +81,18 @@ export function ReportPrototype() {
     : null
 
   return (
-    <>
-      {/* ── PC サイドバー ──────────────────────────────────────────────────── */}
-      <aside
-        className="hidden lg:flex lg:flex-col fixed inset-y-0 left-0 z-30 w-52 border-r"
-        style={{ background: D.card, borderColor: D.border }}
-      >
-        <div className="flex h-14 shrink-0 items-center gap-2.5 border-b px-4" style={{ borderColor: D.border }}>
-          <img src="/logo192.png" alt="家計かんり" className="h-8 w-8 shrink-0" style={{ borderRadius: '10px' }} />
-          <span className="text-[15px] font-extrabold tracking-tight" style={{ color: D.text }}>家計かんり</span>
-        </div>
-        <nav className="flex-1 overflow-y-auto p-3 space-y-0.5" aria-label="メインメニュー">
-          {NAV_ITEMS.map((item) => (
-            <Link key={item.label} to={item.to}
-              aria-current={item.active ? 'page' : undefined}
-              className="flex w-full items-center gap-3 px-3 py-2.5 text-[13px] font-semibold"
-              style={{
-                borderRadius:   '10px',
-                background:     item.active ? D.brandLight : 'transparent',
-                color:          item.active ? D.brand : 'rgba(28,20,16,0.50)',
-                textDecoration: 'none',
-              }}
-            >
-              <item.icon size={17} aria-hidden />
-              {item.label}
-            </Link>
-          ))}
-        </nav>
-        <div className="shrink-0 border-t px-3 py-2.5 flex items-center justify-between" style={{ borderColor: D.border }}>
-          <button type="button" className="flex h-8 w-8 items-center justify-center"
-            style={{ color: 'rgba(28,20,16,0.45)', borderRadius: '8px' }} aria-label="通知">
-            <Bell size={17} />
-          </button>
-          <Link to="/my-page"
-            className="flex h-8 w-8 items-center justify-center text-[12px] font-extrabold text-white"
-            style={{
-              background: `linear-gradient(135deg, ${D.brand}, ${D.brandDeep})`,
-              borderRadius: '9999px',
-              boxShadow: '0 2px 8px rgba(241,136,64,0.30)',
-              textDecoration: 'none',
-            }}
-            aria-label="マイページ">Y</Link>
-        </div>
-      </aside>
-
-      <div className="min-h-screen pb-24 lg:pb-8 lg:pl-52" style={{ background: D.bg }}>
-
-        {/* ── SP: ベル + アバター ─────────────────────────────────────────── */}
-        <div className="lg:hidden flex items-center justify-end gap-2 px-4 pt-3 pb-1">
-          <button type="button" className="flex h-8 w-8 items-center justify-center"
-            style={{ color: 'rgba(28,20,16,0.45)', borderRadius: '8px' }} aria-label="通知">
-            <Bell size={17} />
-          </button>
-          <Link to="/my-page"
-            className="flex h-8 w-8 items-center justify-center text-[12px] font-extrabold text-white"
-            style={{
-              background: `linear-gradient(135deg, ${D.brand}, ${D.brandDeep})`,
-              borderRadius: '9999px',
-              boxShadow: '0 2px 8px rgba(241,136,64,0.30)',
-              textDecoration: 'none',
-            }}
-            aria-label="マイページ">Y</Link>
-        </div>
+    <SandboxLayout currentPage="report">
 
         {/* ── スティッキー期間タブ ─────────────────────────────────────────── */}
         <div
-          className="sticky top-0 z-10 border-b"
+          className="sticky top-0 z-10"
           style={{
             background:     'rgba(255,253,245,0.96)',
             backdropFilter: 'blur(10px)',
-            borderColor:    D.border,
           }}
         >
           <div className="flex items-center gap-2 px-4 py-2 md:px-6">
-            <span className="text-[14px] font-extrabold shrink-0" style={{ color: D.text }}>レポート</span>
-            <div className="flex gap-1 ml-2">
+            <div className="flex gap-1">
               {PERIOD_ORDER.map(p => {
                 const active = period === p
                 return (
@@ -214,7 +126,7 @@ export function ReportPrototype() {
 
             {/* ── 収支サマリーカード ────────────────────────────────────────── */}
             <div
-              className="rounded-2xl p-5"
+              className="rounded-md p-5"
               style={{ background: D.card, border: `1px solid ${D.border}`, boxShadow: D.shadow }}
             >
               {/* タイトル */}
@@ -281,7 +193,7 @@ export function ReportPrototype() {
 
             {/* ── カテゴリ別支出カード ─────────────────────────────────────── */}
             <div
-              className="rounded-2xl p-4"
+              className="rounded-md p-4"
               style={{ background: D.card, border: `1px solid ${D.border}`, boxShadow: D.shadow }}
             >
               <div className="flex items-center justify-between mb-4">
@@ -348,7 +260,7 @@ export function ReportPrototype() {
 
             {/* ── フッター: 明細へのリンク ─────────────────────────────────── */}
             <Link to="/meisai"
-              className="flex items-center justify-center gap-2 rounded-2xl py-3.5 text-[13px] font-bold"
+              className="flex items-center justify-center gap-2 rounded-md py-3.5 text-[13px] font-bold"
               style={{
                 background:     D.brandLight,
                 border:         `1.5px solid rgba(241,136,64,0.24)`,
@@ -364,32 +276,6 @@ export function ReportPrototype() {
         </AnimatePresence>
         </main>
 
-        {/* ── SP モバイルボトムナビ ──────────────────────────────────────────── */}
-        <nav
-          className="fixed bottom-0 left-0 right-0 z-30 lg:hidden"
-          style={{
-            background:     'rgba(255,253,245,0.92)',
-            backdropFilter: 'blur(16px)',
-            borderTop:      `1px solid ${D.border}`,
-            paddingBottom:  'env(safe-area-inset-bottom, 0px)',
-          }}
-          aria-label="メインメニュー"
-        >
-          <div className="grid grid-cols-4 h-14">
-            {NAV_ITEMS.map((item) => (
-              <Link key={item.label} to={item.to}
-                aria-current={item.active ? 'page' : undefined}
-                className="flex flex-col items-center justify-center gap-0.5"
-                style={{ color: item.active ? D.brand : 'rgba(28,20,16,0.40)', textDecoration: 'none' }}
-              >
-                <item.icon size={20} strokeWidth={item.active ? 2.4 : 2} aria-hidden />
-                <span className="text-[10px] font-bold leading-none">{item.label}</span>
-              </Link>
-            ))}
-          </div>
-        </nav>
-
-      </div>
-    </>
+    </SandboxLayout>
   )
 }

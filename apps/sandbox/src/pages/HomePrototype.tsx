@@ -238,7 +238,7 @@ function StreakTooltip({ content, children }: { content: ReactNode; children: Re
                     <TooltipPrimitive.Content
                         sideOffset={6}
                         side="top"
-                        className="z-[100] rounded-xl px-3 py-2 shadow-xl"
+                        className="z-[100] rounded-md px-3 py-2 shadow-xl"
                         style={{
                             background: "#1c1410",
                             border: "1px solid rgba(255,255,255,0.08)",
@@ -530,7 +530,7 @@ function AmountPanel({ balanceType, amountStr, onClear, previewRemaining, titleN
 
     return (
         <motion.div
-            className="relative overflow-hidden rounded-2xl px-5 py-4"
+            className="relative overflow-hidden rounded-md px-5 py-4"
             style={{
                 background: balanceType === 0
                     ? `linear-gradient(135deg, ${C.brandLight}, #ffe8d6)`
@@ -795,7 +795,7 @@ function QuickEntryContent(p: QECProps) {
                     {/* 右: カテゴリ + メモ + 記録ボタン */}
                     <div className="flex flex-col gap-3">
                         <div
-                            className="rounded-xl p-3"
+                            className="rounded-md p-3"
                             style={{ border: `1px solid ${C.border}`, background: C.bg }}
                         >
                             <CategoryGrid
@@ -1447,7 +1447,7 @@ export function HomePrototype() {
                             initial={{ scale: 0.6, opacity: 0 }}
                             animate={{ scale: 1,   opacity: 1 }}
                             transition={{ ...SPRING.smooth, delay: 0.1 }}
-                            className="flex h-16 w-16 items-center justify-center rounded-2xl"
+                            className="flex h-16 w-16 items-center justify-center rounded-md"
                             style={{ background: C.brandLight, boxShadow: "0 4px 20px rgba(241,136,64,0.16)" }}
                         >
                             <Sparkles size={28} style={{ color: C.brand }} />
@@ -1464,7 +1464,7 @@ export function HomePrototype() {
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ ...SPRING.base, delay: 0.2 }}
-                            className="w-full max-w-xs rounded-2xl border-2 p-6 text-center"
+                            className="w-full max-w-xs rounded-md border-2 p-6 text-center"
                             style={{ background: ps.bg, borderColor: ps.border }}
                         >
                             <p className="text-xs font-semibold mb-1" style={{ color: C.muted }}>
@@ -1556,7 +1556,7 @@ export function HomePrototype() {
                                                 <span className="tabular-nums font-semibold">{formatYen(todayTotalExpense)} / {formatYen(MOCK.dailyBudget)}</span>
                                             </div>
                                             <ProgressBar pct={Math.min(100, Math.round(todaySpendPct * 100))} delay={0.1} gradient={todaySpendPct <= 0.8 ? "linear-gradient(90deg, #34d399, #35b5a2)" : todaySpendPct <= 1.0 ? "linear-gradient(90deg, #f9a8d4, #e879a3)" : "linear-gradient(90deg, #fb7185, #f43f5e)"} />
-                                            <div className="mt-3 flex items-center gap-2 rounded-xl px-3 py-2.5" style={{ background: savingsInsight.bg }}>
+                                            <div className="mt-3 flex items-center gap-2 rounded-md px-3 py-2.5" style={{ background: savingsInsight.bg }}>
                                                 <savingsInsight.Icon size={13} style={{ color: savingsInsight.color, flexShrink: 0 }} />
                                                 <span className="text-[11px] font-semibold leading-tight" style={{ color: savingsInsight.color }}>{savingsInsight.message}</span>
                                             </div>
@@ -1680,12 +1680,12 @@ export function HomePrototype() {
                                                     </div>
                                                 </div>
                                                 <div className="grid grid-cols-2 gap-2">
-                                                    <div className="flex flex-col gap-0.5 rounded-xl px-3 py-2.5" style={{ background: momSaved ? C.incomeLight : "rgba(244,63,94,0.06)" }}>
+                                                    <div className="flex flex-col gap-0.5 rounded-md px-3 py-2.5" style={{ background: momSaved ? C.incomeLight : "rgba(244,63,94,0.06)" }}>
                                                         <span className="text-[9px] font-semibold" style={{ color: C.muted }}>先月比 支出</span>
                                                         <span className="text-[18px] font-extrabold tabular-nums" style={{ color: momSaved ? C.income : "#f43f5e", letterSpacing: "-0.02em" }}>{momPct > 0 ? "+" : ""}{momPct}%</span>
                                                         <span className="text-[9px]" style={{ color: C.muted }}>{momSaved ? `月換算で${formatYen(Math.round((lastMonthDailyAvg - thisMonthDailyAvg) * 30))}節約` : "先月より支出増"}</span>
                                                     </div>
-                                                    <div className="flex flex-col gap-0.5 rounded-xl px-3 py-2.5" style={{ background: C.incomeLight }}>
+                                                    <div className="flex flex-col gap-0.5 rounded-md px-3 py-2.5" style={{ background: C.incomeLight }}>
                                                         <span className="text-[9px] font-semibold" style={{ color: C.muted }}>今月の貯蓄率</span>
                                                         <span className="text-[18px] font-extrabold tabular-nums" style={{ color: C.income, letterSpacing: "-0.02em" }}>{sRate}%</span>
                                                         <span className="text-[9px]" style={{ color: C.muted }}>収入の{sRate}%を貯蓄ペース</span>
@@ -1748,7 +1748,7 @@ export function HomePrototype() {
                                 <span className="tabular-nums font-semibold">{formatYen(todayTotalExpense)} / {formatYen(MOCK.dailyBudget)}</span>
                             </div>
                             <ProgressBar pct={Math.min(100, Math.round(todaySpendPct * 100))} delay={0.3} gradient={todaySpendPct <= 0.8 ? "linear-gradient(90deg, #34d399, #35b5a2)" : todaySpendPct <= 1.0 ? "linear-gradient(90deg, #f9a8d4, #e879a3)" : "linear-gradient(90deg, #fb7185, #f43f5e)"} />
-                            <div className="mt-3 flex items-center gap-2 rounded-xl px-3 py-2.5" style={{ background: savingsInsight.bg }}>
+                            <div className="mt-3 flex items-center gap-2 rounded-md px-3 py-2.5" style={{ background: savingsInsight.bg }}>
                                 <savingsInsight.Icon size={13} style={{ color: savingsInsight.color, flexShrink: 0 }} />
                                 <span className="text-[11px] font-semibold leading-tight" style={{ color: savingsInsight.color }}>{savingsInsight.message}</span>
                             </div>
@@ -1852,12 +1852,12 @@ export function HomePrototype() {
                                         </div>
                                     </div>
                                     <div className="grid grid-cols-2 gap-2">
-                                        <div className="flex flex-col gap-0.5 rounded-xl px-3 py-2.5" style={{ background: momSaved ? C.incomeLight : "rgba(244,63,94,0.06)" }}>
+                                        <div className="flex flex-col gap-0.5 rounded-md px-3 py-2.5" style={{ background: momSaved ? C.incomeLight : "rgba(244,63,94,0.06)" }}>
                                             <span className="text-[9px] font-semibold" style={{ color: C.muted }}>先月比 支出</span>
                                             <span className="text-[18px] font-extrabold tabular-nums" style={{ color: momSaved ? C.income : "#f43f5e", letterSpacing: "-0.02em" }}>{momPct > 0 ? "+" : ""}{momPct}%</span>
                                             <span className="text-[9px]" style={{ color: C.muted }}>{momSaved ? `月換算で${formatYen(Math.round((lastMonthDailyAvg - thisMonthDailyAvg) * 30))}節約` : "先月より支出増"}</span>
                                         </div>
-                                        <div className="flex flex-col gap-0.5 rounded-xl px-3 py-2.5" style={{ background: C.incomeLight }}>
+                                        <div className="flex flex-col gap-0.5 rounded-md px-3 py-2.5" style={{ background: C.incomeLight }}>
                                             <span className="text-[9px] font-semibold" style={{ color: C.muted }}>今月の貯蓄率</span>
                                             <span className="text-[18px] font-extrabold tabular-nums" style={{ color: C.income, letterSpacing: "-0.02em" }}>{sRate}%</span>
                                             <span className="text-[9px]" style={{ color: C.muted }}>収入の{sRate}%を貯蓄ペース</span>
@@ -2055,7 +2055,7 @@ export function HomePrototype() {
             {/* ─── PC モーダル（lg 以上、Drawer の代替） ──────────────────────
              *  本実装 apps/web/src/components/ui/dialog.tsx のスタイルを踏襲:
              *  - fixed left-1/2 top-1/2 / -translate-x/y-1/2
-             *  - rounded-2xl, border-2 border-[#1c1410]/10, bg-white, shadow-lg
+             *  - rounded-md, border-2 border-[#1c1410]/10, bg-white, shadow-lg
              *  - black/50 オーバーレイ + backdropFilter blur
              */}
             <AnimatePresence>
@@ -2106,7 +2106,7 @@ export function HomePrototype() {
                                     onClick={handleModalCloseRequest}
                                     whileTap={{ scale: 0.82 }}
                                     transition={SPRING.snap}
-                                    className="flex h-7 w-7 items-center justify-center rounded-lg opacity-60 transition-opacity hover:opacity-100"
+                                    className="flex h-7 w-7 items-center justify-center rounded-md opacity-60 transition-opacity hover:opacity-100"
                                     style={{ color: C.text }}
                                     aria-label="閉じる"
                                 >
