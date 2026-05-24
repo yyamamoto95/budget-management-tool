@@ -98,8 +98,8 @@ function AmountField({
         <input
           type="text"
           inputMode="numeric"
-          className="min-w-0 flex-1 text-right font-bold tabular-nums bg-transparent outline-none"
-          style={{ color: D.text, fontSize: '14px' }}
+          className="min-w-0 flex-1 text-right text-sm font-bold tabular-nums bg-transparent outline-none"
+          style={{ color: D.text }}
           value={focused ? raw : value.toLocaleString('ja-JP')}
           onFocus={() => { setFocused(true); setRaw(value.toString()) }}
           onBlur={() => {
@@ -138,18 +138,20 @@ function FieldRow({ icon: Icon, label, value, onChange, step }: {
   value: number; onChange: (v: number) => void; step?: number
 }) {
   return (
-    <div className="flex flex-col gap-1 md:flex-row md:items-center md:gap-3">
-      {/* ラベル */}
-      <div className="flex items-center gap-1.5 md:flex-1">
+    <div className="flex flex-col gap-1.5 md:flex-row md:items-center md:gap-3">
+      {/* ラベル: md以上は固定幅にして入力フィールドが潰れないようにする */}
+      <div className="flex items-center gap-1.5 md:w-32 md:shrink-0">
         <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md"
           style={{ background: D.surface }}>
           <Icon size={12} style={{ color: D.brand }} />
         </div>
-        <span className="text-[11px] font-semibold md:text-sm md:font-medium"
+        <span className="text-xs font-medium"
           style={{ color: 'rgba(28,20,16,0.72)' }}>{label}</span>
       </div>
-      {/* 入力（モバイルはフル幅） */}
-      <AmountField value={value} onChange={onChange} step={step} />
+      {/* 入力: flex-1 で残スペースをフルに使う */}
+      <div className="flex-1">
+        <AmountField value={value} onChange={onChange} step={step} />
+      </div>
     </div>
   )
 }
@@ -204,7 +206,7 @@ function SalaryDayPicker({ value, onChange }: { value: number; onChange: (v: num
           style={{ background: D.surface }}>
           <Calendar size={14} style={{ color: D.brand }} />
         </div>
-        <span className="text-[11px] font-semibold shrink-0" style={{ color: 'rgba(28,20,16,0.72)' }}>給料日</span>
+        <span className="text-xs font-medium shrink-0" style={{ color: 'rgba(28,20,16,0.72)' }}>給料日</span>
         <div className="flex-1 flex items-center justify-end gap-1.5 overflow-x-auto">
           {COMMON_DAYS.map(d => (
             <motion.button key={d} type="button"
@@ -356,7 +358,7 @@ function SectionCard({ title, children, delay = 0, noClip = false }: {
       transition={{ ...SPRING.SMOOTH, delay }}
     >
       <div className="mb-1.5 px-0.5">
-        <span className="text-[11px] font-bold uppercase tracking-wider" style={{ color: D.muted }}>
+        <span className="text-xs font-bold uppercase tracking-wider" style={{ color: D.muted }}>
           {title}
         </span>
       </div>
@@ -771,8 +773,8 @@ export function PersonalSettingsPrototype() {
               </div>
             </SectionCard>
 
-            {/* 残高 + 貯蓄目標 — 2-col grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* 残高 + 貯蓄目標 — xl以上のみ2列 */}
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
 
               {/* 残高 */}
               <SectionCard title="残高" delay={0.14}>
@@ -782,7 +784,7 @@ export function PersonalSettingsPrototype() {
                       style={{ background: D.surface }}>
                       <Wallet size={12} style={{ color: D.brand }} />
                     </div>
-                    <span className="text-[11px] font-semibold" style={{ color: 'rgba(28,20,16,0.72)' }}>口座残高</span>
+                    <span className="text-xs font-medium" style={{ color: 'rgba(28,20,16,0.72)' }}>口座残高</span>
                   </div>
                   <AmountField
                     value={state.currentBalance}
