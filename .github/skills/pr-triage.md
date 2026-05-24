@@ -17,6 +17,7 @@ Gemini Code Assist がレビューを投稿すると GitHub Actions が自動で
 
 ```bash
 gh pr list \
+  --repo {owner}/{repo} \
   --label "needs-ai-triage" \
   --state open \
   --json number,title,author,url
@@ -40,7 +41,9 @@ gh api repos/{owner}/{repo}/pulls/{PR_NUMBER}/comments \
   --jq '[.[] | select(.user.login == "gemini-code-assist[bot]")]'
 
 # 変更ファイル一覧を取得する
-gh pr view {PR_NUMBER} --json files
+gh pr view {PR_NUMBER} \
+  --repo {owner}/{repo} \
+  --json files
 ```
 
 ---
@@ -68,6 +71,7 @@ gh pr view {PR_NUMBER} --json files
 
 ```bash
 gh pr comment {PR_NUMBER} \
+  --repo {owner}/{repo} \
   --body "{TRIAGE_COMMENT}"
 ```
 
@@ -101,11 +105,13 @@ gh pr comment {PR_NUMBER} \
 ```bash
 # needs-ai-triage を除去して ai-triaged を付与する
 gh pr edit {PR_NUMBER} \
+  --repo {owner}/{repo} \
   --remove-label "needs-ai-triage" \
   --add-label "ai-triaged"
 
 # CI 通過後に自動マージを予約する
 gh pr merge {PR_NUMBER} \
+  --repo {owner}/{repo} \
   --auto \
   --squash
 ```
@@ -117,6 +123,7 @@ gh pr merge {PR_NUMBER} \
 ```bash
 # needs-ai-triage を除去して ai-triaged を付与する（処理済みにする）
 gh pr edit {PR_NUMBER} \
+  --repo {owner}/{repo} \
   --remove-label "needs-ai-triage" \
   --add-label "ai-triaged"
 ```
