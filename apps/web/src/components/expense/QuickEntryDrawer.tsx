@@ -75,7 +75,7 @@ export function QuickEntryDrawer({
           クイック記録
         </DrawerTitle>
 
-        <form action={formAction} className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-5 pt-2 pb-[calc(2.5rem+env(safe-area-inset-bottom,0px))]"
+        <form action={formAction} className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-5 pt-2 pb-[calc(2.5rem+env(safe-area-inset-bottom,0px))]"
         >
           <input type="hidden" name="userId" value={userId} />
           <input type="hidden" name="balanceType" value={balanceType} />
@@ -129,7 +129,7 @@ export function QuickEntryDrawer({
 
           {/* 金額表示パネル */}
           <div
-            className="relative shrink-0 rounded-xl px-4 py-3"
+            className="relative shrink-0 rounded-xl px-4 py-2"
             style={{
               background:
                 balanceType === 0
@@ -278,7 +278,7 @@ export function QuickEntryDrawer({
                 whileTap={{ scale: 0.84 }}
                 transition={SPRING.snap}
                 aria-label={k === "⌫" ? "1文字削除" : undefined}
-                className="flex h-11 items-center justify-center select-none text-base font-semibold"
+                className="flex h-10 items-center justify-center select-none text-base font-semibold"
                 style={{
                   borderRadius: "10px",
                   background: k === "⌫" ? "#fff0ea" : "#fffdf5",
@@ -333,7 +333,7 @@ export function QuickEntryDrawer({
           <button
             type="submit"
             disabled={isPending || !amountStr}
-            className="flex w-full items-center justify-center gap-2 rounded-2xl py-4 text-base font-extrabold text-white transition-all active:scale-95 disabled:opacity-40"
+            className="flex w-full items-center justify-center gap-2 rounded-2xl py-3 text-base font-extrabold text-white transition-all active:scale-95 disabled:opacity-40"
             style={{ background: "var(--color-brand-primary)" }}
           >
             {isPending ? (
