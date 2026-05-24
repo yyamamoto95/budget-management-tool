@@ -67,6 +67,7 @@ model CategoryList {
   budgets      BudgetList[]
 
   @@unique([key, balanceType], name: "category_list_key_balance_type_key")
+  @@unique([balanceType, displayOrder], name: "category_list_balance_type_display_order_key")
   @@map("category_list")
 }
 
@@ -76,7 +77,7 @@ model BudgetList {
   amount      Int
   balanceType Int          @map("balanceType")
   userId      String       @db.VarChar(255) @map("userId")
-  categoryId  Int          @default(1) @map("categoryId")
+  categoryId  Int          @map("categoryId")
   content     String?      @db.VarChar(255)
   date        String       @db.VarChar(255)
   createdDate DateTime     @default(now()) @db.DateTime(6) @map("createdDate")
