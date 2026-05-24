@@ -28,6 +28,41 @@ export async function resetDatabase(): Promise<void> {
     await testPrisma.$executeRawUnsafe('TRUNCATE TABLE budget_list');
     await testPrisma.$executeRawUnsafe('TRUNCATE TABLE user_list');
     await testPrisma.$executeRawUnsafe('SET FOREIGN_KEY_CHECKS = 1');
+    // prisma db push は migration SQL を実行しないため、category_list を冪等にシードする
+    await ensureCategoryListSeeded();
+}
+
+// category_list のシードデータ（migration SQL と同期を保つこと）
+async function ensureCategoryListSeeded(): Promise<void> {
+    await testPrisma.$executeRawUnsafe(`
+        INSERT IGNORE INTO category_list
+            (id, key, name, color, bg, balance_type, display_order, is_system, is_deleted)
+        VALUES
+            (1,  'food',          '食費',         '#f18840', '#fef5ee', 0, 1,  true, false),
+            (2,  'daily',         '日用品',        '#a78bfa', '#f5f3ff', 0, 2,  true, false),
+            (3,  'transport',     '交通費',        '#60a5fa', '#eff6ff', 0, 3,  true, false),
+            (4,  'medical',       '医療費',        '#f472b6', '#fdf2f8', 0, 4,  true, false),
+            (5,  'education',     '教育費',        '#34d399', '#ecfdf5', 0, 5,  true, false),
+            (6,  'entertainment', '娯楽費',        '#fb923c', '#fff7ed', 0, 6,  true, false),
+            (7,  'clothing',      '衣服',          '#e879f9', '#fdf4ff', 0, 7,  true, false),
+            (8,  'housing',       '住居費',        '#94a3b8', '#f8fafc', 0, 8,  true, false),
+            (9,  'utilities',     '光熱費',        '#facc15', '#fefce8', 0, 9,  true, false),
+            (10, 'communication', '通信費',        '#38bdf8', '#f0f9ff', 0, 10, true, false),
+            (11, 'insurance',     '保険',          '#4ade80', '#f0fdf4', 0, 11, true, false),
+            (12, 'beauty',        '美容',          '#f9a8d4', '#fdf2f8', 0, 12, true, false),
+            (13, 'gift',          '交際費',        '#fbbf24', '#fffbeb', 0, 13, true, false),
+            (14, 'pet',           'ペット',        '#86efac', '#f0fdf4', 0, 14, true, false),
+            (15, 'travel',        '旅行',          '#67e8f9', '#ecfeff', 0, 15, true, false),
+            (16, 'other',         'その他',        '#94a3b8', '#f8fafc', 0, 16, true, false),
+            (17, 'salary',        '給料',          '#2dd4bf', '#f0fdfa', 1, 1,  true, false),
+            (18, 'bonus',         '賞与',          '#34d399', '#ecfdf5', 1, 2,  true, false),
+            (19, 'freelance',     '副業',          '#60a5fa', '#eff6ff', 1, 3,  true, false),
+            (20, 'investment',    '投資・配当',    '#a78bfa', '#f5f3ff', 1, 4,  true, false),
+            (21, 'refund',        '返金',          '#fb923c', '#fff7ed', 1, 5,  true, false),
+            (22, 'allowance',     '小遣い',        '#f472b6', '#fdf2f8', 1, 6,  true, false),
+            (23, 'gift_income',   'プレゼント',    '#facc15', '#fefce8', 1, 7,  true, false),
+            (24, 'other',         'その他',        '#94a3b8', '#f8fafc', 1, 8,  true, false)
+    `);
 }
 
 // ------------------------------------------------------------------
