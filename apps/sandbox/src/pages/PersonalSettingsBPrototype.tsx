@@ -1,9 +1,12 @@
 /**
- * PersonalSettingsBPrototype — ウィザード型初期設定
- * 5ステップのリニアウィザード形式。
- * ステップ: 0=給与, 1=固定費, 2=残高, 3=貯蓄目標, 4=確認・保存
- * ステップ間はframer-motionでスライドアニメーション。
- * 保存完了後はホーム画面 (/home) へ遷移する。
+ * PersonalSettingsBPrototype — 初期設定ウィザード
+ *
+ * 設定画面（PersonalSettingsPrototype）と同じフォーム・ラベルを使いながら、
+ * 初期設定としてのオンボーディング体験を提供する専用シェル。
+ * - アプリナビなし（初期設定中はナビ不要）
+ * - ステップインジケーターが主要 chrome
+ * - 確認画面（ステップ4）で全設定を一覧表示するためステップ中のプレビュー不要
+ * - 保存後は /home へ遷移
  */
 
 import { useEffect, useRef, useState } from 'react'
@@ -23,8 +26,8 @@ import {
   Heart,
   Calendar,
   PiggyBank,
+  ArrowRight,
 } from 'lucide-react'
-import { SandboxLayout } from '../components/SandboxLayout'
 import { D } from '../components/SandboxCard'
 
 // ─── Spring プリセット ───────────────────────────────────────────────────
@@ -59,11 +62,9 @@ type State    = typeof INITIAL_STATE
 function calcTotalFixed(state: State) {
   return Object.values(state.fixedCosts).reduce((a, b) => a + b.value, 0)
 }
-
 function calcMonthlySavings(state: State) {
   return state.savingsMode === 'monthly' ? state.savingsMonthly : Math.round(state.savingsYearly / 12)
 }
-
 function calcDailyBudget(state: State) {
   const disposable = state.monthlyIncome - calcTotalFixed(state) - calcMonthlySavings(state)
   return Math.max(0, Math.floor(disposable / 30))
@@ -80,7 +81,6 @@ function AmountField({
 
   return (
     <div className="flex items-center gap-1">
-      {/* − ボタン */}
       <motion.button
         type="button"
         className="h-9 w-9 shrink-0 rounded-md flex items-center justify-center text-base font-bold select-none"
@@ -93,8 +93,6 @@ function AmountField({
       >
         −
       </motion.button>
-
-      {/* 入力フィールド */}
       <div
         className="flex flex-1 items-center gap-1.5 rounded-md border px-3 py-2 transition-colors"
         style={{
@@ -121,8 +119,6 @@ function AmountField({
           <span className="text-xs font-medium shrink-0" style={{ color: D.muted }}>{suffix}</span>
         )}
       </div>
-
-      {/* + ボタン */}
       <motion.button
         type="button"
         className="h-9 w-9 shrink-0 rounded-md flex items-center justify-center text-base font-bold select-none"
@@ -168,7 +164,6 @@ function SalaryDayPicker({ value, onChange }: { value: number; onChange: (v: num
   const pickerRef       = useRef<HTMLDivElement>(null)
   const triggerRef      = useRef<HTMLButtonElement>(null)
 
-  // クリック外で閉じる
   useEffect(() => {
     if (!open) return
     function onClickOutside(e: MouseEvent) {
@@ -180,7 +175,6 @@ function SalaryDayPicker({ value, onChange }: { value: number; onChange: (v: num
     return () => document.removeEventListener('mousedown', onClickOutside)
   }, [open])
 
-  // トリガーボタンの位置を取得してドロップダウンを fixed 配置
   function handleToggle() {
     if (!open && triggerRef.current) {
       const rect = triggerRef.current.getBoundingClientRect()
@@ -196,7 +190,6 @@ function SalaryDayPicker({ value, onChange }: { value: number; onChange: (v: num
 
   return (
     <div className="flex flex-col gap-2">
-      {/* 行1: ラベル + よくある日チップ */}
       <div className="flex items-center gap-3">
         <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md"
           style={{ background: D.surface }}>
@@ -224,7 +217,6 @@ function SalaryDayPicker({ value, onChange }: { value: number; onChange: (v: num
         </div>
       </div>
 
-      {/* 行2: 任意の日付ピッカー */}
       <div className="flex items-center justify-end gap-1.5">
         <span className="text-[11px] font-medium shrink-0" style={{ color: D.muted }}>他の日付</span>
         <div ref={pickerRef} className="flex items-center gap-1 shrink-0">
@@ -271,7 +263,6 @@ function SalaryDayPicker({ value, onChange }: { value: number; onChange: (v: num
             <ChevronRight size={14} />
           </motion.button>
 
-          {/* 1〜31 グリッドドロップダウン */}
           <AnimatePresence>
             {open && (
               <motion.div
@@ -341,39 +332,12 @@ function SalaryDayPicker({ value, onChange }: { value: number; onChange: (v: num
   )
 }
 
-// ─── トースト ─────────────────────────────────────────────────────────────
-function Toast({ visible }: { visible: boolean }) {
-  return (
-    <AnimatePresence>
-      {visible && (
-        <motion.div
-          className="fixed left-1/2 -translate-x-1/2 flex items-center gap-2 px-5 py-3 rounded-full shadow-lg text-sm font-bold text-white z-50 whitespace-nowrap"
-          style={{
-            background: D.income,
-            boxShadow:  `0 8px 24px ${D.income}50`,
-            bottom:     'calc(5rem + env(safe-area-inset-bottom, 0px))',
-          }}
-          initial={{ opacity: 0, y: 20, scale: 0.88 }}
-          animate={{ opacity: 1, y: 0,  scale: 1    }}
-          exit={   { opacity: 0, y:  8, scale: 0.94 }}
-          transition={SPRING.SNAP}
-          role="status"
-          aria-live="polite"
-        >
-          <Check size={16} aria-hidden />
-          設定を保存しました
-        </motion.div>
-      )}
-    </AnimatePresence>
-  )
-}
-
 // ─── ステップインジケーター ───────────────────────────────────────────────
 const STEP_LABELS = ['給与', '固定費', '残高', '貯蓄', '確認'] as const
 
 function StepIndicator({ currentStep }: { currentStep: number }) {
   return (
-    <div className="flex items-center justify-center gap-0" role="list" aria-label="ステップ進捗">
+    <div className="flex items-center justify-center" role="list" aria-label="ステップ進捗">
       {STEP_LABELS.map((label, i) => {
         const isDone    = i < currentStep
         const isCurrent = i === currentStep
@@ -403,7 +367,7 @@ function StepIndicator({ currentStep }: { currentStep: number }) {
             </div>
             {i < STEP_LABELS.length - 1 && (
               <div
-                className="h-0.5 w-6 mb-4 mx-0.5"
+                className="h-0.5 w-5 mb-4 mx-0.5"
                 style={{ background: i < currentStep ? D.income : D.border }}
               />
             )}
@@ -414,686 +378,535 @@ function StepIndicator({ currentStep }: { currentStep: number }) {
   )
 }
 
-// ─── ミニプレビュー（バー形式） ──────────────────────────────────────────
-function MiniPreview({ state, label = '1日予算（暫定）' }: { state: State; label?: string }) {
-  const dailyBudget = calcDailyBudget(state)
-  const budgetColor = dailyBudget >= 3000 ? D.income : dailyBudget >= 1000 ? D.caution : D.danger
-
+// ─── トースト ─────────────────────────────────────────────────────────────
+function Toast({ visible }: { visible: boolean }) {
   return (
-    <div
-      className="flex items-center justify-between rounded-xl px-4 py-2.5"
-      style={{ background: D.brandLight, border: `1px solid ${D.brand}30` }}
-    >
-      <span className="text-[11px] font-semibold" style={{ color: D.brand }}>{label}</span>
-      <motion.span
-        className="text-base font-extrabold tabular-nums"
-        style={{ color: budgetColor }}
-        key={dailyBudget}
-        initial={{ scale: 0.92, opacity: 0.7 }}
-        animate={{ scale: 1,    opacity: 1   }}
-        transition={SPRING.QUICK}
-        aria-live="polite"
-        aria-atomic="true"
-      >
-        ¥{dailyBudget.toLocaleString('ja-JP')} / 日
-      </motion.span>
-    </div>
-  )
-}
-
-// ─── ミニプレビュー（PCサイドカード形式） ────────────────────────────────
-function PreviewCard({ state }: { state: State }) {
-  const dailyBudget    = calcDailyBudget(state)
-  const totalFixed     = calcTotalFixed(state)
-  const monthlySavings = calcMonthlySavings(state)
-  const disposable     = state.monthlyIncome - totalFixed - monthlySavings
-  const budgetColor    = dailyBudget >= 3000 ? D.income : dailyBudget >= 1000 ? D.caution : D.danger
-
-  const inc        = state.monthlyIncome || 1
-  const fixedPct   = Math.min(100,             (totalFixed     / inc) * 100)
-  const savingsPct = Math.min(100 - fixedPct,  (monthlySavings / inc) * 100)
-  const freePct    = Math.max(0, 100 - fixedPct - savingsPct)
-
-  return (
-    <div
-      className="relative rounded-2xl overflow-hidden p-5"
-      style={{ background: D.card, border: `1px solid ${D.border}`, boxShadow: D.shadow }}
-    >
-      <motion.div
-        className="absolute rounded-full pointer-events-none"
-        style={{
-          width: 180, height: 180, top: -70, right: -60,
-          background: `radial-gradient(circle, ${budgetColor}1f 0%, transparent 70%)`,
-        }}
-        animate={{ opacity: [0.6, 0.9, 0.6] }}
-        transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-      />
-      <div className="relative">
-        <div className="text-[10px] font-semibold mb-1" style={{ color: D.muted }}>設定後の1日予算</div>
+    <AnimatePresence>
+      {visible && (
         <motion.div
-          key={dailyBudget}
-          className="text-[44px] font-extrabold leading-none tabular-nums"
-          style={{ color: budgetColor, letterSpacing: '-0.02em' }}
-          initial={{ scale: 0.96, opacity: 0.7 }}
-          animate={{ scale: 1,    opacity: 1   }}
-          transition={SPRING.QUICK}
+          className="fixed left-1/2 -translate-x-1/2 flex items-center gap-2 px-5 py-3 rounded-full shadow-lg text-sm font-bold text-white z-50 whitespace-nowrap"
+          style={{
+            background: D.income,
+            boxShadow:  `0 8px 24px ${D.income}50`,
+            bottom:     32,
+          }}
+          initial={{ opacity: 0, y: 20, scale: 0.88 }}
+          animate={{ opacity: 1, y: 0,  scale: 1    }}
+          exit={   { opacity: 0, y:  8, scale: 0.94 }}
+          transition={SPRING.SNAP}
+          role="status"
           aria-live="polite"
         >
-          ¥{dailyBudget.toLocaleString('ja-JP')}
+          <Check size={16} aria-hidden />
+          設定を保存しました
         </motion.div>
-        <div className="text-[10px] mt-1 mb-4" style={{ color: D.muted }}>/ 日</div>
-
-        {/* 配分バー */}
-        <div className="mb-4">
-          <div className="flex h-2 rounded-full overflow-hidden gap-0.5">
-            <motion.div style={{ background: D.danger, opacity: 0.7 }}
-              animate={{ width: `${fixedPct}%` }} transition={SPRING.BASE} />
-            {savingsPct > 0 && (
-              <motion.div style={{ background: D.income, opacity: 0.85 }}
-                animate={{ width: `${savingsPct}%` }} transition={SPRING.BASE} />
-            )}
-            <div className="flex-1 rounded-r-full" style={{ background: D.brand, opacity: 0.85 }} />
-          </div>
-          <div className="flex justify-between mt-1.5 text-[9px] font-semibold">
-            <span style={{ color: D.danger }}>固定費 {fixedPct.toFixed(0)}%</span>
-            {savingsPct > 0 && <span style={{ color: D.income }}>貯蓄 {savingsPct.toFixed(0)}%</span>}
-            <span style={{ color: D.brand }}>使える {freePct.toFixed(0)}%</span>
-          </div>
-        </div>
-
-        {/* 内訳 */}
-        <div className="rounded-md p-3 space-y-1.5 text-[11px]" style={{ background: D.surface }}>
-          {[
-            { label: '月収',     value: state.monthlyIncome, color: D.text,      bold: false, hide: false },
-            { label: '固定費',   value: -totalFixed,         color: D.danger,    bold: false, hide: false },
-            { label: '貯蓄目標', value: -monthlySavings,     color: D.income,    bold: false, hide: monthlySavings === 0 },
-            { label: '使える額', value: disposable,           color: budgetColor, bold: true,  hide: false },
-          ].filter(r => !r.hide).map((row) => (
-            <div key={row.label}
-              className={`flex justify-between items-center ${row.bold ? 'pt-1.5 border-t' : ''}`}
-              style={{ borderColor: D.border }}>
-              <span style={{ color: D.muted, fontWeight: row.bold ? 700 : 500 }}>{row.label}</span>
-              <motion.span key={row.value} className="tabular-nums font-bold" style={{ color: row.color }}
-                initial={{ opacity: 0.6, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }}
-                transition={SPRING.QUICK}>
-                {row.value >= 0 ? '' : '−'}¥{Math.abs(row.value).toLocaleString('ja-JP')}
-              </motion.span>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
+      )}
+    </AnimatePresence>
   )
 }
 
 // ─── メインページ ─────────────────────────────────────────────────────────
 export function PersonalSettingsBPrototype() {
   const navigate = useNavigate()
-  const [state, setState]   = useState<State>(INITIAL_STATE)
-  const [saved, setSaved]   = useState(false)
-  const [step, setStep]     = useState(0)
-  const [direction, setDirection] = useState(1) // +1 = 前進, -1 = 後退
+  const [state, setState]         = useState<State>(INITIAL_STATE)
+  const [saved, setSaved]         = useState(false)
+  const [step, setStep]           = useState(0)
+  const [direction, setDirection] = useState(1)
 
   const totalFixed     = calcTotalFixed(state)
   const monthlySavings = calcMonthlySavings(state)
   const dailyBudget    = calcDailyBudget(state)
   const budgetColor    = dailyBudget >= 3000 ? D.income : dailyBudget >= 1000 ? D.caution : D.danger
 
-  function goNext() {
-    setDirection(1)
-    setStep((s) => Math.min(4, s + 1))
-  }
-
-  function goPrev() {
-    setDirection(-1)
-    setStep((s) => Math.max(0, s - 1))
-  }
+  function goNext() { setDirection(1); setStep(s => Math.min(4, s + 1)) }
+  function goPrev() { setDirection(-1); setStep(s => Math.max(0, s - 1)) }
 
   function updateFixed(key: FixedKey, value: number) {
-    setState((s) => ({
-      ...s,
-      fixedCosts: { ...s.fixedCosts, [key]: { ...s.fixedCosts[key], value } },
-    }))
+    setState(s => ({ ...s, fixedCosts: { ...s.fixedCosts, [key]: { ...s.fixedCosts[key], value } } }))
   }
 
   function switchSavingsMode(mode: 'monthly' | 'yearly') {
-    setState((s) => {
+    setState(s => {
       if (mode === s.savingsMode) return s
-      if (mode === 'yearly') {
-        return { ...s, savingsMode: 'yearly', savingsYearly: s.savingsMonthly * 12 }
-      }
-      return { ...s, savingsMode: 'monthly', savingsMonthly: Math.round(s.savingsYearly / 12) }
+      return mode === 'yearly'
+        ? { ...s, savingsMode: 'yearly',  savingsYearly:  s.savingsMonthly * 12 }
+        : { ...s, savingsMode: 'monthly', savingsMonthly: Math.round(s.savingsYearly / 12) }
     })
   }
 
   function handleSave() {
     setSaved(true)
-    // トースト表示後にホームへ遷移
     setTimeout(() => navigate('/home'), 1800)
   }
 
-  // 給料日まで何日か（簡易計算）
+  // 給料日まで何日か
   const today = new Date()
   const nextSalary = new Date(today.getFullYear(), today.getMonth(), state.salaryDay)
   if (nextSalary <= today) nextSalary.setMonth(nextSalary.getMonth() + 1)
-  const daysUntilSalary    = Math.ceil((nextSalary.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
-  const budgetDaysFromBalance = dailyBudget > 0 ? Math.floor(state.currentBalance / dailyBudget) : 0
+  const daysUntilSalary       = Math.ceil((nextSalary.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+  const budgetDaysFromBalance  = dailyBudget > 0 ? Math.floor(state.currentBalance / dailyBudget) : 0
 
-  // スライドアニメーション設定
   const slideVariants = {
-    enter:  (dir: number) => ({ x: dir > 0 ? 60 : -60, opacity: 0 }),
+    enter:  (dir: number) => ({ x: dir > 0 ? 48 : -48, opacity: 0 }),
     center: { x: 0, opacity: 1 },
-    exit:   (dir: number) => ({ x: dir > 0 ? -60 : 60, opacity: 0 }),
+    exit:   (dir: number) => ({ x: dir > 0 ? -48 : 48, opacity: 0 }),
   }
 
   return (
-    <SandboxLayout currentPage="settings">
-
-      {/* ─── メインコンテンツ ─────────────────────────────────────────── */}
-      <main className="px-4 py-6 md:px-6">
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[280px_minmax(0,1fr)] lg:items-start">
-
-          {/* ── PC 左カラム: ステップインジケーター + プレビューカード ─── */}
-          <div className="hidden lg:flex lg:flex-col lg:gap-4 lg:sticky lg:top-6">
-            {/* タイトル */}
-            <div>
-              <h1 className="text-xl font-extrabold" style={{ color: D.text }}>初期設定</h1>
-              <p className="text-[12px] mt-0.5" style={{ color: D.muted }}>
-                5ステップで家計の基本設定を完了しましょう
-              </p>
-            </div>
-
-            {/* ステップインジケーター */}
-            <div
-              className="rounded-2xl p-4"
-              style={{ background: D.card, border: `1px solid ${D.border}`, boxShadow: D.shadow }}
-            >
-              <StepIndicator currentStep={step} />
-            </div>
-
-            {/* プレビューカード */}
-            <PreviewCard state={state} />
+    <div
+      className="min-h-screen"
+      style={{ background: D.bg }}
+    >
+      {/* ─── ウィザードヘッダー ──────────────────────────────────────────── */}
+      <header
+        className="sticky top-0 z-20 border-b"
+        style={{
+          background:     'rgba(255,253,245,0.95)',
+          backdropFilter: 'blur(12px)',
+          borderColor:    D.border,
+        }}
+      >
+        <div className="mx-auto flex h-14 max-w-2xl items-center gap-3 px-4 md:px-6">
+          {/* ロゴ */}
+          <div className="flex items-center gap-2 shrink-0">
+            <img src="/logo192.png" alt="家計かんり" className="h-8 w-8 shrink-0" style={{ borderRadius: '10px' }} />
+            <span className="text-[15px] font-extrabold tracking-tight hidden sm:block" style={{ color: D.text }}>
+              家計かんり
+            </span>
           </div>
 
-          {/* ── コンテンツカラム ─────────────────────────────────────── */}
-          <div>
-            {/* SP: ステップインジケーター */}
+          {/* タイトル */}
+          <div className="flex-1 text-center">
+            <span className="text-[13px] font-extrabold" style={{ color: D.brand }}>初期設定</span>
+          </div>
+
+          {/* ステップカウンター */}
+          <div
+            className="shrink-0 rounded-full px-3 py-1 text-[11px] font-bold"
+            style={{ background: D.brandLight, color: D.brand }}
+          >
+            {step + 1} / {STEP_LABELS.length}
+          </div>
+        </div>
+      </header>
+
+      {/* ─── メインコンテンツ ─────────────────────────────────────────────── */}
+      <main className="mx-auto max-w-2xl px-4 py-6 pb-12 md:px-6">
+
+        {/* ステップインジケーター */}
+        <motion.div
+          className="mb-6"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ ...SPRING.SMOOTH, delay: 0.04 }}
+        >
+          <StepIndicator currentStep={step} />
+        </motion.div>
+
+        {/* ステップコンテンツ */}
+        <div style={{ overflow: 'hidden' }}>
+          <AnimatePresence mode="wait" custom={direction}>
             <motion.div
-              className="lg:hidden mb-5"
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ ...SPRING.SMOOTH, delay: 0.05 }}
+              key={step}
+              custom={direction}
+              variants={slideVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={SPRING.BASE}
             >
-              <StepIndicator currentStep={step} />
-            </motion.div>
 
-            {/* ステップコンテンツ */}
-            <div style={{ overflow: 'hidden' }}>
-              <AnimatePresence mode="wait" custom={direction}>
-                <motion.div
-                  key={step}
-                  custom={direction}
-                  variants={slideVariants}
-                  initial="enter"
-                  animate="center"
-                  exit="exit"
-                  transition={SPRING.BASE}
+              {/* ── ステップ 0: 給与 ── */}
+              {step === 0 && (
+                <div
+                  className="rounded-2xl p-5 space-y-5"
+                  style={{ background: D.card, border: `1px solid ${D.border}`, boxShadow: D.shadow }}
                 >
-                  {/* ── ステップ 0: 給与 ── */}
-                  {step === 0 && (
-                    <div
-                      className="rounded-2xl p-5 space-y-4"
-                      style={{ background: D.card, border: `1px solid ${D.border}`, boxShadow: D.shadow }}
+                  <div>
+                    <h2 className="text-lg font-extrabold" style={{ color: D.text }}>
+                      給料日と月収を教えてください
+                    </h2>
+                    <p className="text-[12px] mt-1" style={{ color: D.muted }}>
+                      毎月の給料日と手取り収入を設定します
+                    </p>
+                  </div>
+
+                  <SalaryDayPicker
+                    value={state.salaryDay}
+                    onChange={(v) => setState(s => ({ ...s, salaryDay: v }))}
+                  />
+
+                  <div className="border-t pt-4 space-y-2" style={{ borderColor: D.border }}>
+                    <FieldRow
+                      label="月収（手取り）"
+                      icon={TrendingUp}
+                      value={state.monthlyIncome}
+                      onChange={(v) => setState(s => ({ ...s, monthlyIncome: v }))}
+                      step={10000}
+                    />
+                  </div>
+
+                  <div className="flex justify-end">
+                    <motion.button
+                      className="flex items-center gap-1.5 px-6 py-3 rounded-xl text-sm font-extrabold text-white"
+                      style={{ background: D.brand, boxShadow: `0 4px 14px ${D.brand}40` }}
+                      whileTap={{ scale: 0.96 }}
+                      onClick={goNext}
+                      transition={SPRING.SNAP}
                     >
-                      <div>
-                        <h2 className="text-lg font-extrabold" style={{ color: D.text }}>
-                          給料日と月収を教えてください
-                        </h2>
-                        <p className="text-[12px] mt-1" style={{ color: D.muted }}>
-                          毎月の給料日と手取り収入を設定します
-                        </p>
-                      </div>
+                      次へ
+                      <ChevronRight size={15} />
+                    </motion.button>
+                  </div>
+                </div>
+              )}
 
-                      <SalaryDayPicker
-                        value={state.salaryDay}
-                        onChange={(v) => setState((s) => ({ ...s, salaryDay: v }))}
-                      />
+              {/* ── ステップ 1: 固定費 ── */}
+              {step === 1 && (
+                <div
+                  className="rounded-2xl p-5 space-y-4"
+                  style={{ background: D.card, border: `1px solid ${D.border}`, boxShadow: D.shadow }}
+                >
+                  <div>
+                    <h2 className="text-lg font-extrabold" style={{ color: D.text }}>
+                      毎月の固定費を入力
+                    </h2>
+                    <p className="text-[12px] mt-1" style={{ color: D.muted }}>
+                      毎月かならず支払う費用を入力してください
+                    </p>
+                  </div>
 
-                      <div className="border-t pt-4" style={{ borderColor: D.border }}>
-                        <FieldRow
-                          label="月収（手取り）"
-                          icon={TrendingUp}
-                          value={state.monthlyIncome}
-                          onChange={(v) => setState((s) => ({ ...s, monthlyIncome: v }))}
-                          step={10000}
-                        />
-                      </div>
-
-                      <div className="lg:hidden">
-                        <MiniPreview state={state} />
-                      </div>
-
-                      <div className="flex justify-end pt-1">
-                        <motion.button
-                          className="flex items-center gap-1.5 px-6 py-3 rounded-xl text-sm font-extrabold text-white"
-                          style={{ background: D.brand, boxShadow: `0 4px 14px ${D.brand}40` }}
-                          whileTap={{ scale: 0.96 }}
-                          onClick={goNext}
-                          transition={SPRING.SNAP}
-                        >
-                          次へ
-                          <ChevronRight size={15} />
-                        </motion.button>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* ── ステップ 1: 固定費 ── */}
-                  {step === 1 && (
-                    <div
-                      className="rounded-2xl p-5 space-y-4"
-                      style={{ background: D.card, border: `1px solid ${D.border}`, boxShadow: D.shadow }}
-                    >
-                      <div>
-                        <h2 className="text-lg font-extrabold" style={{ color: D.text }}>
-                          毎月の固定費を入力
-                        </h2>
-                        <p className="text-[12px] mt-1" style={{ color: D.muted }}>
-                          毎月かならず支払う費用を入力してください
-                        </p>
-                      </div>
-
-                      <div>
-                        {(Object.entries(state.fixedCosts) as [FixedKey, State['fixedCosts'][FixedKey]][]).map(
-                          ([key, cfg], i, arr) => (
-                            <div
-                              key={key}
-                              className={`py-3 ${i < arr.length - 1 ? 'border-b' : ''}`}
-                              style={{ borderColor: D.border }}
-                            >
-                              <FieldRow
-                                label={cfg.label}
-                                icon={cfg.icon}
-                                value={cfg.value}
-                                onChange={(v) => updateFixed(key, v)}
-                                step={cfg.step}
-                              />
-                            </div>
-                          ),
-                        )}
-                        {/* 合計バー */}
+                  <div>
+                    {(Object.entries(state.fixedCosts) as [FixedKey, State['fixedCosts'][FixedKey]][]).map(
+                      ([key, cfg], i, arr) => (
                         <div
-                          className="flex justify-between items-center py-3 border-t"
+                          key={key}
+                          className={`py-3 ${i < arr.length - 1 ? 'border-b' : ''}`}
                           style={{ borderColor: D.border }}
                         >
-                          <span className="text-xs font-bold" style={{ color: D.muted }}>固定費合計</span>
-                          <motion.span
-                            className="text-sm font-extrabold tabular-nums"
-                            style={{ color: D.text }}
-                            key={totalFixed}
-                            initial={{ scale: 0.95 }}
-                            animate={{ scale: 1 }}
-                            transition={SPRING.QUICK}
-                          >
-                            ¥{totalFixed.toLocaleString('ja-JP')}
-                          </motion.span>
+                          <FieldRow
+                            label={cfg.label}
+                            icon={cfg.icon}
+                            value={cfg.value}
+                            onChange={(v) => updateFixed(key, v)}
+                            step={cfg.step}
+                          />
                         </div>
-                      </div>
-
-                      <div className="lg:hidden">
-                        <MiniPreview state={state} />
-                      </div>
-
-                      <div className="flex justify-between pt-1">
-                        <motion.button
-                          className="flex items-center gap-1.5 px-5 py-3 rounded-xl text-sm font-bold"
-                          style={{ background: D.surface, color: D.text }}
-                          whileTap={{ scale: 0.96 }}
-                          onClick={goPrev}
-                          transition={SPRING.SNAP}
-                        >
-                          <ChevronLeft size={15} />
-                          戻る
-                        </motion.button>
-                        <motion.button
-                          className="flex items-center gap-1.5 px-6 py-3 rounded-xl text-sm font-extrabold text-white"
-                          style={{ background: D.brand, boxShadow: `0 4px 14px ${D.brand}40` }}
-                          whileTap={{ scale: 0.96 }}
-                          onClick={goNext}
-                          transition={SPRING.SNAP}
-                        >
-                          次へ
-                          <ChevronRight size={15} />
-                        </motion.button>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* ── ステップ 2: 残高 ── */}
-                  {step === 2 && (
+                      ),
+                    )}
                     <div
-                      className="rounded-2xl p-5 space-y-4"
-                      style={{ background: D.card, border: `1px solid ${D.border}`, boxShadow: D.shadow }}
+                      className="flex justify-between items-center py-3 border-t"
+                      style={{ background: '#fafaf8', borderColor: D.border, borderRadius: '0 0 12px 12px', margin: '0 -20px -20px', padding: '12px 20px' }}
                     >
-                      <div>
-                        <h2 className="text-lg font-extrabold" style={{ color: D.text }}>
-                          現在の口座残高
-                        </h2>
-                        <p className="text-[12px] mt-1" style={{ color: D.muted }}>
-                          今日時点の口座残高を入力してください
-                        </p>
-                      </div>
+                      <span className="text-xs font-bold" style={{ color: D.muted }}>固定費合計</span>
+                      <motion.span
+                        className="text-sm font-extrabold tabular-nums"
+                        style={{ color: D.text }}
+                        key={totalFixed}
+                        initial={{ scale: 0.95 }}
+                        animate={{ scale: 1 }}
+                        transition={SPRING.QUICK}
+                      >
+                        ¥{totalFixed.toLocaleString('ja-JP')}
+                      </motion.span>
+                    </div>
+                  </div>
 
+                  <div className="flex justify-between pt-2">
+                    <NavPrev onClick={goPrev} />
+                    <NavNext onClick={goNext} />
+                  </div>
+                </div>
+              )}
+
+              {/* ── ステップ 2: 残高 ── */}
+              {step === 2 && (
+                <div
+                  className="rounded-2xl p-5 space-y-4"
+                  style={{ background: D.card, border: `1px solid ${D.border}`, boxShadow: D.shadow }}
+                >
+                  <div>
+                    <h2 className="text-lg font-extrabold" style={{ color: D.text }}>
+                      現在の口座残高
+                    </h2>
+                    <p className="text-[12px] mt-1" style={{ color: D.muted }}>
+                      今日時点の口座残高を入力してください
+                    </p>
+                  </div>
+
+                  <FieldRow
+                    label="口座残高"
+                    icon={Wallet}
+                    value={state.currentBalance}
+                    onChange={(v) => setState(s => ({ ...s, currentBalance: v }))}
+                    step={10000}
+                  />
+
+                  {/* 残高インサイト */}
+                  <div
+                    className="rounded-xl p-3 space-y-1.5 text-[11px]"
+                    style={{ background: D.surface }}
+                  >
+                    <div className="flex justify-between">
+                      <span style={{ color: D.muted }}>給料日まで</span>
+                      <span className="font-bold" style={{ color: D.text }}>約 {daysUntilSalary} 日</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span style={{ color: D.muted }}>残高で賄える日数</span>
+                      <span className="font-bold tabular-nums" style={{ color: dailyBudget > 0 ? D.text : D.muted }}>
+                        {dailyBudget > 0 ? `約 ${budgetDaysFromBalance} 日分` : '—'}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-between">
+                    <NavPrev onClick={goPrev} />
+                    <NavNext onClick={goNext} />
+                  </div>
+                </div>
+              )}
+
+              {/* ── ステップ 3: 貯蓄目標 ── */}
+              {step === 3 && (
+                <div
+                  className="rounded-2xl p-5 space-y-4"
+                  style={{ background: D.card, border: `1px solid ${D.border}`, boxShadow: D.shadow }}
+                >
+                  <div>
+                    <h2 className="text-lg font-extrabold" style={{ color: D.text }}>
+                      毎月・毎年の貯蓄目標
+                    </h2>
+                    <p className="text-[12px] mt-1" style={{ color: D.muted }}>
+                      貯蓄目標を設定すると1日予算に反映されます
+                    </p>
+                  </div>
+
+                  <div
+                    className="inline-flex rounded-xl p-1 gap-1"
+                    style={{ background: D.surface }}
+                    role="tablist"
+                    aria-label="貯蓄目標の期間"
+                  >
+                    {(['monthly', 'yearly'] as const).map((mode) => {
+                      const active = state.savingsMode === mode
+                      return (
+                        <motion.button
+                          key={mode}
+                          role="tab"
+                          aria-selected={active}
+                          type="button"
+                          onClick={() => switchSavingsMode(mode)}
+                          className="px-5 py-1.5 rounded-lg text-xs font-bold"
+                          style={{
+                            background: active ? D.card  : 'transparent',
+                            color:      active ? D.brand : D.muted,
+                            boxShadow:  active ? D.shadow : 'none',
+                          }}
+                          whileTap={{ scale: 0.95 }}
+                          transition={SPRING.SNAP}
+                        >
+                          {mode === 'monthly' ? '月間' : '年間'}
+                        </motion.button>
+                      )
+                    })}
+                  </div>
+
+                  <div className="space-y-2">
+                    {state.savingsMode === 'monthly' ? (
                       <FieldRow
-                        label="口座残高"
-                        icon={Wallet}
-                        value={state.currentBalance}
-                        onChange={(v) => setState((s) => ({ ...s, currentBalance: v }))}
-                        step={10000}
+                        key="savings-monthly"
+                        label="月間貯蓄目標"
+                        icon={PiggyBank}
+                        value={state.savingsMonthly}
+                        onChange={(v) => setState(s => ({ ...s, savingsMonthly: v }))}
+                        step={5000}
                       />
+                    ) : (
+                      <FieldRow
+                        key="savings-yearly"
+                        label="年間貯蓄目標"
+                        icon={PiggyBank}
+                        value={state.savingsYearly}
+                        onChange={(v) => setState(s => ({ ...s, savingsYearly: v }))}
+                        step={60000}
+                      />
+                    )}
 
-                      {/* 残高インサイト */}
-                      <div
-                        className="rounded-xl p-3 space-y-1.5 text-[11px]"
-                        style={{ background: D.surface }}
-                      >
-                        <div className="flex justify-between">
-                          <span style={{ color: D.muted }}>給料日まで</span>
-                          <span className="font-bold" style={{ color: D.text }}>約 {daysUntilSalary} 日</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span style={{ color: D.muted }}>残高で賄える日数</span>
-                          <span className="font-bold tabular-nums" style={{ color: dailyBudget > 0 ? D.text : D.muted }}>
-                            {dailyBudget > 0 ? `約 ${budgetDaysFromBalance} 日分` : '—'}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="lg:hidden">
-                        <MiniPreview state={state} />
-                      </div>
-
-                      <div className="flex justify-between pt-1">
-                        <motion.button
-                          className="flex items-center gap-1.5 px-5 py-3 rounded-xl text-sm font-bold"
-                          style={{ background: D.surface, color: D.text }}
-                          whileTap={{ scale: 0.96 }}
-                          onClick={goPrev}
-                          transition={SPRING.SNAP}
-                        >
-                          <ChevronLeft size={15} />
-                          戻る
-                        </motion.button>
-                        <motion.button
-                          className="flex items-center gap-1.5 px-6 py-3 rounded-xl text-sm font-extrabold text-white"
-                          style={{ background: D.brand, boxShadow: `0 4px 14px ${D.brand}40` }}
-                          whileTap={{ scale: 0.96 }}
-                          onClick={goNext}
-                          transition={SPRING.SNAP}
-                        >
-                          次へ
-                          <ChevronRight size={15} />
-                        </motion.button>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* ── ステップ 3: 貯蓄目標 ── */}
-                  {step === 3 && (
-                    <div
-                      className="rounded-2xl p-5 space-y-4"
-                      style={{ background: D.card, border: `1px solid ${D.border}`, boxShadow: D.shadow }}
-                    >
-                      <div>
-                        <h2 className="text-lg font-extrabold" style={{ color: D.text }}>
-                          毎月・毎年の貯蓄目標
-                        </h2>
-                        <p className="text-[12px] mt-1" style={{ color: D.muted }}>
-                          貯蓄目標を設定すると1日予算に反映されます
-                        </p>
-                      </div>
-
-                      {/* 月間 / 年間 トグル */}
-                      <div
-                        className="inline-flex rounded-xl p-1 gap-1"
-                        style={{ background: D.surface }}
-                        role="tablist"
-                        aria-label="貯蓄目標の期間"
-                      >
-                        {(['monthly', 'yearly'] as const).map((mode) => {
-                          const active = state.savingsMode === mode
-                          return (
-                            <motion.button
-                              key={mode}
-                              role="tab"
-                              aria-selected={active}
-                              type="button"
-                              onClick={() => switchSavingsMode(mode)}
-                              className="px-5 py-1.5 rounded-lg text-xs font-bold"
-                              style={{
-                                background: active ? D.card  : 'transparent',
-                                color:      active ? D.brand : D.muted,
-                                boxShadow:  active ? D.shadow : 'none',
-                              }}
-                              whileTap={{ scale: 0.95 }}
-                              transition={SPRING.SNAP}
-                            >
-                              {mode === 'monthly' ? '月間' : '年間'}
-                            </motion.button>
-                          )
-                        })}
-                      </div>
-
-                      <div className="space-y-2">
-                        {state.savingsMode === 'monthly' ? (
-                          <FieldRow
-                            key="savings-monthly"
-                            label="月間貯蓄目標"
-                            icon={PiggyBank}
-                            value={state.savingsMonthly}
-                            onChange={(v) => setState((s) => ({ ...s, savingsMonthly: v }))}
-                            step={5000}
-                          />
-                        ) : (
-                          <FieldRow
-                            key="savings-yearly"
-                            label="年間貯蓄目標"
-                            icon={PiggyBank}
-                            value={state.savingsYearly}
-                            onChange={(v) => setState((s) => ({ ...s, savingsYearly: v }))}
-                            step={60000}
-                          />
-                        )}
-
-                        {/* 換算表示 */}
-                        <AnimatePresence>
-                          {(state.savingsMode === 'monthly' ? state.savingsMonthly : state.savingsYearly) > 0 && (
-                            <motion.div
-                              className="flex items-center justify-between rounded-xl px-3 py-2 text-[11px] font-semibold"
-                              style={{ background: '#ecfaf8', color: D.income }}
-                              initial={{ opacity: 0, height: 0 }}
-                              animate={{ opacity: 1, height: 'auto' }}
-                              exit={{    opacity: 0, height: 0 }}
-                              transition={SPRING.QUICK}
-                            >
-                              <span>{state.savingsMode === 'monthly' ? '年間換算' : '月間換算'}</span>
-                              <span className="font-extrabold tabular-nums">
-                                ≈ ¥{(
-                                  state.savingsMode === 'monthly'
-                                    ? state.savingsMonthly * 12
-                                    : Math.round(state.savingsYearly / 12)
-                                ).toLocaleString('ja-JP')}
-                                {state.savingsMode === 'monthly' ? ' / 年' : ' / 月'}
-                              </span>
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
-                      </div>
-
-                      <div className="lg:hidden">
-                        <MiniPreview state={state} label="確定後の1日予算" />
-                      </div>
-
-                      <div className="flex justify-between pt-1">
-                        <motion.button
-                          className="flex items-center gap-1.5 px-5 py-3 rounded-xl text-sm font-bold"
-                          style={{ background: D.surface, color: D.text }}
-                          whileTap={{ scale: 0.96 }}
-                          onClick={goPrev}
-                          transition={SPRING.SNAP}
-                        >
-                          <ChevronLeft size={15} />
-                          戻る
-                        </motion.button>
-                        <motion.button
-                          className="flex items-center gap-1.5 px-6 py-3 rounded-xl text-sm font-extrabold text-white"
-                          style={{ background: D.brand, boxShadow: `0 4px 14px ${D.brand}40` }}
-                          whileTap={{ scale: 0.96 }}
-                          onClick={goNext}
-                          transition={SPRING.SNAP}
-                        >
-                          次へ
-                          <ChevronRight size={15} />
-                        </motion.button>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* ── ステップ 4: 確認・保存 ── */}
-                  {step === 4 && (
-                    <div
-                      className="rounded-2xl p-5 space-y-4"
-                      style={{ background: D.card, border: `1px solid ${D.border}`, boxShadow: D.shadow }}
-                    >
-                      <div>
-                        <h2 className="text-lg font-extrabold" style={{ color: D.text }}>
-                          設定の確認
-                        </h2>
-                        <p className="text-[12px] mt-1" style={{ color: D.muted }}>
-                          内容を確認して保存してください
-                        </p>
-                      </div>
-
-                      {/* 1日予算（大） */}
-                      <div
-                        className="relative rounded-2xl p-5 overflow-hidden text-center"
-                        style={{ background: D.surface }}
-                      >
+                    <AnimatePresence>
+                      {(state.savingsMode === 'monthly' ? state.savingsMonthly : state.savingsYearly) > 0 && (
                         <motion.div
-                          className="absolute inset-0 rounded-2xl pointer-events-none"
-                          style={{ background: `radial-gradient(circle at 50% 0%, ${budgetColor}18 0%, transparent 70%)` }}
-                        />
-                        <div className="relative">
-                          <div className="text-[11px] font-semibold mb-1" style={{ color: D.muted }}>1日予算</div>
-                          <motion.div
-                            className="text-[44px] font-extrabold tabular-nums leading-none"
-                            style={{ color: budgetColor, letterSpacing: '-0.02em' }}
-                            key={dailyBudget}
-                            initial={{ scale: 0.92 }}
-                            animate={{ scale: 1 }}
-                            transition={SPRING.QUICK}
-                            aria-live="polite"
-                            aria-atomic="true"
-                          >
-                            ¥{dailyBudget.toLocaleString('ja-JP')}
-                          </motion.div>
-                          <div className="text-[11px] mt-1" style={{ color: D.muted }}>/ 日</div>
-                        </div>
-                      </div>
-
-                      {/* サマリー一覧 */}
-                      <div className="space-y-2 text-[12px]">
-                        {/* 収入 */}
-                        <div className="rounded-xl p-3 space-y-1.5" style={{ background: D.surface }}>
-                          <div className="text-[10px] font-bold uppercase tracking-wider mb-2" style={{ color: D.muted }}>収入</div>
-                          <div className="flex justify-between">
-                            <span style={{ color: D.muted }}>月収（手取り）</span>
-                            <span className="font-extrabold tabular-nums">¥{state.monthlyIncome.toLocaleString('ja-JP')}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span style={{ color: D.muted }}>給料日</span>
-                            <span className="font-extrabold">毎月 {state.salaryDay} 日</span>
-                          </div>
-                        </div>
-
-                        {/* 固定費 */}
-                        <div className="rounded-xl p-3 space-y-1.5" style={{ background: D.surface }}>
-                          <div className="flex justify-between items-center mb-2">
-                            <div className="text-[10px] font-bold uppercase tracking-wider" style={{ color: D.muted }}>固定費</div>
-                            <span className="font-extrabold tabular-nums text-xs" style={{ color: D.danger }}>
-                              合計 ¥{totalFixed.toLocaleString('ja-JP')}
-                            </span>
-                          </div>
-                          {(Object.entries(state.fixedCosts) as [FixedKey, State['fixedCosts'][FixedKey]][]).map(([key, cfg]) => (
-                            <div key={key} className="flex justify-between">
-                              <span style={{ color: D.muted }}>{cfg.label}</span>
-                              <span className="font-bold tabular-nums">¥{cfg.value.toLocaleString('ja-JP')}</span>
-                            </div>
-                          ))}
-                        </div>
-
-                        {/* 残高 */}
-                        <div className="rounded-xl p-3" style={{ background: D.surface }}>
-                          <div className="text-[10px] font-bold uppercase tracking-wider mb-2" style={{ color: D.muted }}>残高</div>
-                          <div className="flex justify-between">
-                            <span style={{ color: D.muted }}>口座残高</span>
-                            <span className="font-extrabold tabular-nums">¥{state.currentBalance.toLocaleString('ja-JP')}</span>
-                          </div>
-                        </div>
-
-                        {/* 貯蓄目標 */}
-                        <div className="rounded-xl p-3 space-y-1.5" style={{ background: D.surface }}>
-                          <div className="text-[10px] font-bold uppercase tracking-wider mb-2" style={{ color: D.muted }}>貯蓄目標</div>
-                          <div className="flex justify-between">
-                            <span style={{ color: D.muted }}>月間貯蓄</span>
-                            <span className="font-extrabold tabular-nums" style={{ color: D.income }}>
-                              ¥{monthlySavings.toLocaleString('ja-JP')} / 月
-                            </span>
-                          </div>
-                          {state.savingsMode === 'monthly' && (
-                            <div className="flex justify-between">
-                              <span style={{ color: D.muted }}>年間換算</span>
-                              <span className="font-bold tabular-nums" style={{ color: D.income }}>
-                                ¥{(state.savingsMonthly * 12).toLocaleString('ja-JP')} / 年
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="flex justify-between pt-1">
-                        <motion.button
-                          className="flex items-center gap-1.5 px-5 py-3 rounded-xl text-sm font-bold"
-                          style={{ background: D.surface, color: D.text }}
-                          whileTap={{ scale: 0.96 }}
-                          onClick={goPrev}
-                          transition={SPRING.SNAP}
+                          className="flex items-center justify-between rounded-xl px-3 py-2 text-[11px] font-semibold"
+                          style={{ background: '#ecfaf8', color: D.income }}
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          exit={{    opacity: 0, height: 0 }}
+                          transition={SPRING.QUICK}
                         >
-                          <ChevronLeft size={15} />
-                          戻る
-                        </motion.button>
-                        <motion.button
-                          className="flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-extrabold text-white"
-                          style={{ background: D.brand, boxShadow: `0 4px 20px ${D.brand}45` }}
-                          whileTap={{ scale: 0.96 }}
-                          onClick={handleSave}
-                          disabled={saved}
-                          transition={SPRING.SNAP}
-                        >
-                          <Check size={16} />
-                          保存してはじめる
-                        </motion.button>
+                          <span>{state.savingsMode === 'monthly' ? '年間換算' : '月間換算'}</span>
+                          <span className="font-extrabold tabular-nums">
+                            ≈ ¥{(
+                              state.savingsMode === 'monthly'
+                                ? state.savingsMonthly * 12
+                                : Math.round(state.savingsYearly / 12)
+                            ).toLocaleString('ja-JP')}
+                            {state.savingsMode === 'monthly' ? ' / 年' : ' / 月'}
+                          </span>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+
+                  <div className="flex justify-between">
+                    <NavPrev onClick={goPrev} />
+                    <NavNext onClick={goNext} label="確認へ" />
+                  </div>
+                </div>
+              )}
+
+              {/* ── ステップ 4: 確認・保存 ── */}
+              {step === 4 && (
+                <div
+                  className="rounded-2xl overflow-hidden"
+                  style={{ background: D.card, border: `1px solid ${D.border}`, boxShadow: D.shadow }}
+                >
+                  {/* 1日予算ヒーロー */}
+                  <div
+                    className="relative p-6 text-center overflow-hidden"
+                    style={{ background: D.surface }}
+                  >
+                    <motion.div
+                      className="absolute inset-0 pointer-events-none"
+                      style={{ background: `radial-gradient(ellipse at 50% 0%, ${budgetColor}20 0%, transparent 65%)` }}
+                    />
+                    <div className="relative">
+                      <div className="text-[11px] font-semibold mb-2" style={{ color: D.muted }}>
+                        設定完了後の1日予算
+                      </div>
+                      <motion.div
+                        className="text-[52px] font-extrabold tabular-nums leading-none"
+                        style={{ color: budgetColor, letterSpacing: '-0.03em' }}
+                        key={dailyBudget}
+                        initial={{ scale: 0.92 }}
+                        animate={{ scale: 1 }}
+                        transition={SPRING.QUICK}
+                        aria-live="polite"
+                        aria-atomic="true"
+                      >
+                        ¥{dailyBudget.toLocaleString('ja-JP')}
+                      </motion.div>
+                      <div className="text-[12px] mt-1.5 font-semibold" style={{ color: D.muted }}>/ 日</div>
+                    </div>
+                  </div>
+
+                  <div className="p-5 space-y-3">
+                    <h2 className="text-[13px] font-extrabold" style={{ color: D.text }}>
+                      設定内容を確認
+                    </h2>
+
+                    {/* 収入 */}
+                    <div className="rounded-xl p-3 space-y-1.5" style={{ background: D.surface }}>
+                      <div className="text-[10px] font-bold uppercase tracking-wider mb-2" style={{ color: D.muted }}>収入</div>
+                      <div className="flex justify-between text-[12px]">
+                        <span style={{ color: D.muted }}>月収（手取り）</span>
+                        <span className="font-extrabold tabular-nums" style={{ color: D.text }}>¥{state.monthlyIncome.toLocaleString('ja-JP')}</span>
+                      </div>
+                      <div className="flex justify-between text-[12px]">
+                        <span style={{ color: D.muted }}>給料日</span>
+                        <span className="font-extrabold" style={{ color: D.text }}>毎月 {state.salaryDay} 日</span>
                       </div>
                     </div>
-                  )}
-                </motion.div>
-              </AnimatePresence>
-            </div>
-          </div>
+
+                    {/* 固定費 */}
+                    <div className="rounded-xl p-3 space-y-1.5" style={{ background: D.surface }}>
+                      <div className="flex justify-between items-center mb-2">
+                        <div className="text-[10px] font-bold uppercase tracking-wider" style={{ color: D.muted }}>固定費</div>
+                        <span className="text-xs font-extrabold tabular-nums" style={{ color: D.danger }}>
+                          合計 ¥{totalFixed.toLocaleString('ja-JP')}
+                        </span>
+                      </div>
+                      {(Object.entries(state.fixedCosts) as [FixedKey, State['fixedCosts'][FixedKey]][]).map(([key, cfg]) => (
+                        <div key={key} className="flex justify-between text-[12px]">
+                          <span style={{ color: D.muted }}>{cfg.label}</span>
+                          <span className="font-bold tabular-nums" style={{ color: D.text }}>¥{cfg.value.toLocaleString('ja-JP')}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* 残高 + 貯蓄 */}
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="rounded-xl p-3" style={{ background: D.surface }}>
+                        <div className="text-[10px] font-bold uppercase tracking-wider mb-2" style={{ color: D.muted }}>残高</div>
+                        <div className="text-[12px] font-extrabold tabular-nums" style={{ color: D.text }}>
+                          ¥{state.currentBalance.toLocaleString('ja-JP')}
+                        </div>
+                      </div>
+                      <div className="rounded-xl p-3" style={{ background: D.surface }}>
+                        <div className="text-[10px] font-bold uppercase tracking-wider mb-2" style={{ color: D.muted }}>貯蓄目標</div>
+                        <div className="text-[12px] font-extrabold tabular-nums" style={{ color: D.income }}>
+                          ¥{monthlySavings.toLocaleString('ja-JP')} / 月
+                        </div>
+                        <div className="text-[10px] mt-0.5 tabular-nums" style={{ color: D.muted }}>
+                          ≈ ¥{(monthlySavings * 12).toLocaleString('ja-JP')} / 年
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex justify-between items-center pt-1">
+                      <NavPrev onClick={goPrev} />
+                      <motion.button
+                        className="flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-extrabold text-white"
+                        style={{ background: D.brand, boxShadow: `0 4px 20px ${D.brand}45` }}
+                        whileTap={{ scale: 0.96 }}
+                        onClick={handleSave}
+                        disabled={saved}
+                        transition={SPRING.SNAP}
+                      >
+                        <Check size={16} />
+                        保存してはじめる
+                        <ArrowRight size={14} />
+                      </motion.button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+            </motion.div>
+          </AnimatePresence>
         </div>
       </main>
 
       <Toast visible={saved} />
-    </SandboxLayout>
+    </div>
+  )
+}
+
+// ─── ナビボタン（共通） ───────────────────────────────────────────────────
+function NavPrev({ onClick }: { onClick: () => void }) {
+  return (
+    <motion.button
+      className="flex items-center gap-1.5 px-5 py-3 rounded-xl text-sm font-bold"
+      style={{ background: D.surface, color: D.text }}
+      whileTap={{ scale: 0.96 }}
+      onClick={onClick}
+      transition={{ type: 'spring', stiffness: 600, damping: 35 }}
+    >
+      <ChevronLeft size={15} />
+      戻る
+    </motion.button>
+  )
+}
+
+function NavNext({ onClick, label = '次へ' }: { onClick: () => void; label?: string }) {
+  return (
+    <motion.button
+      className="flex items-center gap-1.5 px-6 py-3 rounded-xl text-sm font-extrabold text-white"
+      style={{ background: D.brand, boxShadow: `0 4px 14px rgba(241,136,64,0.40)` }}
+      whileTap={{ scale: 0.96 }}
+      onClick={onClick}
+      transition={{ type: 'spring', stiffness: 600, damping: 35 }}
+    >
+      {label}
+      <ChevronRight size={15} />
+    </motion.button>
   )
 }
