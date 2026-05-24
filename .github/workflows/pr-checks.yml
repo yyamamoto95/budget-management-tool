@@ -14,6 +14,7 @@
 #
 # ブランチ保護設定（GitHub Settings > Branches > main）:
 #   Require status checks to pass before merging に以下を登録すること:
+#   - Rebase Check
 #   - Test Plan Check
 #   - Issue Link Check
 #   - Lint & Type Check
@@ -36,6 +37,39 @@ permissions:
   pull-requests: read
 
 jobs:
+  # ─── リベースチェック ──────────────────────────────────────────────────────
+  # PR ブランチが origin/main の最新から切られていない（遅れている）場合に失敗する。
+  # マージ前に必ず最新 main へのリベースを強制するガードレール。
+  rebase-check:
+    name: Rebase Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # merge-base の計算に全履歴が必要
+
+      - name: Check branch is rebased on latest main
+        run: |
+          git fetch origin main --quiet
+
+          MERGE_BASE=$(git merge-base HEAD origin/main)
+          MAIN_HEAD=$(git rev-parse origin/main)
+
+          echo "origin/main HEAD : ${MAIN_HEAD}"
+          echo "merge-base       : ${MERGE_BASE}"
+
+          if [ "${MERGE_BASE}" != "${MAIN_HEAD}" ]; then
+            echo ""
+            echo "❌ ブランチが origin/main の最新から遅れています。"
+            echo ""
+            echo "   以下を実行してリベースし、force push してください:"
+            echo "   git fetch origin main && git rebase origin/main"
+            echo "   git push --force-with-lease"
+            exit 1
+          fi
+
+          echo "✅ origin/main の最新からリベース済みです。"
+
   # ─── テストプランチェック ──────────────────────────────────────────────────
   # PR body の "Test plan" セクション内に未チェック項目（- [ ]）が残っている場合に失敗する。
   # 全チェックボックスを確認済みにしてからマージすることを強制するガードレール。
