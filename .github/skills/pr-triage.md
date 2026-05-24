@@ -19,8 +19,7 @@ Gemini Code Assist がレビューを投稿すると GitHub Actions が自動で
 gh pr list \
   --label "needs-ai-triage" \
   --state open \
-  --json number,title,author,url \
-  --repo yyamamoto95/budget-management-tool
+  --json number,title,author,url
 ```
 
 対象が 0 件なら「トリアージ待ちの PR はありません」と報告して終了する。
@@ -33,16 +32,15 @@ gh pr list \
 
 ```bash
 # Gemini のレビュー一覧を取得する
-gh api repos/yyamamoto95/budget-management-tool/pulls/{PR_NUMBER}/reviews \
+gh api repos/{owner}/{repo}/pulls/{PR_NUMBER}/reviews \
   --jq '[.[] | select(.user.login == "gemini-code-assist[bot]")] | last'
 
 # インラインコメントを取得する
-gh api repos/yyamamoto95/budget-management-tool/pulls/{PR_NUMBER}/comments \
+gh api repos/{owner}/{repo}/pulls/{PR_NUMBER}/comments \
   --jq '[.[] | select(.user.login == "gemini-code-assist[bot]")]'
 
 # 変更ファイル一覧を取得する
-gh pr view {PR_NUMBER} --json files \
-  --repo yyamamoto95/budget-management-tool
+gh pr view {PR_NUMBER} --json files
 ```
 
 ---
@@ -70,8 +68,7 @@ gh pr view {PR_NUMBER} --json files \
 
 ```bash
 gh pr comment {PR_NUMBER} \
-  --body "{TRIAGE_COMMENT}" \
-  --repo yyamamoto95/budget-management-tool
+  --body "{TRIAGE_COMMENT}"
 ```
 
 コメントフォーマット:
@@ -91,10 +88,10 @@ gh pr comment {PR_NUMBER} \
 
 ---
 {all_clear なら}
-✅ 全指摘が対応不要と判断されました。CI が通り次第マージします。
+[OK] 全指摘が対応不要と判断されました。CI が通り次第マージします。
 
 {要修正ありなら}
-⚠️ 要修正の指摘が {n} 件あります。修正してコミットすると Gemini が再レビューします。
+[要対応] 要修正の指摘が {n} 件あります。修正してコミットすると Gemini が再レビューします。
 ```
 
 ---
@@ -105,14 +102,12 @@ gh pr comment {PR_NUMBER} \
 # needs-ai-triage を除去して ai-triaged を付与する
 gh pr edit {PR_NUMBER} \
   --remove-label "needs-ai-triage" \
-  --add-label "ai-triaged" \
-  --repo yyamamoto95/budget-management-tool
+  --add-label "ai-triaged"
 
 # CI 通過後に自動マージを予約する
 gh pr merge {PR_NUMBER} \
   --auto \
-  --squash \
-  --repo yyamamoto95/budget-management-tool
+  --squash
 ```
 
 ---
@@ -123,8 +118,7 @@ gh pr merge {PR_NUMBER} \
 # needs-ai-triage を除去して ai-triaged を付与する（処理済みにする）
 gh pr edit {PR_NUMBER} \
   --remove-label "needs-ai-triage" \
-  --add-label "ai-triaged" \
-  --repo yyamamoto95/budget-management-tool
+  --add-label "ai-triaged"
 ```
 
 修正は開発者が行い、次のコミット・プッシュで Gemini が再レビューする。
