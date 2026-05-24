@@ -4,33 +4,35 @@ import { useActionState, useState } from "react";
 import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer";
 import { createExpenseAction } from "@/lib/actions/expense";
 import type { ExpenseActionState } from "@/lib/actions/expense";
-import { getCategoriesByType } from "@budget/common";
+import type { CategoryItem } from "@/lib/api/types";
 
 type Props = {
   userId: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  expenseCategories: CategoryItem[];
+  incomeCategories: CategoryItem[];
 };
 
 const initialState: ExpenseActionState = { error: null, success: false };
 
-export function QuickEntryDrawer({ userId, open, onOpenChange }: Props) {
+export function QuickEntryDrawer({ userId, open, onOpenChange, expenseCategories, incomeCategories }: Props) {
   const [balanceType, setBalanceType] = useState<0 | 1>(0);
-  const [categoryId, setCategoryId] = useState<number>(1);
+  const [categoryId, setCategoryId] = useState<number>(expenseCategories[0]?.id ?? 0);
   const [state, formAction, isPending] = useActionState(
     createExpenseAction,
     initialState,
   );
 
-  const categories = getCategoriesByType(balanceType);
+  const categories = balanceType === 0 ? expenseCategories : incomeCategories;
   const accentColor =
     balanceType === 0 ? "var(--color-expense)" : "var(--color-income)";
   const today = new Date().toISOString().split("T")[0];
 
   function handleTypeChange(type: 0 | 1) {
     setBalanceType(type);
-    // カテゴリをリセット（支出:1=食費, 収入:1=給料）
-    setCategoryId(1);
+    const cats = type === 0 ? expenseCategories : incomeCategories;
+    setCategoryId(cats[0]?.id ?? 0);
   }
 
   return (
@@ -128,12 +130,6 @@ export function QuickEntryDrawer({ userId, open, onOpenChange }: Props) {
                 }
               >
                 {c.name}
-                {c.badge && (
-                  <span className="ml-1 rounded-sm px-1 py-0.5 text-[9px] font-bold"
-                    style={{ background: 'rgba(255,255,255,0.25)', opacity: categoryId === c.id ? 1 : 0.7 }}>
-                    {c.badge}
-                  </span>
-                )}
               </button>
             ))}
           </div>

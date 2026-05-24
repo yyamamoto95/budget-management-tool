@@ -28,7 +28,7 @@ const mockExpenses: ExpenseResponse[] = [
     date: todayStr,
     balanceType: 1,
     amount: 250000,
-    categoryId: 1,
+    categoryId: 17,
     content: "給料",
     userId: "user-1",
     createdDate: todayStr,
@@ -39,7 +39,7 @@ const mockExpenses: ExpenseResponse[] = [
 
 describe("CalendarView", () => {
   it("カレンダーと選択日のサマリーが表示される", () => {
-    render(<CalendarView expenses={mockExpenses} userId="user-1" />);
+    render(<CalendarView expenses={mockExpenses} userId="user-1" allCategories={[]} />);
     // カレンダーヘッダー（月表示）
     const now = new Date();
     expect(
@@ -48,31 +48,31 @@ describe("CalendarView", () => {
   });
 
   it("今日の支出・収入サマリーが表示される", () => {
-    render(<CalendarView expenses={mockExpenses} userId="user-1" />);
+    render(<CalendarView expenses={mockExpenses} userId="user-1" allCategories={[]} />);
     expect(screen.getByText("¥1,500")).toBeInTheDocument();
     expect(screen.getByText("¥250,000")).toBeInTheDocument();
   });
 
   it("今日の明細が表示される", () => {
-    render(<CalendarView expenses={mockExpenses} userId="user-1" />);
+    render(<CalendarView expenses={mockExpenses} userId="user-1" allCategories={[]} />);
     expect(screen.getByText("スーパー")).toBeInTheDocument();
-    // 「給料」はカテゴリ名にも出るため getAllByText で件数を確認する
+    // 「給料」は content として表示される
     expect(screen.getAllByText("給料").length).toBeGreaterThanOrEqual(1);
   });
 
   it("記録がない日をタップすると「記録はありません」が表示される", () => {
-    render(<CalendarView expenses={[]} userId="user-1" />);
+    render(<CalendarView expenses={[]} userId="user-1" allCategories={[]} />);
     expect(screen.getByText("この日の記録はありません")).toBeInTheDocument();
   });
 
   it("「詳細記録」リンクが今日の日付を含む href を持つ", () => {
-    render(<CalendarView expenses={mockExpenses} userId="user-1" />);
+    render(<CalendarView expenses={mockExpenses} userId="user-1" allCategories={[]} />);
     const link = screen.getByRole("link", { name: /詳細記録/ });
     expect(link).toHaveAttribute("href", `/expenses/new?date=${todayStr}`);
   });
 
   it("初期表示で今日が選択されており明細が表示される", () => {
-    render(<CalendarView expenses={mockExpenses} userId="user-1" />);
+    render(<CalendarView expenses={mockExpenses} userId="user-1" allCategories={[]} />);
     // 今日が選択状態のため今日の明細が初期表示される
     expect(screen.getByText("スーパー")).toBeInTheDocument();
   });

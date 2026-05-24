@@ -5,6 +5,7 @@ import { GetSecurityQuestionsUseCase } from './application/use-cases/auth/GetSec
 import { RegisterUserUseCase } from './application/use-cases/auth/RegisterUserUseCase';
 import { ResetPasswordUseCase } from './application/use-cases/auth/ResetPasswordUseCase';
 import { VerifyRecoveryAnswerUseCase } from './application/use-cases/auth/VerifyRecoveryAnswerUseCase';
+import { GetCategoriesUseCase } from './application/use-cases/category/GetCategoriesUseCase';
 import { CreateExpenseUseCase } from './application/use-cases/CreateExpenseUseCase';
 import { ExportUserDataUseCase } from './application/use-cases/export/ExportUserDataUseCase';
 import { ParseExpenseUseCase, RuleBasedExpenseParser } from './application/use-cases/parse/ParseExpenseUseCase';
@@ -19,6 +20,7 @@ import { GetUserSettingsUseCase } from './application/use-cases/settings/GetUser
 import { UpsertUserSettingsUseCase } from './application/use-cases/settings/UpsertUserSettingsUseCase';
 import { GetExpenditureAnalysisUseCase } from './application/use-cases/xday/GetExpenditureAnalysisUseCase';
 import { GetXDayUseCase } from './application/use-cases/xday/GetXDayUseCase';
+import { PrismaCategoryRepository } from './infrastructure/persistence/PrismaCategoryRepository';
 import { PrismaExpenseRepository } from './infrastructure/persistence/PrismaExpenseRepository';
 import { PrismaPasswordResetTokenRepository } from './infrastructure/persistence/PrismaPasswordResetTokenRepository';
 import { PrismaUserSettingsRepository } from './infrastructure/persistence/PrismaUserSettingsRepository';
@@ -36,6 +38,7 @@ export function buildDeps(): AppDeps {
     return {
         userRepository: new PrismaUserRepository(prisma),
         expenseRepository: new PrismaExpenseRepository(prisma),
+        categoryRepository: new PrismaCategoryRepository(prisma),
         refreshTokenRepository: new PrismaRefreshTokenRepository(prisma),
         securityAnswerRepository: new PrismaSecurityAnswerRepository(prisma),
         passwordResetTokenRepository: new PrismaPasswordResetTokenRepository(prisma),
@@ -54,6 +57,8 @@ export function buildServices(deps: AppDeps, tokenService: TokenService): RouteS
         // リポジトリ直接参照（UseCase未抽出のルート用）
         userRepository: deps.userRepository,
         expenseRepository: deps.expenseRepository,
+        // Categories
+        getCategoriesUseCase: new GetCategoriesUseCase(deps.categoryRepository),
         // Expense
         createExpenseUseCase: new CreateExpenseUseCase(deps.expenseRepository, deps.userRepository),
         updateExpenseUseCase: new UpdateExpenseUseCase(deps.expenseRepository),

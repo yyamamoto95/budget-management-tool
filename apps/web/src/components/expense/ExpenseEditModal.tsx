@@ -3,8 +3,7 @@
 import { useActionState, useEffect, useState } from "react";
 import { updateExpenseAction } from "@/lib/actions/expense";
 import type { UpdateExpenseActionState } from "@/lib/actions/expense";
-import type { ExpenseResponse } from "@/lib/api/types";
-import { getCategoriesByType } from "@budget/common";
+import type { ExpenseResponse, CategoryItem } from "@/lib/api/types";
 import {
   Dialog,
   DialogContent,
@@ -22,16 +21,18 @@ import {
 type Props = {
   expense: ExpenseResponse;
   onClose: () => void;
+  expenseCategories: CategoryItem[];
+  incomeCategories: CategoryItem[];
 };
 
 const initialState: UpdateExpenseActionState = { error: null, success: false };
 
-export function ExpenseEditModal({ expense, onClose }: Props) {
+export function ExpenseEditModal({ expense, onClose, expenseCategories, incomeCategories }: Props) {
   const boundAction = updateExpenseAction.bind(null, expense.id);
   const [state, formAction, isPending] = useActionState(boundAction, initialState);
   const [balanceType, setBalanceType] = useState<0 | 1>(expense.balanceType);
   const [categoryId, setCategoryId] = useState<number>(expense.categoryId);
-  const categories = getCategoriesByType(balanceType);
+  const categories = balanceType === 0 ? expenseCategories : incomeCategories;
 
   // 更新成功時にモーダルを閉じる
   useEffect(() => {
@@ -60,7 +61,8 @@ export function ExpenseEditModal({ expense, onClose }: Props) {
               onValueChange={(v) => {
                 const next = Number(v) as 0 | 1;
                 setBalanceType(next);
-                setCategoryId(0);
+                const cats = next === 0 ? expenseCategories : incomeCategories;
+                setCategoryId(cats[0]?.id ?? 0);
               }}
             >
               <SelectTrigger>

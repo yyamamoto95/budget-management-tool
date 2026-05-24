@@ -51,19 +51,39 @@ model UserList {
   @@map("user_list")
 }
 
+// カテゴリマスター（balanceType: 0=支出, 1=収入）
+model CategoryList {
+  id           Int          @id @default(autoincrement())
+  key          String       @db.VarChar(50)
+  name         String       @db.VarChar(100)
+  color        String       @db.VarChar(7)
+  bg           String       @db.VarChar(7)
+  balanceType  Int          @map("balance_type")
+  displayOrder Int          @map("display_order")
+  isSystem     Boolean      @default(true) @map("is_system")
+  isDeleted    Boolean      @default(false) @map("is_deleted")
+  createdAt    DateTime     @default(now()) @db.DateTime(6) @map("created_at")
+  updatedAt    DateTime     @updatedAt @db.DateTime(6) @map("updated_at")
+  budgets      BudgetList[]
+
+  @@unique([key, balanceType], name: "category_list_key_balance_type_key")
+  @@map("category_list")
+}
+
 // 支出・収入レコード（balanceType: 0=支出, 1=収入）
 model BudgetList {
-  id          String    @id @db.VarChar(255)
+  id          String       @id @db.VarChar(255)
   amount      Int
-  balanceType Int       @map("balanceType")
-  userId      String    @db.VarChar(255) @map("userId")
-  categoryId  Int       @default(1) @map("categoryId")
-  content     String?   @db.VarChar(255)
-  date        String    @db.VarChar(255)
-  createdDate DateTime  @default(now()) @db.DateTime(6) @map("createdDate")
-  updatedDate DateTime  @updatedAt @db.DateTime(6) @map("updatedDate")
-  deletedDate DateTime? @db.DateTime(6) @map("deletedDate")
-  user        UserList  @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  balanceType Int          @map("balanceType")
+  userId      String       @db.VarChar(255) @map("userId")
+  categoryId  Int          @default(1) @map("categoryId")
+  content     String?      @db.VarChar(255)
+  date        String       @db.VarChar(255)
+  createdDate DateTime     @default(now()) @db.DateTime(6) @map("createdDate")
+  updatedDate DateTime     @updatedAt @db.DateTime(6) @map("updatedDate")
+  deletedDate DateTime?    @db.DateTime(6) @map("deletedDate")
+  user        UserList     @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  category    CategoryList @relation(fields: [categoryId], references: [id])
 
   @@map("budget_list")
 }

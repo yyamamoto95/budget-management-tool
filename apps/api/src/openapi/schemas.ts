@@ -502,3 +502,21 @@ export const UpsertUserSettingsBodySchema = z
             .openapi({ description: '初回設定完了フラグ', example: true }),
     })
     .openapi('UpsertUserSettingsBody');
+
+// ─── カテゴリ ─────────────────────────────────────────────────────
+
+export const CategoryItemSchema = z
+    .object({
+        id: z.number().int().openapi({ description: 'カテゴリID', example: 1 }),
+        key: z.string().openapi({ description: 'セマンティクキー', example: 'food' }),
+        name: z.string().openapi({ description: '表示名', example: '食費' }),
+        color: z.string().openapi({ description: 'アイコン/テキスト前景色', example: '#f18840' }),
+        bg: z.string().openapi({ description: 'バッジ/ボタン背景色', example: '#fef5ee' }),
+        balanceType: z
+            .union([z.literal(0), z.literal(1)])
+            .openapi({ description: '収支タイプ（0=支出, 1=収入）', example: 0 }),
+        displayOrder: z.number().int().openapi({ description: '表示順', example: 1 }),
+    })
+    .openapi('CategoryItem');
+
+export const CategoriesResponseSchema = z.array(CategoryItemSchema).openapi('CategoriesResponse');

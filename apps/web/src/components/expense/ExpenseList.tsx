@@ -2,15 +2,17 @@
 
 import { useState } from "react";
 import { deleteExpenseAction } from "@/lib/actions/expense";
-import type { ExpenseResponse } from "@/lib/api/types";
+import type { ExpenseResponse, CategoryItem } from "@/lib/api/types";
 import { Pencil, X } from "lucide-react";
 import { ExpenseEditModal } from "./ExpenseEditModal";
 
 type Props = {
   expenses: ExpenseResponse[];
+  expenseCategories: CategoryItem[];
+  incomeCategories: CategoryItem[];
 };
 
-export function ExpenseList({ expenses }: Props) {
+export function ExpenseList({ expenses, expenseCategories, incomeCategories }: Props) {
   const [editTarget, setEditTarget] = useState<ExpenseResponse | null>(null);
 
   if (expenses.length === 0) {
@@ -81,6 +83,8 @@ export function ExpenseList({ expenses }: Props) {
         <ExpenseEditModal
           expense={editTarget}
           onClose={() => setEditTarget(null)}
+          expenseCategories={expenseCategories}
+          incomeCategories={incomeCategories}
         />
       )}
     </>

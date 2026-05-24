@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import * as React from 'react'
 import { ExpenseEditModal } from '../../components/expense/ExpenseEditModal'
-import type { ExpenseResponse } from '@/lib/api/types'
+import type { ExpenseResponse, CategoryItem } from '@/lib/api/types'
 
 // Server Action をモック
 vi.mock('@/lib/actions/expense', () => ({
@@ -17,6 +17,14 @@ vi.mock('react', async (importOriginal) => {
         useActionState: vi.fn(),
     }
 })
+
+const mockExpenseCategories: CategoryItem[] = [
+    { id: 1, key: 'food', name: '食費', color: '#f18840', bg: '#fef5ee', balanceType: 0, displayOrder: 1 },
+]
+
+const mockIncomeCategories: CategoryItem[] = [
+    { id: 1, key: 'salary', name: '給料', color: '#2dd4bf', bg: '#f0fdfa', balanceType: 1, displayOrder: 1 },
+]
 
 const mockExpense: ExpenseResponse = {
     id: 'expense-001',
@@ -35,6 +43,8 @@ describe('ExpenseEditModal', () => {
     const defaultProps = {
         expense: mockExpense,
         onClose: vi.fn(),
+        expenseCategories: mockExpenseCategories,
+        incomeCategories: mockIncomeCategories,
     }
 
     beforeEach(() => {

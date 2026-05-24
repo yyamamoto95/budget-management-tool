@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { calcDailyBudget } from "@budget/common";
 import { getExpenses } from "@/lib/api/expense";
 import { getSettings } from "@/lib/api/settings";
+import { getCategories } from "@/lib/api/category";
 import { ApiError } from "@/lib/api/client";
 import { AppShell } from "@/components/layout/AppShell";
 import { ExpenseCreateForm } from "@/components/expense/ExpenseCreateForm";
@@ -25,9 +26,11 @@ function computeTodayExpense(expenses: { balanceType: number; amount: number; da
 }
 
 async function DashboardContent({ userId }: { userId: string }) {
-  const [expensesResult, settingsResult] = await Promise.allSettled([
+  const [expensesResult, settingsResult, expenseCategories, incomeCategories] = await Promise.allSettled([
     getExpenses(),
     getSettings(),
+    getCategories(0),
+    getCategories(1),
   ]);
 
   // 認証エラーはログインページにリダイレクト
@@ -43,6 +46,9 @@ async function DashboardContent({ userId }: { userId: string }) {
   if (expensesResult.status === "rejected") throw expensesResult.reason;
 
   const expenses = expensesResult.value.expense ?? [];
+  const allExpenseCategories = expenseCategories.status === "fulfilled" ? expenseCategories.value : [];
+  const allIncomeCategories = incomeCategories.status === "fulfilled" ? incomeCategories.value : [];
+  const allCategories = [...allExpenseCategories, ...allIncomeCategories];
 
   // 設定取得失敗はデフォルト値で続行（マイグレーション未適用等でもホーム画面を表示する）
   const settingsData = settingsResult.status === "fulfilled" ? settingsResult.value : null;
@@ -95,8 +101,8 @@ async function DashboardContent({ userId }: { userId: string }) {
 
         {/* 右カラム（desktop）/ 後続カード（mobile） */}
         <div className="flex flex-col gap-4">
-          <ExpenseCreateForm userId={userId} />
-          <RecentExpenseList expenses={expenses} />
+          <ExpenseCreateForm userId={userId} expenseCategories={allExpenseCategories} incomeCategories={allIncomeCategories} />
+          <RecentExpenseList expenses={expenses} allCategories={allCategories} />
         </div>
       </div>
     </main>

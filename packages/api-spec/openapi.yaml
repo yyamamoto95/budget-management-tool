@@ -92,6 +92,55 @@ components:
         refreshToken:
           type: string
           example: eyJ...
+    CategoryItem:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: カテゴリID
+          example: 1
+        key:
+          type: string
+          description: セマンティクキー
+          example: food
+        name:
+          type: string
+          description: 表示名
+          example: 食費
+        color:
+          type: string
+          description: アイコン/テキスト前景色
+          example: "#f18840"
+        bg:
+          type: string
+          description: バッジ/ボタン背景色
+          example: "#fef5ee"
+        balanceType:
+          anyOf:
+            - type: number
+              enum:
+                - 0
+            - type: number
+              enum:
+                - 1
+          description: 収支タイプ（0=支出, 1=収入）
+          example: 0
+        displayOrder:
+          type: integer
+          description: 表示順
+          example: 1
+      required:
+        - id
+        - key
+        - name
+        - color
+        - bg
+        - balanceType
+        - displayOrder
+    CategoriesResponse:
+      type: array
+      items:
+        $ref: "#/components/schemas/CategoryItem"
     ExpenseResponse:
       type: object
       properties:
@@ -941,6 +990,46 @@ paths:
                 $ref: "#/components/schemas/LogoutResponse"
         "500":
           description: サーバーエラー
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/categories:
+    get:
+      tags:
+        - Categories
+      summary: カテゴリ一覧取得
+      security:
+        - bearerAuth: []
+      parameters:
+        - schema:
+            anyOf:
+              - type: string
+                enum:
+                  - "0"
+              - type: string
+                enum:
+                  - "1"
+            description: 収支タイプ（0=支出, 1=収入）
+            example: "0"
+          required: true
+          name: balanceType
+          in: query
+      responses:
+        "200":
+          description: カテゴリ一覧（displayOrder 昇順）
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CategoriesResponse"
+        "400":
+          description: バリデーションエラー
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: 未認証
           content:
             application/json:
               schema:

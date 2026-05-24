@@ -1,9 +1,8 @@
-import type { ExpenseResponse } from "@/lib/api/types";
-import type { Category } from "@budget/common";
-import { getCategoryById } from "@budget/common";
+import type { ExpenseResponse, CategoryItem } from "@/lib/api/types";
 
 type Props = {
   expenses: ExpenseResponse[];
+  allCategories: CategoryItem[];
 };
 
 /** 過去7日分のデータを集計する */
@@ -161,7 +160,7 @@ function LineChart({
 }
 
 /** 直近の支出リスト（グラフ下部） */
-function RecentList({ expenses }: { expenses: ExpenseResponse[] }) {
+function RecentList({ expenses, allCategories }: { expenses: ExpenseResponse[]; allCategories: CategoryItem[] }) {
   const recent = [...expenses]
     .sort((a, b) => b.date.localeCompare(a.date))
     .slice(0, 5);
@@ -171,9 +170,8 @@ function RecentList({ expenses }: { expenses: ExpenseResponse[] }) {
   return (
     <ul className="mt-2 divide-y divide-[#e8c8b0]">
       {recent.map((expense) => {
-        const category: Category | undefined = getCategoryById(
-          expense.balanceType,
-          expense.categoryId,
+        const category = allCategories.find(
+          (c) => c.balanceType === expense.balanceType && c.id === expense.categoryId,
         );
         const isOutgo = expense.balanceType === 0;
 
@@ -210,7 +208,7 @@ function RecentList({ expenses }: { expenses: ExpenseResponse[] }) {
 }
 
 /** 直近のレポートカード（グラフ + リスト） */
-export function RecentGraph({ expenses }: Props) {
+export function RecentGraph({ expenses, allCategories }: Props) {
   const data = buildGraphData(expenses);
 
   return (
@@ -244,7 +242,7 @@ export function RecentGraph({ expenses }: Props) {
       <LineChart data={data} />
 
       {/* 直近リスト */}
-      <RecentList expenses={expenses} />
+      <RecentList expenses={expenses} allCategories={allCategories} />
     </section>
   );
 }

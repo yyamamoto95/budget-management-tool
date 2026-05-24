@@ -7,12 +7,15 @@ import { useState } from "react";
 import { NAV_ITEMS } from "./navItems";
 import type { NavItem } from "./navItems";
 import { QuickEntryDrawer } from "@/components/expense/QuickEntryDrawer";
+import type { CategoryItem } from "@/lib/api/types";
 
 type Props = {
   userId?: string;
+  expenseCategories: CategoryItem[];
+  incomeCategories: CategoryItem[];
 };
 
-export function BottomNav({ userId }: Props) {
+export function BottomNav({ userId, expenseCategories, incomeCategories }: Props) {
   const pathname = usePathname();
   const [drawerOpen, setDrawerOpen] = useState(false);
 
@@ -29,6 +32,8 @@ export function BottomNav({ userId }: Props) {
         userId={userId ?? ""}
         open={drawerOpen}
         onOpenChange={setDrawerOpen}
+        expenseCategories={expenseCategories}
+        incomeCategories={incomeCategories}
       />
 
       {/* ボトムナビゲーションバー（モバイルのみ表示） */}

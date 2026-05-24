@@ -1,14 +1,14 @@
-import type { ExpenseResponse } from "@/lib/api/types";
-import { getCategoryById } from "@budget/common";
+import type { ExpenseResponse, CategoryItem } from "@/lib/api/types";
 
 type Props = {
   expenses: ExpenseResponse[];
+  allCategories: CategoryItem[];
 };
 
 const MAX_RECORDS = 5;
 
 /** 最近の記録5件を新しい順に表示するリスト */
-export function RecentExpenseList({ expenses }: Props) {
+export function RecentExpenseList({ expenses, allCategories }: Props) {
   const recent = [...expenses]
     .sort((a, b) => {
       if (b.date !== a.date) return b.date.localeCompare(a.date);
@@ -31,9 +31,8 @@ export function RecentExpenseList({ expenses }: Props) {
       ) : (
         <ul className="flex flex-col divide-y divide-[#e8c8b0]">
           {recent.map((expense) => {
-            const category = getCategoryById(
-              expense.balanceType,
-              expense.categoryId,
+            const category = allCategories.find(
+              (c) => c.balanceType === expense.balanceType && c.id === expense.categoryId,
             );
             const isOutgo = expense.balanceType === 0;
             return (

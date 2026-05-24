@@ -21,6 +21,8 @@ export type {
     CategoryAnalysis,
     UserSettingsResponse,
     UpsertUserSettingsBody,
+    CategoryItem,
+    CategoriesResponse,
 } from "@budget/api-client";
 
 /** 収支区分: 0=支出, 1=収入 */
