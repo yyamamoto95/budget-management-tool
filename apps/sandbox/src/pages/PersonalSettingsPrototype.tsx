@@ -27,6 +27,7 @@ const SPRING = {
 } as const
 
 import { D } from '../components/SandboxCard'
+import { SandboxButton } from '../components/SandboxButton'
 
 // ─── State ───────────────────────────────────────────────────────────────────
 const INITIAL_STATE = {
@@ -865,17 +866,9 @@ export function PersonalSettingsPrototype() {
             </div>
 
             {/* 保存 */}
-            <motion.button type="button"
-              className="w-full py-4 rounded-md text-sm font-extrabold text-white"
-              style={{ background: D.brand, boxShadow: `0 4px 20px ${D.brand}40` }}
-              whileTap={{ scale: 0.97 }}
-              onClick={handleSave}
-              transition={SPRING.SNAP}
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-            >
+            <SandboxButton onClick={handleSave}>
               設定を保存する
-            </motion.button>
+            </SandboxButton>
               </>
             )}
           </div>

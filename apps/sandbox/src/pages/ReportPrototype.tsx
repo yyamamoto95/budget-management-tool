@@ -4,13 +4,13 @@
  * 責務: 収支サマリー + カテゴリ別分析のみ。記録一覧なし。
  */
 
-import { Link } from 'react-router-dom'
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowRight } from 'lucide-react'
 import { EXPENSE_CATEGORY_TOKENS as ET } from '../tokens/categoryTokens'
 import { D } from '../components/SandboxCard'
 import { SandboxLayout } from '../components/SandboxLayout'
+import { SandboxLinkButton } from '../components/SandboxButton'
 
 const SPRING = {
   SNAP:   { type: 'spring', stiffness: 600, damping: 35 },
@@ -259,18 +259,10 @@ export function ReportPrototype() {
             </div>
 
             {/* ── フッター: 明細へのリンク ─────────────────────────────────── */}
-            <Link to="/records"
-              className="flex items-center justify-center gap-2 rounded-md py-3.5 text-[13px] font-bold"
-              style={{
-                background:     D.brandLight,
-                border:         `1.5px solid rgba(241,136,64,0.24)`,
-                color:          D.brand,
-                textDecoration: 'none',
-              }}
-            >
+            <SandboxLinkButton to="/records" variant="ghost">
               詳細な記録を見る
               <ArrowRight size={14} />
-            </Link>
+            </SandboxLinkButton>
 
           </motion.div>
         </AnimatePresence>
