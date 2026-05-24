@@ -219,6 +219,9 @@ importers:
       date-fns:
         specifier: ^4.1.0
         version: 4.1.0
+      framer-motion:
+        specifier: ^12.38.0
+        version: 12.38.0(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       jose:
         specifier: ^6.2.2
         version: 6.2.2
@@ -227,7 +230,7 @@ importers:
         version: 1.8.0(react@19.2.4)
       next:
         specifier: 16.2.6
-        version: 16.2.6(@babel/core@7.29.0)(@playwright/test@1.59.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+        version: 16.2.6(@playwright/test@1.59.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       react:
         specifier: 19.2.4
         version: 19.2.4
@@ -267,7 +270,7 @@ importers:
         version: 10.3.6(@types/react@19.2.14)(esbuild@0.27.7)(storybook@10.3.6(@testing-library/dom@10.4.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(vite@8.0.11(@types/node@20.19.37)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3))
       '@storybook/nextjs-vite':
         specifier: ^10.3.6
-        version: 10.3.6(@babel/core@7.29.0)(esbuild@0.27.7)(next@16.2.6(@babel/core@7.29.0)(@playwright/test@1.59.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(storybook@10.3.6(@testing-library/dom@10.4.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(typescript@5.9.3)(vite@8.0.11(@types/node@20.19.37)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3))
+        version: 10.3.6(esbuild@0.27.7)(next@16.2.6(@playwright/test@1.59.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(storybook@10.3.6(@testing-library/dom@10.4.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(typescript@5.9.3)(vite@8.0.11(@types/node@20.19.37)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3))
       '@tailwindcss/postcss':
         specifier: ^4
         version: 4.2.2
@@ -6905,19 +6908,22 @@ packages:
 
   uuid@3.4.0:
     resolution: {integrity: sha512-HjSDRw6gZE5JMggctHBcjVak08+KEVhSIiDzFnT9S9aegmp85S/bReBVTb4QTFaRNptJ9kuYaNhnbNEOkbKb/A==}
-    deprecated: Please upgrade  to version 7 or higher.  Older versions may use Math.random() in certain circumstances, which is known to be problematic.  See https://v8.dev/blog/math-random for details.
+    deprecated: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
     hasBin: true
 
   uuid@8.3.2:
     resolution: {integrity: sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg==}
+    deprecated: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
     hasBin: true
 
   uuid@9.0.0:
     resolution: {integrity: sha512-MXcSTerfPa4uqyzStbRoTgt5XIe3x5+42+q1sDuy3R5MDk66URdLMOZe5aPX/SQd+kuYAh0FdP/pO28IkQyTeg==}
+    deprecated: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
     hasBin: true
 
   uuid@9.0.1:
     resolution: {integrity: sha512-b+1eJOlsR9K8HJpow9Ok3fiWOWSIcIzXodvv0rQjVoOVNpWMpxf1wZNpt4y9h10odCNrqnYp1OBzRktckBe3sA==}
+    deprecated: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
     hasBin: true
 
   validate-npm-package-license@3.0.4:
@@ -9887,18 +9893,18 @@ snapshots:
       react: 19.2.4
       react-dom: 19.2.4(react@19.2.4)
 
-  '@storybook/nextjs-vite@10.3.6(@babel/core@7.29.0)(esbuild@0.27.7)(next@16.2.6(@babel/core@7.29.0)(@playwright/test@1.59.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(storybook@10.3.6(@testing-library/dom@10.4.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(typescript@5.9.3)(vite@8.0.11(@types/node@20.19.37)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3))':
+  '@storybook/nextjs-vite@10.3.6(esbuild@0.27.7)(next@16.2.6(@playwright/test@1.59.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(storybook@10.3.6(@testing-library/dom@10.4.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(typescript@5.9.3)(vite@8.0.11(@types/node@20.19.37)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3))':
     dependencies:
       '@storybook/builder-vite': 10.3.6(esbuild@0.27.7)(storybook@10.3.6(@testing-library/dom@10.4.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(vite@8.0.11(@types/node@20.19.37)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3))
       '@storybook/react': 10.3.6(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(storybook@10.3.6(@testing-library/dom@10.4.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(typescript@5.9.3)
       '@storybook/react-vite': 10.3.6(esbuild@0.27.7)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(storybook@10.3.6(@testing-library/dom@10.4.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(typescript@5.9.3)(vite@8.0.11(@types/node@20.19.37)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3))
-      next: 16.2.6(@babel/core@7.29.0)(@playwright/test@1.59.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      next: 16.2.6(@playwright/test@1.59.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       react: 19.2.4
       react-dom: 19.2.4(react@19.2.4)
       storybook: 10.3.6(@testing-library/dom@10.4.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
-      styled-jsx: 5.1.6(@babel/core@7.29.0)(react@19.2.4)
+      styled-jsx: 5.1.6(react@19.2.4)
       vite: 8.0.11(@types/node@20.19.37)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3)
-      vite-plugin-storybook-nextjs: 3.2.4(next@16.2.6(@babel/core@7.29.0)(@playwright/test@1.59.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(storybook@10.3.6(@testing-library/dom@10.4.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(typescript@5.9.3)(vite@8.0.11(@types/node@20.19.37)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3))
+      vite-plugin-storybook-nextjs: 3.2.4(next@16.2.6(@playwright/test@1.59.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(storybook@10.3.6(@testing-library/dom@10.4.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(typescript@5.9.3)(vite@8.0.11(@types/node@20.19.37)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3))
     optionalDependencies:
       typescript: 5.9.3
     transitivePeerDependencies:
@@ -13168,7 +13174,7 @@ snapshots:
 
   new-github-issue-url@0.2.1: {}
 
-  next@16.2.6(@babel/core@7.29.0)(@playwright/test@1.59.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4):
+  next@16.2.6(@playwright/test@1.59.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4):
     dependencies:
       '@next/env': 16.2.6
       '@swc/helpers': 0.5.15
@@ -13177,7 +13183,7 @@ snapshots:
       postcss: 8.5.15
       react: 19.2.4
       react-dom: 19.2.4(react@19.2.4)
-      styled-jsx: 5.1.6(@babel/core@7.29.0)(react@19.2.4)
+      styled-jsx: 5.1.6(react@19.2.4)
     optionalDependencies:
       '@next/swc-darwin-arm64': 16.2.6
       '@next/swc-darwin-x64': 16.2.6
@@ -14311,12 +14317,10 @@ snapshots:
 
   stubs@3.0.0: {}
 
-  styled-jsx@5.1.6(@babel/core@7.29.0)(react@19.2.4):
+  styled-jsx@5.1.6(react@19.2.4):
     dependencies:
       client-only: 0.0.1
       react: 19.2.4
-    optionalDependencies:
-      '@babel/core': 7.29.0
 
   supports-color@10.2.2: {}
 
@@ -14727,13 +14731,13 @@ snapshots:
       - '@types/react'
       - '@types/react-dom'
 
-  vite-plugin-storybook-nextjs@3.2.4(next@16.2.6(@babel/core@7.29.0)(@playwright/test@1.59.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(storybook@10.3.6(@testing-library/dom@10.4.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(typescript@5.9.3)(vite@8.0.11(@types/node@20.19.37)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3)):
+  vite-plugin-storybook-nextjs@3.2.4(next@16.2.6(@playwright/test@1.59.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(storybook@10.3.6(@testing-library/dom@10.4.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(typescript@5.9.3)(vite@8.0.11(@types/node@20.19.37)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3)):
     dependencies:
       '@next/env': 16.0.0
       image-size: 2.0.2
       magic-string: 0.30.21
       module-alias: 2.3.4
-      next: 16.2.6(@babel/core@7.29.0)(@playwright/test@1.59.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      next: 16.2.6(@playwright/test@1.59.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       storybook: 10.3.6(@testing-library/dom@10.4.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       ts-dedent: 2.2.0
       vite: 8.0.11(@types/node@20.19.37)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3)

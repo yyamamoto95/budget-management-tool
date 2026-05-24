@@ -30,6 +30,7 @@ Table category_list {
 
   indexes {
     (key, balanceType) [unique]
+    (balanceType, displayOrder) [unique]
   }
 }
 
@@ -38,7 +39,7 @@ Table budget_list {
   amount Int [not null]
   balanceType Int [not null]
   userId String [not null]
-  categoryId Int [not null, default: 1]
+  categoryId Int [not null]
   content String
   date String [not null]
   createdDate DateTime [default: `now()`, not null]

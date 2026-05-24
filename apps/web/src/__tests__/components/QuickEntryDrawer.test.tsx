@@ -8,6 +8,15 @@ vi.mock("@/lib/actions/expense", () => ({
   createExpenseAction: vi.fn().mockResolvedValue({ error: null, success: false }),
 }));
 
+// AnimatePresence mode="wait" はジョムで exit アニメーションが完了しないためモックする
+vi.mock("framer-motion", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("framer-motion")>();
+  return {
+    ...actual,
+    AnimatePresence: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  };
+});
+
 // useActionState のモック
 vi.mock("react", async (importOriginal) => {
   const actual = await importOriginal<typeof import("react")>();
