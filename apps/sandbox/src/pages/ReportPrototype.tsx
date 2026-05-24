@@ -138,8 +138,8 @@ export function ReportPrototype() {
               <div className="mb-1">
                 <div className="text-[11px] font-bold mb-1" style={{ color: D.muted }}>支出合計</div>
                 <motion.div
-                  className="text-[44px] font-extrabold tabular-nums leading-none"
                   style={{ color: D.text }}
+                  className="text-[44px] font-extrabold tabular-nums leading-none"
                   initial={{ scale: 0.94, opacity: 0.6 }}
                   animate={{ scale: 1,    opacity: 1   }}
                   transition={SPRING.QUICK}
