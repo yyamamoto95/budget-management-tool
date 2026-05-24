@@ -67,16 +67,16 @@ export function QuickEntryDrawer({
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
       <DrawerContent
-        className="rounded-t-3xl border-0 bg-[#fffdf5] outline-none"
-        style={{ boxShadow: "0 -4px 32px rgba(28,20,16,0.16)" }}
+        className="flex flex-col rounded-t-3xl border-0 bg-[#fffdf5] outline-none"
+        style={{ boxShadow: "0 -4px 32px rgba(28,20,16,0.16)", maxHeight: "92dvh" }}
         aria-describedby={undefined}
       >
-        <DrawerTitle className="px-5 pb-1 pt-2 text-sm font-extrabold text-[#1c1410]">
+        <DrawerTitle className="shrink-0 px-5 pb-1 pt-2 text-sm font-extrabold text-[#1c1410]">
           クイック記録
         </DrawerTitle>
 
-        <form action={formAction} className="flex flex-col gap-4 overflow-y-auto px-5 pb-10 pt-2"
-          style={{ maxHeight: "calc(94dvh - 48px)" }}
+        <form action={formAction} className="min-h-0 flex-1 overflow-y-auto"
+          style={{ padding: "0.5rem 1.25rem calc(2.5rem + env(safe-area-inset-bottom, 0px))", display: "flex", flexDirection: "column", gap: "1rem" }}
         >
           <input type="hidden" name="userId" value={userId} />
           <input type="hidden" name="balanceType" value={balanceType} />
