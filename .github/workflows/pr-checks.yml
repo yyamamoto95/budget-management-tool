@@ -14,6 +14,7 @@
 #
 # ブランチ保護設定（GitHub Settings > Branches > main）:
 #   Require status checks to pass before merging に以下を登録すること:
+#   - Test Plan Check
 #   - Issue Link Check
 #   - Lint & Type Check
 #   - Next.js Build
@@ -35,6 +36,41 @@ permissions:
   pull-requests: read
 
 jobs:
+  # ─── テストプランチェック ──────────────────────────────────────────────────
+  # PR body の "Test plan" セクション内に未チェック項目（- [ ]）が残っている場合に失敗する。
+  # 全チェックボックスを確認済みにしてからマージすることを強制するガードレール。
+  test-plan-check:
+    name: Test Plan Check
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    steps:
+      - name: Check all test plan items are checked
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          # "Test plan" セクション以降を抽出（大文字小文字を問わない）
+          TEST_PLAN_SECTION=$(echo "${PR_BODY}" | grep -A 9999 -i '## test plan' || true)
+
+          if [ -z "${TEST_PLAN_SECTION}" ]; then
+            echo "⚠️  PR の本文に '## Test plan' セクションが見つかりません。"
+            echo "   テストプランを追加するか、テスト不要な場合は '## Test plan' セクションにその理由を記載してください。"
+            exit 1
+          fi
+
+          # 未チェックのチェックボックス（- [ ]）をカウント
+          UNCHECKED=$(echo "${TEST_PLAN_SECTION}" | grep -c '^\s*- \[ \]' || true)
+
+          if [ "${UNCHECKED}" -gt 0 ]; then
+            echo "❌ Test plan に未確認の項目が ${UNCHECKED} 件残っています。"
+            echo ""
+            echo "   以下の項目を確認し、チェックを付けてからマージしてください:"
+            echo "${TEST_PLAN_SECTION}" | grep '^\s*- \[ \]'
+            exit 1
+          fi
+
+          echo "✅ Test plan のすべての項目が確認済みです。"
+
   # ─── Issue リンクチェック ───────────────────────────────────────────────────
   # PR body に "Closes #NNN" / "Fixes #NNN" / "Resolves #NNN" が含まれない場合に失敗する。
   # 古い Issue を放置しないための最低限の強制ガードレール。
