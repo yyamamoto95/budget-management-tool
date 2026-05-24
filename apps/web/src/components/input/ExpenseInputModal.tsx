@@ -36,6 +36,7 @@ const INCOME_CATS: Cat[] = [
 ];
 
 const VISIBLE_COUNT = 4;
+const MAX_AMOUNT = 9_999_999;
 const today = () => new Date().toISOString().slice(0, 10);
 const INITIAL_STATE: ExpenseActionState = { error: null, success: false };
 
@@ -52,6 +53,7 @@ export function ExpenseInputModal({ userId, minutesPerYen, onClose }: Props) {
   const [memo, setMemo] = useState("");
   const [showAll, setShowAll] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   const cats = balanceType === 0 ? EXPENSE_CATS : INCOME_CATS;
@@ -72,7 +74,7 @@ export function ExpenseInputModal({ userId, minutesPerYen, onClose }: Props) {
     setAmountStr((prev) => {
       if (prev === "" && (k === "0" || k === "000")) return prev;
       const next = prev + k;
-      if (Number(next) > 9_999_999) return prev;
+      if (Number(next) > MAX_AMOUNT) return prev;
       return next;
     });
   }
@@ -94,13 +96,18 @@ export function ExpenseInputModal({ userId, minutesPerYen, onClose }: Props) {
     fd.append("date", today());
     if (memo) fd.append("memo", memo);
 
+    setActionError(null);
     startTransition(async () => {
-      await createExpenseAction(INITIAL_STATE, fd);
-      setSubmitted(true);
-      setTimeout(() => {
-        setSubmitted(false);
-        onClose();
-      }, 800);
+      const result = await createExpenseAction(INITIAL_STATE, fd);
+      if (result.success) {
+        setSubmitted(true);
+        setTimeout(() => {
+          setSubmitted(false);
+          onClose();
+        }, 800);
+      } else {
+        setActionError(result.error ?? "登録に失敗しました");
+      }
     });
   }
 
@@ -417,6 +424,13 @@ export function ExpenseInputModal({ userId, minutesPerYen, onClose }: Props) {
                 aria-label="メモ"
               />
             </div>
+
+            {/* エラー表示 */}
+            {actionError && (
+              <p className="rounded-xl border border-[#f87171]/40 bg-[#fee2e2] px-3 py-2 text-xs font-medium text-[#1c1410]">
+                {actionError}
+              </p>
+            )}
 
             {/* 記録ボタン */}
             <AnimatePresence mode="wait">

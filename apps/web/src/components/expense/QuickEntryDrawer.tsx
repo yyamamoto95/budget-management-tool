@@ -21,6 +21,7 @@ type Props = {
 };
 
 const VISIBLE_COUNT = 4;
+const MAX_AMOUNT = 9_999_999;
 const initialState: ExpenseActionState = { error: null, success: false };
 
 export function QuickEntryDrawer({
@@ -35,12 +36,12 @@ export function QuickEntryDrawer({
   const [amountStr, setAmountStr] = useState("");
   const [showAll, setShowAll] = useState(false);
   const [memo, setMemo] = useState("");
+  const [date] = useState<string>(() => new Date().toISOString().slice(0, 10));
   const [state, formAction, isPending] = useActionState(createExpenseAction, initialState);
 
   const categories = balanceType === 0 ? expenseCategories : incomeCategories;
   const visible = showAll ? categories : categories.slice(0, VISIBLE_COUNT);
   const rest = categories.slice(VISIBLE_COUNT);
-  const today = new Date().toISOString().split("T")[0];
   const brandColor = balanceType === 0 ? "#e07236" : "#27a08f";
 
   function handleTypeChange(type: 0 | 1) {
@@ -58,7 +59,7 @@ export function QuickEntryDrawer({
     setAmountStr((prev) => {
       if (prev === "" && (k === "0" || k === "000")) return prev;
       const next = prev + k;
-      if (Number(next) > 9_999_999) return prev;
+      if (Number(next) > MAX_AMOUNT) return prev;
       return next;
     });
   }
@@ -79,7 +80,7 @@ export function QuickEntryDrawer({
         >
           <input type="hidden" name="userId" value={userId} />
           <input type="hidden" name="balanceType" value={balanceType} />
-          <input type="hidden" name="date" value={today} />
+          <input type="hidden" name="date" value={date} />
           <input type="hidden" name="categoryId" value={categoryId} />
           <input type="hidden" name="amount" value={amountStr || "0"} />
           {memo && <input type="hidden" name="memo" value={memo} />}
@@ -332,7 +333,7 @@ export function QuickEntryDrawer({
           {/* 記録する */}
           <button
             type="submit"
-            disabled={isPending}
+            disabled={isPending || !amountStr}
             className="flex w-full items-center justify-center gap-2 rounded-2xl py-4 text-base font-extrabold text-white transition-all active:scale-95 disabled:opacity-40"
             style={{ background: "var(--color-brand-primary)" }}
           >
