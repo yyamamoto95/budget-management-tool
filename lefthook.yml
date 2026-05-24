@@ -53,13 +53,19 @@ pre-commit:
         if [ "${SCHEMA_STAGED}" -gt 0 ] && [ "${MIGRATION_STAGED}" -eq 0 ]; then
           echo "エラー: schema.prisma が変更されていますが、マイグレーションファイルが追加されていません。"
           echo ""
-          echo "以下を実行してマイグレーションを作成してコミットに含めてください:"
-          echo "  cd apps/api && npx prisma migrate dev --name <変更内容の説明>"
+          echo "以下の手順でマイグレーションを作成・適用してからコミットしてください:"
+          echo "  # 1. マイグレーションファイルを生成（DB には触れない）"
+          echo "  pnpm db:migrate:create --name <変更内容の説明>"
           echo ""
-          echo "注意: prisma db push はテスト用途のみ。本番 DB は migrate deploy を使用します。"
+          echo "  # 2. 生成された SQL を確認・必要に応じて編集"
+          echo ""
+          echo "  # 3. ローカル DB に適用（本番と同じコマンド。データは消えない）"
+          echo "  pnpm db:migrate:deploy"
+          echo ""
+          echo "注意: prisma db push はテスト用途のみ。migrate dev は DB をリセットする場合があるため使用禁止。"
           exit 1
         fi
-      fail_text: "schema.prisma の変更にはマイグレーションファイルが必要です。`cd apps/api && npx prisma migrate dev --name <説明>` を実行してください。"
+      fail_text: "schema.prisma の変更にはマイグレーションファイルが必要です。`pnpm db:migrate:create --name <説明>` でファイルを生成し、`pnpm db:migrate:deploy` で適用してください。"
 
     # 7. ユニット・コンポーネントテスト（DB 不要・高速）
     #    common / api / web の全ユニットテストを実行する

@@ -373,9 +373,11 @@ export class ExpenseAggregator {
 |--------|-----|------|
 | `display_order` | `Int` | FE の選択 UI での表示順。小さいほど先頭。重複は禁止。 |
 | `is_deleted` | `Boolean @default(false)` | 論理削除フラグ。レコードを物理削除せずに非活性化する。 |
+| `deleted_at` | `DateTime? @map("deleted_at")` | 論理削除日時。`is_deleted = true` にした時点の UTC 日時を記録する。未削除時は `NULL`。 |
 
 **論理削除の運用ルール:**
-- 廃止するレコードは `is_deleted = true` に更新する（物理削除禁止）
+- 廃止するレコードは `is_deleted = true` かつ `deleted_at = 現在UTC日時` に更新する（物理削除禁止）
+- `is_deleted` を `false` に戻す場合は `deleted_at = NULL` にリセットする
 - リポジトリ層のデフォルトクエリは `is_deleted = false` のみを返す
 - API レスポンスには論理削除済みレコードを含めない（廃止済み選択肢をユーザーに見せない）
 - 既存データが廃止済みカテゴリを参照している場合でも、そのレコード自体は削除しない
@@ -387,9 +389,10 @@ export class ExpenseAggregator {
 ```prisma
 // マスターテーブルの例
 model CategoryList {
-  id           Int      @id @default(autoincrement())
-  displayOrder Int      @map("display_order")   // 必須
-  isDeleted    Boolean  @default(false) @map("is_deleted")  // 必須
+  id           Int       @id @default(autoincrement())
+  displayOrder Int       @map("display_order")                        // 必須
+  isDeleted    Boolean   @default(false) @map("is_deleted")           // 必須
+  deletedAt    DateTime? @map("deleted_at")                           // 必須: 論理削除日時（未削除時は NULL）
   // ...その他のフィールド
 }
 ```
