@@ -44,7 +44,7 @@ const prototypes: PrototypeCard[] = [
     status: 'wip',
   },
   {
-    path: '/meisai',
+    path: '/records',
     title: '明細',
     description: '全記録の閲覧・検索。リスト表示 ⇄ カレンダー表示。期間フィルタ（全期間/今月/先月/直近7日）。',
     icon: Receipt,

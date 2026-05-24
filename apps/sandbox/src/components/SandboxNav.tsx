@@ -15,7 +15,7 @@ const PAGES: { path: string; label: string }[] = [
   { path: '/category-ab',              label: '支出カテゴリ TOP A/B' },
   { path: '/personal-settings',        label: '個人設定 — 現行' },
   { path: '/settings-wizard',          label: '個人設定 B — ウィザード' },
-  { path: '/meisai',                   label: '明細' },
+  { path: '/records',                  label: '明細' },
   { path: '/report',                   label: 'レポート' },
   { path: '/status-color-palette',     label: 'ステータスカラー' },
   { path: '/savings-forecast-palette', label: '貯蓄予測カラー' },

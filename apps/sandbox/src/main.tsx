@@ -27,7 +27,7 @@ createRoot(document.getElementById('root')!).render(
         <Route path="/personal-settings"   element={<PersonalSettingsPrototype />} />
         <Route path="/settings-wizard"     element={<PersonalSettingsBPrototype />} />
         <Route path="/my-page" element={<MyPagePrototype />} />
-        <Route path="/meisai"              element={<MeisaiPrototype />} />
+        <Route path="/records"             element={<MeisaiPrototype />} />
         <Route path="/report"              element={<ReportPrototype />} />
         <Route path="/status-color-palette" element={<StatusColorPalettePrototype />} />
         <Route path="/savings-forecast-palette" element={<SavingsForecastPalettePrototype />} />
