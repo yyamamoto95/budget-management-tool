@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import * as React from 'react'
 import { ExpenseCreateForm } from '../../components/expense/ExpenseCreateForm'
+import type { CategoryItem } from '@/lib/api/types'
 
 // Server Actionをモック
 vi.mock('@/lib/actions/expense', () => ({
@@ -17,6 +18,20 @@ vi.mock('react', async (importOriginal) => {
     }
 })
 
+const mockExpenseCategories: CategoryItem[] = [
+    { id: 1, key: 'food', name: '食費', color: '#f18840', bg: '#fef5ee', balanceType: 0, displayOrder: 1 },
+    { id: 2, key: 'daily', name: '日用品', color: '#a78bfa', bg: '#f5f3ff', balanceType: 0, displayOrder: 2 },
+]
+
+const mockIncomeCategories: CategoryItem[] = [
+    { id: 17, key: 'salary', name: '給料', color: '#2dd4bf', bg: '#f0fdfa', balanceType: 1, displayOrder: 1 },
+]
+
+const defaultCategoryProps = {
+    expenseCategories: mockExpenseCategories,
+    incomeCategories: mockIncomeCategories,
+}
+
 describe('ExpenseCreateForm', () => {
     beforeEach(() => {
         vi.clearAllMocks()
@@ -29,7 +44,7 @@ describe('ExpenseCreateForm', () => {
             false,
         ] as unknown as ReturnType<typeof React.useActionState>)
 
-        render(<ExpenseCreateForm userId="user-1" />)
+        render(<ExpenseCreateForm userId="user-1" {...defaultCategoryProps} />)
 
         expect(screen.getByLabelText('金額（円）')).toBeInTheDocument()
         expect(screen.getByLabelText('日付')).toBeInTheDocument()
@@ -44,7 +59,7 @@ describe('ExpenseCreateForm', () => {
             false,
         ] as unknown as ReturnType<typeof React.useActionState>)
 
-        render(<ExpenseCreateForm userId="user-1" />)
+        render(<ExpenseCreateForm userId="user-1" {...defaultCategoryProps} />)
 
         expect(screen.getByText('金額は1以上の値を入力してください')).toBeInTheDocument()
     })
@@ -56,7 +71,7 @@ describe('ExpenseCreateForm', () => {
             false,
         ] as unknown as ReturnType<typeof React.useActionState>)
 
-        render(<ExpenseCreateForm userId="user-1" />)
+        render(<ExpenseCreateForm userId="user-1" {...defaultCategoryProps} />)
 
         expect(screen.getByText('サーバーエラーが発生しました')).toBeInTheDocument()
     })
@@ -68,7 +83,7 @@ describe('ExpenseCreateForm', () => {
             false,
         ] as unknown as ReturnType<typeof React.useActionState>)
 
-        render(<ExpenseCreateForm userId="user-1" />)
+        render(<ExpenseCreateForm userId="user-1" {...defaultCategoryProps} />)
 
         expect(screen.getByText('登録しました')).toBeInTheDocument()
     })
@@ -80,7 +95,7 @@ describe('ExpenseCreateForm', () => {
             false,
         ] as unknown as ReturnType<typeof React.useActionState>)
 
-        render(<ExpenseCreateForm userId="user-1" defaultDate="2026-04-13" />)
+        render(<ExpenseCreateForm userId="user-1" defaultDate="2026-04-13" {...defaultCategoryProps} />)
 
         const dateInput = screen.getByLabelText('日付') as HTMLInputElement
         expect(dateInput.defaultValue).toBe('2026-04-13')
@@ -93,23 +108,23 @@ describe('ExpenseCreateForm', () => {
             true,
         ] as unknown as ReturnType<typeof React.useActionState>)
 
-        render(<ExpenseCreateForm userId="user-1" />)
+        render(<ExpenseCreateForm userId="user-1" {...defaultCategoryProps} />)
 
         const button = screen.getByRole('button', { name: '登録中...' })
         expect(button).toBeDisabled()
     })
 
-    it('初期表示: カテゴリが「未分類」（id=0）になっている', () => {
+    it('初期表示: 最初の支出カテゴリ（id=1）が選択されている', () => {
         vi.mocked(React.useActionState).mockReturnValue([
             { error: null, success: false },
             vi.fn(),
             false,
         ] as unknown as ReturnType<typeof React.useActionState>)
 
-        render(<ExpenseCreateForm userId="user-1" />)
+        render(<ExpenseCreateForm userId="user-1" {...defaultCategoryProps} />)
 
         const select = screen.getByLabelText('カテゴリ') as HTMLSelectElement
-        expect(select.value).toBe('0')
+        expect(select.value).toBe('1')
     })
 
     it('defaultBalanceType=1 のとき: 収入タブが初期選択される', () => {
@@ -119,7 +134,7 @@ describe('ExpenseCreateForm', () => {
             false,
         ] as unknown as ReturnType<typeof React.useActionState>)
 
-        render(<ExpenseCreateForm userId="user-1" defaultBalanceType={1} />)
+        render(<ExpenseCreateForm userId="user-1" defaultBalanceType={1} {...defaultCategoryProps} />)
 
         // 収入タブがアクティブ（style で判定）
         const incomeButton = screen.getByRole('button', { name: '収入' })
@@ -129,24 +144,24 @@ describe('ExpenseCreateForm', () => {
         expect(expenseButton).not.toHaveStyle({ color: '#fff' })
     })
 
-    it('支出→収入に切り替えたとき: カテゴリが「未分類」（id=0）にリセットされる', () => {
+    it('支出→収入に切り替えたとき: カテゴリが最初の収入カテゴリにリセットされる', () => {
         vi.mocked(React.useActionState).mockReturnValue([
             { error: null, success: false },
             vi.fn(),
             false,
         ] as unknown as ReturnType<typeof React.useActionState>)
 
-        render(<ExpenseCreateForm userId="user-1" />)
+        render(<ExpenseCreateForm userId="user-1" {...defaultCategoryProps} />)
 
-        // カテゴリを食費（id=1）に変更
+        // カテゴリを日用品（id=2）に変更
         const select = screen.getByLabelText('カテゴリ') as HTMLSelectElement
-        fireEvent.change(select, { target: { value: '1' } })
-        expect(select.value).toBe('1')
+        fireEvent.change(select, { target: { value: '2' } })
+        expect(select.value).toBe('2')
 
         // 収入タブに切り替え
         fireEvent.click(screen.getByRole('button', { name: '収入' }))
 
-        // カテゴリが id=0（未分類）にリセットされる
-        expect(select.value).toBe('0')
+        // カテゴリが最初の収入カテゴリ（id=17）にリセットされる
+        expect(select.value).toBe('17')
     })
 })

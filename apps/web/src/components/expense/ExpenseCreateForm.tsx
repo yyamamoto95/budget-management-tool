@@ -4,7 +4,7 @@ import { useActionState, useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { createExpenseAction } from "@/lib/actions/expense";
 import type { ExpenseActionState } from "@/lib/actions/expense";
-import { getCategoriesByType } from "@budget/common";
+import type { CategoryItem } from "@/lib/api/types";
 
 type Props = {
   /** ログイン中のユーザー ID */
@@ -13,6 +13,10 @@ type Props = {
   defaultDate?: string;
   /** 初期選択する収支種別（0=支出, 1=収入。省略時は0） */
   defaultBalanceType?: 0 | 1;
+  /** 支出カテゴリ一覧 */
+  expenseCategories: CategoryItem[];
+  /** 収入カテゴリ一覧 */
+  incomeCategories: CategoryItem[];
 };
 
 const initialState: ExpenseActionState = { error: null, success: false };
@@ -24,15 +28,15 @@ function FieldError({ messages }: { messages?: string[] }) {
   );
 }
 
-export function ExpenseCreateForm({ userId, defaultDate, defaultBalanceType = 0 }: Props) {
+export function ExpenseCreateForm({ userId, defaultDate, defaultBalanceType = 0, expenseCategories, incomeCategories }: Props) {
   const [balanceType, setBalanceType] = useState<0 | 1>(defaultBalanceType);
-  const [categoryId, setCategoryId] = useState<number>(0);
+  const [categoryId, setCategoryId] = useState<number>(expenseCategories[0]?.id ?? 0);
   const [noteOpen, setNoteOpen] = useState(false);
   const [state, formAction, isPending] = useActionState(
     createExpenseAction,
     initialState,
   );
-  const categories = getCategoriesByType(balanceType);
+  const categories = balanceType === 0 ? expenseCategories : incomeCategories;
 
   // 種別に応じたアクセントカラー
   const isExpense = balanceType === 0;
@@ -49,7 +53,7 @@ export function ExpenseCreateForm({ userId, defaultDate, defaultBalanceType = 0 
       <div className="flex">
         <button
           type="button"
-          onClick={() => { setBalanceType(0); setCategoryId(0); }}
+          onClick={() => { setBalanceType(0); setCategoryId(expenseCategories[0]?.id ?? 0); }}
           className="flex-1 py-3 text-sm font-bold transition-colors"
           style={
             balanceType === 0
@@ -61,7 +65,7 @@ export function ExpenseCreateForm({ userId, defaultDate, defaultBalanceType = 0 
         </button>
         <button
           type="button"
-          onClick={() => { setBalanceType(1); setCategoryId(0); }}
+          onClick={() => { setBalanceType(1); setCategoryId(incomeCategories[0]?.id ?? 0); }}
           className="flex-1 py-3 text-sm font-bold transition-colors"
           style={
             balanceType === 1
@@ -117,7 +121,7 @@ export function ExpenseCreateForm({ userId, defaultDate, defaultBalanceType = 0 
           >
             {categories.map((cat) => (
               <option key={cat.id} value={cat.id}>
-                {cat.name}{cat.badge ? ` [${cat.badge}]` : ''}
+                {cat.name}
               </option>
             ))}
           </select>

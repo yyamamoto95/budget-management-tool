@@ -69,3 +69,7 @@ export type CategoryAnalysis = components['schemas']['CategoryAnalysis'];
 // UserSettings 型
 export type UserSettingsResponse = components['schemas']['UserSettingsResponse'];
 export type UpsertUserSettingsBody = components['schemas']['UpsertUserSettingsBody'];
+
+// Category 型
+export type CategoryItem = components['schemas']['CategoryItem'];
+export type CategoriesResponse = components['schemas']['CategoriesResponse'];

@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { QuickEntryDrawer } from "@/components/expense/QuickEntryDrawer";
+import type { CategoryItem } from "@/lib/api/types";
 
 // vaul の Drawer はポータルを使うため、テスト環境では DOM への描画を確認する
 vi.mock("@/lib/actions/expense", () => ({
@@ -20,11 +21,21 @@ vi.mock("react", async (importOriginal) => {
   };
 });
 
+const mockExpenseCategories: CategoryItem[] = [
+  { id: 1, key: 'food', name: '食費', color: '#f18840', bg: '#fef5ee', balanceType: 0, displayOrder: 1 },
+];
+
+const mockIncomeCategories: CategoryItem[] = [
+  { id: 17, key: 'salary', name: '給料', color: '#2dd4bf', bg: '#f0fdfa', balanceType: 1, displayOrder: 1 },
+];
+
 describe("QuickEntryDrawer", () => {
   const defaultProps = {
     userId: "user-1",
     open: true,
     onOpenChange: vi.fn(),
+    expenseCategories: mockExpenseCategories,
+    incomeCategories: mockIncomeCategories,
   };
 
   beforeEach(() => {

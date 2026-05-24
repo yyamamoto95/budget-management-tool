@@ -7,6 +7,7 @@ import type { GetSecurityQuestionsUseCase } from './application/use-cases/auth/G
 import type { RegisterUserUseCase } from './application/use-cases/auth/RegisterUserUseCase';
 import type { ResetPasswordUseCase } from './application/use-cases/auth/ResetPasswordUseCase';
 import type { VerifyRecoveryAnswerUseCase } from './application/use-cases/auth/VerifyRecoveryAnswerUseCase';
+import type { GetCategoriesUseCase } from './application/use-cases/category/GetCategoriesUseCase';
 import type { CreateExpenseUseCase } from './application/use-cases/CreateExpenseUseCase';
 import type { ParseExpenseUseCase } from './application/use-cases/parse/ParseExpenseUseCase';
 import type { ExportUserDataUseCase } from './application/use-cases/export/ExportUserDataUseCase';
@@ -22,12 +23,14 @@ import type { UpsertUserSettingsUseCase } from './application/use-cases/settings
 import type { GetExpenditureAnalysisUseCase } from './application/use-cases/xday/GetExpenditureAnalysisUseCase';
 import type { GetXDayUseCase } from './application/use-cases/xday/GetXDayUseCase';
 import { buildServices } from './container';
+import type { ICategoryRepository } from './domain/repositories/ICategoryRepository';
 import type { IExpenseRepository } from './domain/repositories/IExpenseRepository';
 import type { IPasswordResetTokenRepository } from './domain/repositories/IPasswordResetTokenRepository';
 import type { IRefreshTokenRepository } from './domain/repositories/IRefreshTokenRepository';
 import type { IUserSettingsRepository } from './domain/repositories/IUserSettingsRepository';
 import type { ISecurityAnswerRepository } from './domain/repositories/ISecurityAnswerRepository';
 import type { IUserRepository } from './domain/repositories/IUserRepository';
+import { createCategoryRoutes } from './presentation/routes/category';
 import { createAuthRoutes } from './presentation/routes/auth';
 import { createSettingsRoutes } from './presentation/routes/settings';
 import { createBudgetRoutes } from './presentation/routes/budget';
@@ -41,6 +44,7 @@ import { DomainException } from './shared/errors/DomainException';
 export type AppDeps = {
     userRepository: IUserRepository;
     expenseRepository: IExpenseRepository;
+    categoryRepository: ICategoryRepository;
     refreshTokenRepository: IRefreshTokenRepository;
     securityAnswerRepository: ISecurityAnswerRepository;
     passwordResetTokenRepository: IPasswordResetTokenRepository;
@@ -57,6 +61,8 @@ export type RouteServices = {
     // UseCase 未抽出のルートが直接リポジトリを参照する箇所（暫定）
     userRepository: IUserRepository;
     expenseRepository: IExpenseRepository;
+    // Categories
+    getCategoriesUseCase: GetCategoriesUseCase;
     // Expense
     createExpenseUseCase: CreateExpenseUseCase;
     updateExpenseUseCase: UpdateExpenseUseCase;
@@ -116,6 +122,7 @@ export function createApp(deps: AppDeps) {
     app.get('/api/health', (c) => c.json({ status: 'ok' }));
 
     app.route('/api', createAuthRoutes(services));
+    app.route('/api', createCategoryRoutes(services));
     app.route('/api', createExpenseRoutes(services));
     app.route('/api', createBudgetRoutes(services));
     app.route('/api', createUserRoutes(services));

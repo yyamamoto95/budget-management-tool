@@ -4,12 +4,13 @@ import { useState } from "react";
 import { X, Pencil } from "lucide-react";
 import { deleteBudgetAction } from "@/lib/actions/budget";
 import { ExpenseEditModal } from "@/components/expense/ExpenseEditModal";
-import { getCategoryById } from "@budget/common";
 import type { BudgetResponse } from "@budget/api-client";
-import type { ExpenseResponse } from "@/lib/api/types";
+import type { ExpenseResponse, CategoryItem } from "@/lib/api/types";
 
 type Props = {
   item: BudgetResponse;
+  expenseCategories: CategoryItem[];
+  incomeCategories: CategoryItem[];
 };
 
 function toExpenseResponse(item: BudgetResponse): ExpenseResponse {
@@ -27,9 +28,12 @@ function toExpenseResponse(item: BudgetResponse): ExpenseResponse {
   };
 }
 
-export function ReportDetailItem({ item }: Props) {
+export function ReportDetailItem({ item, expenseCategories, incomeCategories }: Props) {
   const [editing, setEditing] = useState(false);
-  const category = getCategoryById(item.balanceType, item.categoryId);
+  const allCategories = [...expenseCategories, ...incomeCategories];
+  const category = allCategories.find(
+    (c) => c.balanceType === item.balanceType && c.id === item.categoryId,
+  );
   const isIncome = item.balanceType === 1;
   const deleteAction = deleteBudgetAction.bind(null, item.id);
 
@@ -86,6 +90,8 @@ export function ReportDetailItem({ item }: Props) {
         <ExpenseEditModal
           expense={toExpenseResponse(item)}
           onClose={() => setEditing(false)}
+          expenseCategories={expenseCategories}
+          incomeCategories={incomeCategories}
         />
       )}
     </>

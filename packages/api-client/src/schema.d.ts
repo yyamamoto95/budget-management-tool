@@ -253,6 +253,62 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/categories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** カテゴリ一覧取得 */
+        get: {
+            parameters: {
+                query: {
+                    balanceType: "0" | "1";
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description カテゴリ一覧（displayOrder 昇順） */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CategoriesResponse"];
+                    };
+                };
+                /** @description バリデーションエラー */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description 未認証 */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/expense": {
         parameters: {
             query?: never;
@@ -1565,6 +1621,44 @@ export interface components {
             /** @example eyJ... */
             refreshToken?: string;
         };
+        CategoryItem: {
+            /**
+             * @description カテゴリID
+             * @example 1
+             */
+            id: number;
+            /**
+             * @description セマンティクキー
+             * @example food
+             */
+            key: string;
+            /**
+             * @description 表示名
+             * @example 食費
+             */
+            name: string;
+            /**
+             * @description アイコン/テキスト前景色
+             * @example #f18840
+             */
+            color: string;
+            /**
+             * @description バッジ/ボタン背景色
+             * @example #fef5ee
+             */
+            bg: string;
+            /**
+             * @description 収支タイプ（0=支出, 1=収入）
+             * @example 0
+             */
+            balanceType: 0 | 1;
+            /**
+             * @description 表示順
+             * @example 1
+             */
+            displayOrder: number;
+        };
+        CategoriesResponse: components["schemas"]["CategoryItem"][];
         ExpenseResponse: {
             /**
              * @description Expense ID (ULID)

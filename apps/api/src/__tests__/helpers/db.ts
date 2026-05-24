@@ -28,6 +28,41 @@ export async function resetDatabase(): Promise<void> {
     await testPrisma.$executeRawUnsafe('TRUNCATE TABLE budget_list');
     await testPrisma.$executeRawUnsafe('TRUNCATE TABLE user_list');
     await testPrisma.$executeRawUnsafe('SET FOREIGN_KEY_CHECKS = 1');
+    // prisma db push は migration SQL を実行しないため、category_list を冪等にシードする
+    await ensureCategoryListSeeded();
+}
+
+// category_list のシードデータ（migration SQL と同期を保つこと）
+async function ensureCategoryListSeeded(): Promise<void> {
+    await testPrisma.$executeRawUnsafe(`
+        INSERT IGNORE INTO category_list
+            (id, \`key\`, name, color, bg, balance_type, display_order, is_system, is_deleted)
+        VALUES
+            (1,  'food',         '食費',       '#f18840', '#fef5ee', 0, 1,  true, false),
+            (2,  'dining',       '外食',       '#fb923c', '#fff4ee', 0, 2,  true, false),
+            (3,  'transport',    '交通費',     '#60a5fa', '#eff6ff', 0, 3,  true, false),
+            (4,  'daily',        '日用品',     '#38bdf8', '#f0f9ff', 0, 4,  true, false),
+            (5,  'utility',      '光熱費',     '#fbbf24', '#fffbeb', 0, 5,  true, false),
+            (6,  'telecom',      '通信費',     '#818cf8', '#eef2ff', 0, 6,  true, false),
+            (7,  'housing',      '住宅費',     '#d97706', '#fffbeb', 0, 7,  true, false),
+            (8,  'tax',          '税金',       '#64748b', '#f8fafc', 0, 8,  true, false),
+            (9,  'medical',      '医療費',     '#fb7185', '#fff1f2', 0, 9,  true, false),
+            (10, 'insurance',    '保険',       '#f472b6', '#fdf2f8', 0, 10, true, false),
+            (11, 'clothing',     '衣類',       '#a78bfa', '#f5f3ff', 0, 11, true, false),
+            (12, 'beauty',       '美容費',     '#e879f9', '#fdf4ff', 0, 12, true, false),
+            (13, 'leisure',      '趣味',       '#c084fc', '#faf5ff', 0, 13, true, false),
+            (14, 'education',    '教育費',     '#eab308', '#fefce8', 0, 14, true, false),
+            (15, 'other',        'その他',     '#94a3b8', '#f8fafc', 0, 15, true, false),
+            (16, 'unclassified', '未分類',     '#94a3b8', '#f1f5f9', 0, 16, true, false),
+            (17, 'salary',       '給料',       '#2dd4bf', '#f0fdfa', 1, 1,  true, false),
+            (18, 'bonus',        '賞与',       '#10b981', '#ecfdf5', 1, 2,  true, false),
+            (19, 'sideJob',      '副業',       '#22c55e', '#f0fdf4', 1, 3,  true, false),
+            (20, 'benefit',      '手当',       '#0ea5e9', '#f0f9ff', 1, 4,  true, false),
+            (21, 'pension',      '年金',       '#14b8a6', '#f0fdfa', 1, 5,  true, false),
+            (22, 'investment',   '投資・配当', '#34d399', '#ecfdf5', 1, 6,  true, false),
+            (23, 'other',        'その他',     '#94a3b8', '#f8fafc', 1, 7,  true, false),
+            (24, 'unclassified', '未分類',     '#94a3b8', '#f1f5f9', 1, 8,  true, false)
+    `);
 }
 
 // ------------------------------------------------------------------

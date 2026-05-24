@@ -3,9 +3,10 @@ import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { getExpenses } from "@/lib/api/expense";
+import { getCategories } from "@/lib/api/category";
 import { ApiError } from "@/lib/api/client";
 import { AppShell } from "@/components/layout/AppShell";
-import type { ExpenseResponse } from "@/lib/api/types";
+import type { ExpenseResponse, CategoryItem } from "@/lib/api/types";
 import { CalendarView } from "@/components/calendar/CalendarView";
 
 export const metadata: Metadata = {
@@ -14,6 +15,10 @@ export const metadata: Metadata = {
 
 async function CalendarContent({ userId }: { userId: string }) {
   let expenses: ExpenseResponse[];
+  const [expenseCategories, incomeCategories] = await Promise.all([
+    getCategories(0).catch(() => [] as CategoryItem[]),
+    getCategories(1).catch(() => [] as CategoryItem[]),
+  ]);
   try {
     const data = await getExpenses();
     expenses = data.expense ?? [];
@@ -24,7 +29,8 @@ async function CalendarContent({ userId }: { userId: string }) {
     throw err;
   }
 
-  return <CalendarView expenses={expenses} userId={userId} />;
+  const allCategories = [...expenseCategories, ...incomeCategories];
+  return <CalendarView expenses={expenses} userId={userId} allCategories={allCategories} />;
 }
 
 export default async function CalendarPage() {

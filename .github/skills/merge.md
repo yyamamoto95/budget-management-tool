@@ -21,17 +21,24 @@ PR の URL・タイトル・ブランチ名・CI 状態を確認する。
 
 ### 2. レビューコメントの全件取得
 
+**インラインコメント**（行指摘）と **PR レビュー本文**（AI ボット総評を含む）の両方を取得する。
+
 ```bash
+# インラインコメント（行指摘）
 gh api repos/{owner}/{repo}/pulls/{PR番号}/comments \
   --jq '.[] | {id, path, line, body, user: .user.login}'
+
+# PR レビュー本文（gemini-code-assist 等 AI ボットの総評もここに含まれる）
+gh pr view {PR番号} --repo {owner}/{repo} --json reviews \
+  --jq '.reviews[] | {author: .author.login, state: .state, body: .body}'
 ```
 
 取得した指摘を一覧化し、対応要否を判断する。
 
 | 分類 | 判断基準 | 対応 |
 |------|---------|------|
-| 修正が必要 | バグ・規約違反・MAJOR 指摘 | コードを修正してコミット → `/commit` を使用 |
-| 修正不要 | MINOR/NIT・既に対応済み・意図的な設計 | 返信のみ |
+| 修正が必要 | バグ・規約違反・`high` 優先度の指摘 | コードを修正してコミット → `/commit` を使用 |
+| 修正不要 | `medium`/`low`/NIT・既に対応済み・意図的な設計 | 返信のみ |
 
 ### 3. 必要な修正の実施
 

@@ -2,7 +2,8 @@ import { Suspense } from "react";
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { getBudgets } from "@/lib/api/budget";
-import { OUTGO_CATEGORIES } from "@budget/common";
+import { getCategories } from "@/lib/api/category";
+import type { CategoryItem } from "@/lib/api/types";
 import { PeriodSelector } from "@/components/report/PeriodSelector";
 import { MonthlyComparisonCard } from "@/components/report/MonthlyComparisonCard";
 import { CategoryDonutChart } from "@/components/report/CategoryDonutChart";
@@ -45,6 +46,7 @@ function getDateFilter(period: Period): (date: string) => boolean {
 /** カテゴリ別集計（支出のみ）*/
 function aggregateByCategory(
   budgets: BudgetResponse[],
+  expenseCategories: CategoryItem[],
 ): { name: string; color: string; amount: number; pct: number }[] {
   const outgos = budgets.filter((b) => b.balanceType === 0);
   const total = outgos.reduce((s, b) => s + b.amount, 0);
@@ -57,7 +59,7 @@ function aggregateByCategory(
 
   return [...map.entries()]
     .map(([id, amount]) => {
-      const cat = OUTGO_CATEGORIES.find((c) => c.id === id) ?? { name: "未分類", color: "#333333" };
+      const cat = expenseCategories.find((c) => c.id === id) ?? { name: "未分類", color: "#333333" };
       return { name: cat.name, color: cat.color, amount, pct: Math.round((amount / total) * 100) };
     })
     .sort((a, b) => b.amount - a.amount);
@@ -74,7 +76,11 @@ function groupByDate(budgets: BudgetResponse[]): Record<string, BudgetResponse[]
 }
 
 async function ReportSection({ period }: { period: Period }) {
-  const { budget: allBudgets } = await getBudgets();
+  const [{ budget: allBudgets }, expenseCategories, incomeCategories] = await Promise.all([
+    getBudgets(),
+    getCategories(0).catch(() => [] as CategoryItem[]),
+    getCategories(1).catch(() => [] as CategoryItem[]),
+  ]);
   const filter = getDateFilter(period);
   const budgets = allBudgets.filter((b) => filter(b.date));
 
@@ -103,7 +109,7 @@ async function ReportSection({ period }: { period: Period }) {
 
   const totalOutgo = budgets.filter((b) => b.balanceType === 0).reduce((s, b) => s + b.amount, 0);
   const totalIncome = budgets.filter((b) => b.balanceType === 1).reduce((s, b) => s + b.amount, 0);
-  const categoryBreakdown = aggregateByCategory(budgets);
+  const categoryBreakdown = aggregateByCategory(budgets, expenseCategories);
   const grouped = groupByDate(budgets);
   const sortedDates = Object.keys(grouped).sort((a, b) => b.localeCompare(a));
 
@@ -186,7 +192,7 @@ async function ReportSection({ period }: { period: Period }) {
                   style={{ boxShadow: "var(--shadow-card)" }}
                 >
                   {items.map((item) => (
-                    <ReportDetailItem key={item.id} item={item} />
+                    <ReportDetailItem key={item.id} item={item} expenseCategories={expenseCategories} incomeCategories={incomeCategories} />
                   ))}
                 </ul>
               </section>

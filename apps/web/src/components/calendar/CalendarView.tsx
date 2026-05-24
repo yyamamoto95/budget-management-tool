@@ -4,15 +4,15 @@ import { useState } from "react";
 import Link from "next/link";
 import { FileText, PenLine } from "lucide-react";
 import { MonthlyCalendar } from "@/components/calendar/MonthlyCalendar";
-import type { ExpenseResponse } from "@/lib/api/types";
-import { getCategoryById } from "@budget/common";
+import type { ExpenseResponse, CategoryItem } from "@/lib/api/types";
 
 type Props = {
   expenses: ExpenseResponse[];
   userId: string;
+  allCategories: CategoryItem[];
 };
 
-export function CalendarView({ expenses }: Props) {
+export function CalendarView({ expenses, allCategories }: Props) {
   const todayStr = new Date().toISOString().split("T")[0];
   const [selectedDate, setSelectedDate] = useState<string>(todayStr);
 
@@ -89,9 +89,8 @@ export function CalendarView({ expenses }: Props) {
         ) : (
           <div className="flex flex-col gap-2 pb-4">
             {selectedExpenses.map((e) => {
-              const cat = getCategoryById(
-                e.balanceType as 0 | 1,
-                e.categoryId,
+              const cat = allCategories.find(
+                (c) => c.balanceType === e.balanceType && c.id === e.categoryId,
               );
               return (
                 <div

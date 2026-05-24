@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { cookies } from "next/headers";
 import { getExpenses } from "@/lib/api/expense";
+import { getCategories } from "@/lib/api/category";
 import { ExpenseList } from "@/components/expense/ExpenseList";
 import { ExpenseCreateForm } from "@/components/expense/ExpenseCreateForm";
 import { AppShell } from "@/components/layout/AppShell";
@@ -17,6 +18,10 @@ const PAGE_SIZE = 20;
 
 async function ExpenseListSection({ limit }: { limit: number }) {
   let data;
+  const [expenseCategories, incomeCategories] = await Promise.all([
+    getCategories(0).catch(() => []),
+    getCategories(1).catch(() => []),
+  ]);
   try {
     data = await getExpenses();
   } catch (err) {
@@ -66,7 +71,7 @@ async function ExpenseListSection({ limit }: { limit: number }) {
         className="rounded-2xl border border-[#1c1410]/12 bg-white px-4"
         style={{ boxShadow: "var(--shadow-card)" }}
       >
-        <ExpenseList expenses={visible} />
+        <ExpenseList expenses={visible} expenseCategories={expenseCategories} incomeCategories={incomeCategories} />
       </div>
 
       {/* もっと見るボタン */}
@@ -93,13 +98,18 @@ export default async function ExpensesPage({
   const { limit: rawLimit } = await searchParams;
   const limit = Math.max(PAGE_SIZE, parseInt(rawLimit ?? "", 10) || PAGE_SIZE);
 
+  const [expenseCategories, incomeCategories] = await Promise.all([
+    getCategories(0).catch(() => []),
+    getCategories(1).catch(() => []),
+  ]);
+
   return (
     <AppShell userName={userId}>
       <div className="mx-auto w-full max-w-2xl flex-1 px-4 py-8">
         <h1 className="mb-6 text-2xl font-extrabold text-[#1c1410]">支出一覧</h1>
 
         {/* 新規登録フォーム */}
-        <ExpenseCreateForm userId={userId} />
+        <ExpenseCreateForm userId={userId} expenseCategories={expenseCategories} incomeCategories={incomeCategories} />
 
         {/* 支出一覧（Server Component + Suspense でストリーミング） */}
         <Suspense
