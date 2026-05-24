@@ -2,21 +2,23 @@
 # pr-checks.yml — PR 時の自動チェック（マージブロックのガードレール）
 #
 # フロー（全ジョブ並列実行）:
-#   0. issue-link-check  — PR body に Closes #NNN が含まれるか検証
-#   1. lint-typecheck    — lint + 型チェック
-#   2. nextjs-build      — Next.js プロダクションビルド（型エラーの早期検出）
-#   3. storybook-build   — Storybook ビルド確認
-#   4. unit-test         — ユニットテスト
-#   5. integration-test  — 統合テスト（MySQL サービスコンテナ使用）
-#   6. security-scan     — Trivy FS スキャン（Docker ビルド不要）
-#   7. migration-check   — Prisma スキーマ検証 + 破壊的変更の検出
-#   8. infra-check       — Terraform 構文・フォーマットチェック
+#   0. issue-link-check          — PR body に Closes #NNN が含まれるか検証
+#   1. unresolved-review-check   — 未解決レビュースレッドが残っていないか検証
+#   2. lint-typecheck            — lint + 型チェック
+#   3. nextjs-build              — Next.js プロダクションビルド（型エラーの早期検出）
+#   4. storybook-build           — Storybook ビルド確認
+#   5. unit-test                 — ユニットテスト
+#   6. integration-test          — 統合テスト（MySQL サービスコンテナ使用）
+#   7. security-scan             — Trivy FS スキャン（Docker ビルド不要）
+#   8. migration-check           — Prisma スキーマ検証 + 破壊的変更の検出
+#   9. infra-check               — Terraform 構文・フォーマットチェック
 #
 # ブランチ保護設定（GitHub Settings > Branches > main）:
 #   Require status checks to pass before merging に以下を登録すること:
 #   - Rebase Check
 #   - Test Plan Check
 #   - Issue Link Check
+#   - Unresolved Review Check
 #   - Lint & Type Check
 #   - Next.js Build
 #   - Unit Test
@@ -104,6 +106,63 @@ jobs:
           fi
 
           echo "✅ Test plan のすべての項目が確認済みです。"
+
+  # ─── 未解決レビューコメントチェック ────────────────────────────────────────
+  # PR にレビュースレッドが未解決のまま残っている場合に失敗する。
+  # Gemini・人間レビューの指摘を Resolve してからマージすることを強制するガードレール。
+  unresolved-review-check:
+    name: Unresolved Review Check
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    steps:
+      - name: Check for unresolved review threads
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { repository } = await github.graphql(`
+              query($owner: String!, $repo: String!, $number: Int!) {
+                repository(owner: $owner, name: $repo) {
+                  pullRequest(number: $number) {
+                    reviewThreads(first: 100) {
+                      nodes {
+                        isResolved
+                        isOutdated
+                        comments(first: 1) {
+                          nodes {
+                            path
+                            body
+                            author { login }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            `, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              number: context.issue.number,
+            });
+
+            const threads = repository.pullRequest.reviewThreads.nodes;
+            const unresolved = threads.filter(t => !t.isResolved && !t.isOutdated);
+
+            if (unresolved.length === 0) {
+              console.log('✅ 未解決のレビューコメントはありません。');
+              return;
+            }
+
+            console.log(`❌ 未解決のレビューコメントが ${unresolved.length} 件あります:\n`);
+            for (const t of unresolved) {
+              const c = t.comments.nodes[0];
+              const author = c?.author?.login ?? '不明';
+              const preview = (c?.body ?? '').split('\n')[0].slice(0, 80);
+              console.log(`  - [${author}] ${c?.path ?? '(不明)'}: ${preview}`);
+            }
+            console.log('\n  GitHub 上で全スレッドを「Resolve conversation」してからマージしてください。');
+            core.setFailed(`未解決のレビューコメントが ${unresolved.length} 件あります`);
 
   # ─── Issue リンクチェック ───────────────────────────────────────────────────
   # PR body に "Closes #NNN" / "Fixes #NNN" / "Resolves #NNN" が含まれない場合に失敗する。
