@@ -11,14 +11,10 @@ import { motion } from 'framer-motion'
 import { LayoutGrid, ChevronLeft, ChevronRight, ChevronDown, ChevronUp } from 'lucide-react'
 
 const PAGES: { path: string; label: string }[] = [
-  { path: '/daily-budget-card-palette', label: 'カラーパレット比較' },
   { path: '/home',                      label: 'ホーム画面' },
   { path: '/category-ab',              label: '支出カテゴリ TOP A/B' },
-  { path: '/asset-outlook-ab',         label: '長期指標 A/B' },
-  { path: '/asset-outlook-pc-ab',      label: '長期指標 PC' },
   { path: '/personal-settings',        label: '個人設定 — 現行' },
   { path: '/settings-wizard',          label: '個人設定 B — ウィザード' },
-  { path: '/settings-e',               label: '個人設定 E — コンパクトリスト' },
   { path: '/meisai',                   label: '明細' },
   { path: '/report',                   label: 'レポート' },
   { path: '/status-color-palette',     label: 'ステータスカラー' },
