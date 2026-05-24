@@ -866,7 +866,11 @@ export function PersonalSettingsPrototype() {
             </div>
 
             {/* 保存 */}
-            <SandboxButton onClick={handleSave}>
+            <SandboxButton
+              onClick={handleSave}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
               設定を保存する
             </SandboxButton>
               </>

@@ -10,6 +10,7 @@
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import type { ReactNode } from 'react'
+import type { TargetAndTransition, VariantLabels } from 'framer-motion'
 import { D } from './designTokens'
 
 const SNAP = { type: 'spring' as const, stiffness: 600, damping: 35 }
@@ -43,6 +44,8 @@ interface ButtonProps {
   type?: 'button' | 'submit' | 'reset'
   disabled?: boolean
   className?: string
+  initial?: TargetAndTransition | VariantLabels | boolean
+  animate?: TargetAndTransition | VariantLabels
 }
 
 interface LinkButtonProps {
@@ -59,6 +62,8 @@ export function SandboxButton({
   type = 'button',
   disabled = false,
   className = '',
+  initial,
+  animate,
 }: ButtonProps) {
   return (
     <motion.button
@@ -69,6 +74,8 @@ export function SandboxButton({
       transition={SNAP}
       className={`${BASE} ${className}`}
       style={{ ...VARIANT[variant], opacity: disabled ? 0.4 : 1 }}
+      initial={initial}
+      animate={animate}
     >
       {children}
     </motion.button>
