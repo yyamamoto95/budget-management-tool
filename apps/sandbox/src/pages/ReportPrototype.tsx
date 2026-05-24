@@ -130,63 +130,74 @@ export function ReportPrototype() {
               style={{ background: D.card, border: `1px solid ${D.border}`, boxShadow: D.shadow }}
             >
               {/* タイトル */}
-              <div className="text-[12px] font-bold mb-3" style={{ color: D.muted }}>
+              <div className="text-[12px] font-bold mb-4" style={{ color: D.muted }}>
                 {PERIOD_LABELS[period]}の収支
               </div>
 
-              <div className="flex items-end justify-between gap-4">
-                {/* 支出合計（大） */}
+              {/* 支出合計（ヒーロー数字） */}
+              <div className="mb-1">
+                <div className="text-[11px] font-bold mb-1" style={{ color: D.muted }}>支出合計</div>
+                <motion.div
+                  style={{ color: D.text }}
+                  className="text-[44px] font-extrabold tabular-nums leading-none"
+                  initial={{ scale: 0.94, opacity: 0.6 }}
+                  animate={{ scale: 1,    opacity: 1   }}
+                  transition={SPRING.QUICK}
+                >
+                  ¥{summary.expense.toLocaleString('ja-JP')}
+                </motion.div>
+              </div>
+
+              {/* 先月比チップ（今月のみ） */}
+              {vsLastPct !== null && (
+                <motion.div
+                  className="mt-2 mb-1 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold"
+                  style={{
+                    background: vsLastPct < 100 ? '#ecfaf8' : vsLastPct === 100 ? '#f5f5f4' : '#fff1f2',
+                    color:      vsLastPct < 100 ? D.income   : vsLastPct === 100 ? D.muted   : D.danger,
+                  }}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1   }}
+                  transition={SPRING.BASE}
+                >
+                  {vsLastPct === 100
+                    ? '先月と同額です'
+                    : vsLastPct < 100
+                      ? `先月比 ▼${100 - vsLastPct}% 節約しています`
+                      : `▲ 先月より${vsLastPct - 100}% 増加`}
+                </motion.div>
+              )}
+
+              {/* セパレーター */}
+              <div className="my-4" style={{ height: '1px', background: D.border }} />
+
+              {/* 収入 + 収支差引（2カラムグリッド） */}
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <div className="text-[11px] font-bold mb-1" style={{ color: D.muted }}>支出合計</div>
+                  <div className="text-[11px] font-bold mb-1" style={{ color: D.muted }}>収入</div>
                   <motion.div
-                    key={`expense-${period}`}
-                    className="text-[40px] font-extrabold tabular-nums leading-none"
-                    style={{ color: D.text }}
-                    initial={{ scale: 0.94, opacity: 0.6 }}
-                    animate={{ scale: 1,    opacity: 1   }}
+                    className="text-[24px] font-extrabold tabular-nums leading-none"
+                    style={{ color: D.income }}
+                    initial={{ opacity: 0.6 }}
+                    animate={{ opacity: 1 }}
                     transition={SPRING.QUICK}
                   >
-                    ¥{summary.expense.toLocaleString('ja-JP')}
+                    +¥{summary.income.toLocaleString('ja-JP')}
                   </motion.div>
-
-                  {/* 先月比チップ（今月のみ） */}
-                  {vsLastPct !== null && (
-                    <motion.div
-                      className="mt-2 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold"
-                      style={{
-                        background: vsLastPct < 100 ? '#ecfaf8' : '#fff1f2',
-                        color:      vsLastPct < 100 ? D.income   : D.danger,
-                      }}
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1   }}
-                      transition={SPRING.BASE}
-                    >
-                      {vsLastPct < 100
-                        ? `先月比 ▼${100 - vsLastPct}% 節約しています`
-                        : `▲ 先月より${vsLastPct - 100}% 増加`}
-                    </motion.div>
-                  )}
                 </div>
-
-                {/* 収入 + 収支差引（右） */}
-                <div className="text-right space-y-2 shrink-0">
-                  <div>
-                    <div className="text-[10px] font-bold" style={{ color: D.muted }}>収入</div>
-                    <div className="text-[16px] font-extrabold tabular-nums" style={{ color: D.income }}>
-                      +¥{summary.income.toLocaleString('ja-JP')}
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-[10px] font-bold" style={{ color: D.muted }}>収支差引</div>
-                    <div
-                      className="text-[16px] font-extrabold tabular-nums"
-                      style={{ color: balance >= 0 ? D.income : D.danger }}
-                    >
-                      {balance >= 0
-                        ? `+¥${balance.toLocaleString('ja-JP')}`
-                        : `−¥${Math.abs(balance).toLocaleString('ja-JP')}`}
-                    </div>
-                  </div>
+                <div>
+                  <div className="text-[11px] font-bold mb-1" style={{ color: D.muted }}>収支差引</div>
+                  <motion.div
+                    className="text-[24px] font-extrabold tabular-nums leading-none"
+                    style={{ color: balance >= 0 ? D.income : D.danger }}
+                    initial={{ opacity: 0.6 }}
+                    animate={{ opacity: 1 }}
+                    transition={SPRING.QUICK}
+                  >
+                    {balance >= 0
+                      ? `+¥${balance.toLocaleString('ja-JP')}`
+                      : `−¥${Math.abs(balance).toLocaleString('ja-JP')}`}
+                  </motion.div>
                 </div>
               </div>
             </div>
