@@ -75,8 +75,7 @@ export function QuickEntryDrawer({
           クイック記録
         </DrawerTitle>
 
-        <form action={formAction} className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-5 pt-2"
-          style={{ paddingBottom: "calc(2.5rem + env(safe-area-inset-bottom, 0px))" }}
+        <form action={formAction} className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-5 pt-2 pb-[calc(2.5rem+env(safe-area-inset-bottom,0px))]"
         >
           <input type="hidden" name="userId" value={userId} />
           <input type="hidden" name="balanceType" value={balanceType} />
