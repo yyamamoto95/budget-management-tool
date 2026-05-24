@@ -129,7 +129,7 @@ export function QuickEntryDrawer({
 
           {/* 金額表示パネル */}
           <div
-            className="relative overflow-hidden rounded-xl px-4 py-3"
+            className="relative shrink-0 rounded-xl px-4 py-3"
             style={{
               background:
                 balanceType === 0
