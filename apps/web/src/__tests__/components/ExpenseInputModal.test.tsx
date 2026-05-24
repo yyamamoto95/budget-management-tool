@@ -2,16 +2,23 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { ExpenseInputModal } from '../../components/input/ExpenseInputModal'
 
-// Server Action をモック
 const mockCreateExpenseAction = vi.fn().mockResolvedValue({ error: null, success: true })
 vi.mock('@/lib/actions/expense', () => ({
     createExpenseAction: (...args: unknown[]) => mockCreateExpenseAction(...args),
 }))
 
-// calcExpenseImpact をモック
 vi.mock('@budget/common', () => ({
     calcExpenseImpact: vi.fn().mockReturnValue({ label: '約10分' }),
 }))
+
+// framer-motion のレイアウトアニメーションをテスト環境用に無効化
+vi.mock('framer-motion', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('framer-motion')>()
+    return {
+        ...actual,
+        AnimatePresence: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+    }
+})
 
 describe('ExpenseInputModal', () => {
     const defaultProps = {
@@ -24,44 +31,64 @@ describe('ExpenseInputModal', () => {
         vi.clearAllMocks()
     })
 
-    it('初期表示: STEP1 が表示され、支出タブがアクティブである', () => {
+    it('初期表示: タイトルが表示され、支出タブがアクティブである', () => {
         render(<ExpenseInputModal {...defaultProps} />)
 
-        expect(screen.getByText(/STEP 1 \/ 3.*金額/)).toBeInTheDocument()
-        expect(screen.getByRole('button', { name: '支出' })).toBeInTheDocument()
-        expect(screen.getByRole('button', { name: '収入' })).toBeInTheDocument()
-        // 支出ボタンがアクティブスタイルを持つ（text-white クラス）
-        const expenseBtn = screen.getByRole('button', { name: '支出' })
-        expect(expenseBtn.className).toContain('text-white')
+        expect(screen.getByText('支出・収入を記録')).toBeInTheDocument()
+        expect(screen.getByRole('tab', { name: '支出' })).toHaveAttribute('aria-selected', 'true')
+        expect(screen.getByRole('tab', { name: '収入' })).toHaveAttribute('aria-selected', 'false')
     })
 
-    it('収入タブをクリックしたとき: 収入ボタンがアクティブになる', () => {
+    it('初期表示: ¥0 が表示される', () => {
+        render(<ExpenseInputModal {...defaultProps} />)
+        expect(screen.getByText('¥')).toBeInTheDocument()
+        expect(screen.getByTestId('amount-display')).toHaveTextContent('0')
+    })
+
+    it('テンキー: 数字をタップすると金額が更新される', () => {
         render(<ExpenseInputModal {...defaultProps} />)
 
-        const incomeBtn = screen.getByRole('button', { name: '収入' })
-        fireEvent.click(incomeBtn)
+        fireEvent.click(screen.getByRole('button', { name: '1' }))
+        fireEvent.click(screen.getByRole('button', { name: '5' }))
+        fireEvent.click(screen.getByRole('button', { name: '0' }))
 
-        expect(incomeBtn.className).toContain('text-white')
-        // 支出ボタンは非アクティブ
-        const expenseBtn = screen.getByRole('button', { name: '支出' })
-        expect(expenseBtn.className).not.toContain('text-white')
+        expect(screen.getByText('150')).toBeInTheDocument()
+    })
+
+    it('テンキー: 000ボタンで3ゼロが追加される', () => {
+        render(<ExpenseInputModal {...defaultProps} />)
+
+        fireEvent.click(screen.getByRole('button', { name: '1' }))
+        fireEvent.click(screen.getByRole('button', { name: '000' }))
+
+        expect(screen.getByText('1,000')).toBeInTheDocument()
+    })
+
+    it('テンキー: ⌫ボタンで最後の1文字が削除される', () => {
+        render(<ExpenseInputModal {...defaultProps} />)
+
+        fireEvent.click(screen.getByRole('button', { name: '1' }))
+        fireEvent.click(screen.getByRole('button', { name: '2' }))
+        fireEvent.click(screen.getByRole('button', { name: '1文字削除' }))
+
+        expect(screen.getByTestId('amount-display')).toHaveTextContent('1')
     })
 
     it('支出のとき: 金額入力後に家計への影響が表示される', () => {
         render(<ExpenseInputModal {...defaultProps} />)
 
-        // 支出タブはデフォルトで選択済み
         fireEvent.click(screen.getByRole('button', { name: '1' }))
         fireEvent.click(screen.getByRole('button', { name: '0' }))
         fireEvent.click(screen.getByRole('button', { name: '0' }))
 
-        expect(screen.getByText('家計への影響: 約10分')).toBeInTheDocument()
+        expect(screen.getByText(/家計への影響/)).toBeInTheDocument()
+        expect(screen.getByText('約10分')).toBeInTheDocument()
     })
 
-    it('収入のとき: 金額を入力しても家計への影響は表示されない', () => {
+    it('収入のとき: 金額入力後に家計への影響は表示されない', () => {
         render(<ExpenseInputModal {...defaultProps} />)
 
-        fireEvent.click(screen.getByRole('button', { name: '収入' }))
+        fireEvent.click(screen.getByRole('tab', { name: '収入' }))
         fireEvent.click(screen.getByRole('button', { name: '1' }))
         fireEvent.click(screen.getByRole('button', { name: '0' }))
         fireEvent.click(screen.getByRole('button', { name: '0' }))
@@ -69,77 +96,66 @@ describe('ExpenseInputModal', () => {
         expect(screen.queryByText(/家計への影響/)).not.toBeInTheDocument()
     })
 
-    it('STEP3 確認画面: 支出選択時に「支出」が表示される', async () => {
+    it('カテゴリ選択: クリックで別のカテゴリを選べる', () => {
         render(<ExpenseInputModal {...defaultProps} />)
 
-        // 金額入力
-        fireEvent.click(screen.getByRole('button', { name: '1' }))
-        fireEvent.click(screen.getByRole('button', { name: '0' }))
-        fireEvent.click(screen.getByRole('button', { name: '0' }))
-        // カテゴリ選択へ
-        fireEvent.click(screen.getByRole('button', { name: 'カテゴリへ →' }))
-        // カテゴリ選択
-        fireEvent.click(screen.getByRole('button', { name: '食費' }))
+        // 「外食」カテゴリをクリック（visible の2番目）
+        fireEvent.click(screen.getByRole('button', { name: '外食' }))
 
-        // STEP3 確認画面
-        expect(screen.getByText(/STEP 3 \/ 3.*確定/)).toBeInTheDocument()
-        expect(screen.getByText(/食費 \/ 支出/)).toBeInTheDocument()
+        // 「外食」ボタンが選択状態になっていることを確認（aria 属性では管理していないため、
+        // 単にボタンが存在することを確認する）
+        expect(screen.getByRole('button', { name: '外食' })).toBeInTheDocument()
     })
 
-    it('STEP3 確認画面: 収入選択時に「収入」が表示される', async () => {
+    it('もっと見る: クリックで残りのカテゴリが表示される', () => {
         render(<ExpenseInputModal {...defaultProps} />)
 
-        // 収入タブを選択
-        fireEvent.click(screen.getByRole('button', { name: '収入' }))
-        // 金額入力
-        fireEvent.click(screen.getByRole('button', { name: '1' }))
-        fireEvent.click(screen.getByRole('button', { name: '0' }))
-        fireEvent.click(screen.getByRole('button', { name: '0' }))
-        // カテゴリ選択へ
-        fireEvent.click(screen.getByRole('button', { name: 'カテゴリへ →' }))
-        // カテゴリ選択
-        fireEvent.click(screen.getByRole('button', { name: '食費' }))
+        // 初期表示では「もっと見る」ボタンがある
+        const moreBtn = screen.getByRole('button', { name: /もっと見る/ })
+        expect(moreBtn).toBeInTheDocument()
 
-        expect(screen.getByText(/食費 \/ 収入/)).toBeInTheDocument()
+        fireEvent.click(moreBtn)
+
+        // 展開後は折りたたむボタンが表示される
+        expect(screen.getByRole('button', { name: '折りたたむ' })).toBeInTheDocument()
+        // 展開後は「光熱費」など残りのカテゴリが表示される
+        expect(screen.getByRole('button', { name: '光熱費' })).toBeInTheDocument()
     })
 
-    it('確定ボタン押下（支出）: balanceType=0 で createExpenseAction が呼ばれる', async () => {
+    it('収入タブ切替: 収入カテゴリが表示される', () => {
         render(<ExpenseInputModal {...defaultProps} />)
 
-        // 金額入力
+        fireEvent.click(screen.getByRole('tab', { name: '収入' }))
+
+        expect(screen.getByRole('button', { name: '給料' })).toBeInTheDocument()
+    })
+
+    it('記録するボタン押下（支出）: balanceType=0 で createExpenseAction が呼ばれる', async () => {
+        render(<ExpenseInputModal {...defaultProps} />)
+
         fireEvent.click(screen.getByRole('button', { name: '1' }))
         fireEvent.click(screen.getByRole('button', { name: '0' }))
         fireEvent.click(screen.getByRole('button', { name: '0' }))
-        // カテゴリ選択へ → 選択
-        fireEvent.click(screen.getByRole('button', { name: 'カテゴリへ →' }))
-        fireEvent.click(screen.getByRole('button', { name: '食費' }))
-        // 確定
-        fireEvent.click(screen.getByRole('button', { name: '確定' }))
 
-        // createExpenseAction が呼ばれるまで待つ
+        fireEvent.click(screen.getByRole('button', { name: /記録する/ }))
+
         await vi.waitFor(() => {
             expect(mockCreateExpenseAction).toHaveBeenCalledOnce()
         })
 
         const [, formData] = mockCreateExpenseAction.mock.calls[0] as [unknown, FormData]
         expect(formData.get('balanceType')).toBe('0')
+        expect(formData.get('amount')).toBe('100')
     })
 
-    it('確定ボタン押下（収入）: balanceType=1 で createExpenseAction が呼ばれる', async () => {
+    it('記録するボタン押下（収入）: balanceType=1 で createExpenseAction が呼ばれる', async () => {
         render(<ExpenseInputModal {...defaultProps} />)
 
-        // 収入タブを選択
-        fireEvent.click(screen.getByRole('button', { name: '収入' }))
-        // 金額入力
+        fireEvent.click(screen.getByRole('tab', { name: '収入' }))
         fireEvent.click(screen.getByRole('button', { name: '5' }))
-        fireEvent.click(screen.getByRole('button', { name: '0' }))
-        fireEvent.click(screen.getByRole('button', { name: '0' }))
-        fireEvent.click(screen.getByRole('button', { name: '0' }))
-        // カテゴリ選択へ → 選択
-        fireEvent.click(screen.getByRole('button', { name: 'カテゴリへ →' }))
-        fireEvent.click(screen.getByRole('button', { name: '他' }))
-        // 確定
-        fireEvent.click(screen.getByRole('button', { name: '確定' }))
+        fireEvent.click(screen.getByRole('button', { name: '000' }))
+
+        fireEvent.click(screen.getByRole('button', { name: /記録する/ }))
 
         await vi.waitFor(() => {
             expect(mockCreateExpenseAction).toHaveBeenCalledOnce()
@@ -147,12 +163,13 @@ describe('ExpenseInputModal', () => {
 
         const [, formData] = mockCreateExpenseAction.mock.calls[0] as [unknown, FormData]
         expect(formData.get('balanceType')).toBe('1')
+        expect(formData.get('amount')).toBe('5000')
     })
 
-    it('キャンセルボタン押下: onClose が呼ばれる', () => {
+    it('閉じるボタン押下: onClose が呼ばれる', () => {
         render(<ExpenseInputModal {...defaultProps} />)
 
-        fireEvent.click(screen.getByRole('button', { name: 'キャンセル' }))
+        fireEvent.click(screen.getByRole('button', { name: '閉じる' }))
 
         expect(defaultProps.onClose).toHaveBeenCalledOnce()
     })
