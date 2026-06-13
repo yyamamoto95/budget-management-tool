@@ -203,6 +203,99 @@ components:
         - createdDate
         - updatedDate
         - deletedDate
+    DashboardResponse:
+      type: object
+      properties:
+        todayExpense:
+          type: integer
+          description: 本日の支出合計（円）
+          example: 1500
+        dailyBudget:
+          type: object
+          nullable: true
+          properties:
+            amount:
+              type: integer
+              description: 1日予算（円）
+              example: 3000
+            remaining:
+              type: integer
+              description: 本日の残予算（円）
+              example: 1500
+            ratio:
+              type: number
+              description: 残予算比率（0〜1+）
+              example: 0.5
+            daysUntilPayday:
+              type: integer
+              description: 給料日まで何日
+              example: 12
+          required:
+            - amount
+            - remaining
+            - ratio
+            - daysUntilPayday
+          description: 1日予算（設定未完了の場合 null）
+        monthSummary:
+          type: object
+          properties:
+            expense:
+              type: integer
+              description: 今月の支出合計
+              example: 45000
+            income:
+              type: integer
+              description: 今月の収入合計
+              example: 200000
+          required:
+            - expense
+            - income
+        lastMonthExpense:
+          type: integer
+          description: 先月の支出合計
+          example: 50000
+        weeklyRecord:
+          type: array
+          items:
+            type: object
+            properties:
+              date:
+                type: string
+                description: 日付 (YYYY-MM-DD)
+                example: 2026-06-13
+              dow:
+                type: string
+                description: 曜日
+                example: 金
+              expense:
+                type: integer
+                description: 支出合計（円）
+                example: 1500
+              recorded:
+                type: boolean
+                description: 記録があるか
+                example: true
+            required:
+              - date
+              - dow
+              - expense
+              - recorded
+        recentExpenses:
+          type: array
+          items:
+            $ref: "#/components/schemas/ExpenseResponse"
+        streak:
+          type: integer
+          description: 連続記録日数
+          example: 5
+      required:
+        - todayExpense
+        - dailyBudget
+        - monthSummary
+        - lastMonthExpense
+        - weeklyRecord
+        - recentExpenses
+        - streak
     ExpenseListResponse:
       type: object
       properties:
@@ -1083,6 +1176,26 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /api/dashboard:
+    get:
+      tags:
+        - Dashboard
+      summary: ダッシュボード集約データ取得
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: ダッシュボードデータ
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardResponse"
+        "401":
+          description: 未認証
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /api/expense:
     get:
       tags:
@@ -1090,6 +1203,46 @@ paths:
       summary: 支出一覧取得
       security:
         - bearerAuth: []
+      parameters:
+        - schema:
+            type: string
+            enum:
+              - week
+              - month
+              - lastMonth
+              - all
+            description: 期間フィルタ
+          required: false
+          name: period
+          in: query
+        - schema:
+            type: string
+            description: テキスト検索（content + カテゴリ名）
+          required: false
+          name: search
+          in: query
+        - schema:
+            type: string
+            description: 日付フィルタ (YYYY-MM-DD)
+          required: false
+          name: date
+          in: query
+        - schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            description: 取得件数上限
+          required: false
+          name: limit
+          in: query
+        - schema:
+            type: integer
+            nullable: true
+            minimum: 0
+            description: オフセット
+          required: false
+          name: offset
+          in: query
       responses:
         "200":
           description: 支出一覧

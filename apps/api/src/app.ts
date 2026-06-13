@@ -20,6 +20,7 @@ import type { GetUsersUseCase } from './application/use-cases/user/GetUsersUseCa
 import type { UpdateUserUseCase } from './application/use-cases/user/UpdateUserUseCase';
 import type { GetUserSettingsUseCase } from './application/use-cases/settings/GetUserSettingsUseCase';
 import type { UpsertUserSettingsUseCase } from './application/use-cases/settings/UpsertUserSettingsUseCase';
+import type { GetDashboardUseCase } from './application/use-cases/dashboard/GetDashboardUseCase';
 import type { GetExpenditureAnalysisUseCase } from './application/use-cases/xday/GetExpenditureAnalysisUseCase';
 import type { GetXDayUseCase } from './application/use-cases/xday/GetXDayUseCase';
 import { buildServices } from './container';
@@ -31,6 +32,7 @@ import type { IUserSettingsRepository } from './domain/repositories/IUserSetting
 import type { ISecurityAnswerRepository } from './domain/repositories/ISecurityAnswerRepository';
 import type { IUserRepository } from './domain/repositories/IUserRepository';
 import { createCategoryRoutes } from './presentation/routes/category';
+import { createDashboardRoutes } from './presentation/routes/dashboard';
 import { createAuthRoutes } from './presentation/routes/auth';
 import { createSettingsRoutes } from './presentation/routes/settings';
 import { createBudgetRoutes } from './presentation/routes/budget';
@@ -85,6 +87,8 @@ export type RouteServices = {
     // Settings
     getUserSettingsUseCase: GetUserSettingsUseCase;
     upsertUserSettingsUseCase: UpsertUserSettingsUseCase;
+    // Dashboard
+    getDashboardUseCase: GetDashboardUseCase;
     // XDay
     getXDayUseCase: GetXDayUseCase;
     getAnalysisUseCase: GetExpenditureAnalysisUseCase;
@@ -123,6 +127,7 @@ export function createApp(deps: AppDeps) {
 
     app.route('/api', createAuthRoutes(services));
     app.route('/api', createCategoryRoutes(services));
+    app.route('/api', createDashboardRoutes(services));
     app.route('/api', createExpenseRoutes(services));
     app.route('/api', createBudgetRoutes(services));
     app.route('/api', createUserRoutes(services));

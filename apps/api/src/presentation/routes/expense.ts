@@ -14,6 +14,13 @@ import {
 import { createAuthMiddleware } from '../middleware/auth';
 import { toExpenseDto } from '../mappers/expenseMapper';
 
+function toISODate(d: Date): string {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+}
+
 // ─── レスポンス用複合スキーマ ─────────────────────────────────────
 
 const ExpenseListResponseSchema = z.object({ expense: z.array(ExpenseResponseSchema) }).openapi('ExpenseListResponse');
@@ -22,12 +29,21 @@ const ExpenseDetailResponseSchema = z.object({ expense: ExpenseResponseSchema })
 
 // ─── Route 定義 ──────────────────────────────────────────────────
 
+const ExpenseQuerySchema = z.object({
+    period: z.enum(['week', 'month', 'lastMonth', 'all']).optional().openapi({ description: '期間フィルタ' }),
+    search: z.string().optional().openapi({ description: 'テキスト検索（content + カテゴリ名）' }),
+    date: z.string().optional().openapi({ description: '日付フィルタ (YYYY-MM-DD)' }),
+    limit: z.coerce.number().int().min(1).max(100).optional().openapi({ description: '取得件数上限' }),
+    offset: z.coerce.number().int().min(0).optional().openapi({ description: 'オフセット' }),
+});
+
 const getExpensesRoute = createRoute({
     method: 'get',
     path: '/expense',
     tags: ['Expense'],
     summary: '支出一覧取得',
     security: [{ bearerAuth: [] }],
+    request: { query: ExpenseQuerySchema },
     responses: {
         200: {
             content: { 'application/json': { schema: ExpenseListResponseSchema } },
@@ -192,7 +208,62 @@ export function createExpenseRoutes({
     app.use('/expense/*', auth);
 
     app.openapi(getExpensesRoute, async (c) => {
-        const expenses = await expenseRepository.findAll();
+        const userId = c.get('userId');
+        const { period, search, date, limit, offset } = c.req.valid('query');
+
+        let expenses = await expenseRepository.findByUserId(userId);
+
+        // 期間フィルタ
+        if (period && period !== 'all') {
+            const now = new Date();
+            const y = now.getFullYear();
+            const m = now.getMonth();
+            let startDate: string;
+            let endDate: string | undefined;
+
+            if (period === 'week') {
+                const weekAgo = new Date(y, m, now.getDate() - 6);
+                startDate = toISODate(weekAgo);
+            } else if (period === 'month') {
+                startDate = `${y}-${String(m + 1).padStart(2, '0')}-01`;
+            } else {
+                // lastMonth
+                const lm = new Date(y, m - 1, 1);
+                startDate = toISODate(lm);
+                const lastDay = new Date(y, m, 0);
+                endDate = toISODate(lastDay);
+            }
+
+            expenses = expenses.filter((e) => {
+                if (e.date < startDate) return false;
+                if (endDate && e.date > endDate) return false;
+                return true;
+            });
+        }
+
+        // 日付フィルタ
+        if (date) {
+            expenses = expenses.filter((e) => e.date === date);
+        }
+
+        // テキスト検索
+        if (search) {
+            const q = search.toLowerCase();
+            expenses = expenses.filter((e) => e.content?.toLowerCase().includes(q));
+        }
+
+        // 日付降順ソート
+        expenses.sort((a, b) => {
+            if (a.date > b.date) return -1;
+            if (a.date < b.date) return 1;
+            return b.createdDate.getTime() - a.createdDate.getTime();
+        });
+
+        // ページング
+        const start = offset ?? 0;
+        const end = limit ? start + limit : undefined;
+        expenses = expenses.slice(start, end);
+
         return c.json({ expense: expenses.map(toExpenseDto) }, 200);
     });
 

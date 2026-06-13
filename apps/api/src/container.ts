@@ -7,6 +7,7 @@ import { ResetPasswordUseCase } from './application/use-cases/auth/ResetPassword
 import { VerifyRecoveryAnswerUseCase } from './application/use-cases/auth/VerifyRecoveryAnswerUseCase';
 import { GetCategoriesUseCase } from './application/use-cases/category/GetCategoriesUseCase';
 import { CreateExpenseUseCase } from './application/use-cases/CreateExpenseUseCase';
+import { GetDashboardUseCase } from './application/use-cases/dashboard/GetDashboardUseCase';
 import { ExportUserDataUseCase } from './application/use-cases/export/ExportUserDataUseCase';
 import { ParseExpenseUseCase, RuleBasedExpenseParser } from './application/use-cases/parse/ParseExpenseUseCase';
 import { UpdateExpenseUseCase } from './application/use-cases/UpdateExpenseUseCase';
@@ -84,6 +85,8 @@ export function buildServices(deps: AppDeps, tokenService: TokenService): RouteS
         // Settings
         getUserSettingsUseCase: new GetUserSettingsUseCase(deps.userSettingsRepository),
         upsertUserSettingsUseCase: new UpsertUserSettingsUseCase(deps.userSettingsRepository),
+        // Dashboard
+        getDashboardUseCase: new GetDashboardUseCase(deps.expenseRepository, deps.userSettingsRepository),
         // XDay
         getXDayUseCase: new GetXDayUseCase(deps.expenseRepository),
         getAnalysisUseCase: new GetExpenditureAnalysisUseCase(deps.expenseRepository),

@@ -537,3 +537,34 @@ export const CategoryItemSchema = z
     .openapi('CategoryItem');
 
 export const CategoriesResponseSchema = z.array(CategoryItemSchema).openapi('CategoriesResponse');
+
+// ─── ダッシュボード ───────────────────────────────────────────────
+
+const WeeklyRecordItemSchema = z.object({
+    date: z.string().openapi({ description: '日付 (YYYY-MM-DD)', example: '2026-06-13' }),
+    dow: z.string().openapi({ description: '曜日', example: '金' }),
+    expense: z.number().int().openapi({ description: '支出合計（円）', example: 1500 }),
+    recorded: z.boolean().openapi({ description: '記録があるか', example: true }),
+});
+
+const DailyBudgetSchema = z.object({
+    amount: z.number().int().openapi({ description: '1日予算（円）', example: 3000 }),
+    remaining: z.number().int().openapi({ description: '本日の残予算（円）', example: 1500 }),
+    ratio: z.number().openapi({ description: '残予算比率（0〜1+）', example: 0.5 }),
+    daysUntilPayday: z.number().int().openapi({ description: '給料日まで何日', example: 12 }),
+});
+
+export const DashboardResponseSchema = z
+    .object({
+        todayExpense: z.number().int().openapi({ description: '本日の支出合計（円）', example: 1500 }),
+        dailyBudget: DailyBudgetSchema.nullable().openapi({ description: '1日予算（設定未完了の場合 null）' }),
+        monthSummary: z.object({
+            expense: z.number().int().openapi({ description: '今月の支出合計', example: 45000 }),
+            income: z.number().int().openapi({ description: '今月の収入合計', example: 200000 }),
+        }),
+        lastMonthExpense: z.number().int().openapi({ description: '先月の支出合計', example: 50000 }),
+        weeklyRecord: z.array(WeeklyRecordItemSchema),
+        recentExpenses: z.array(ExpenseResponseSchema),
+        streak: z.number().int().openapi({ description: '連続記録日数', example: 5 }),
+    })
+    .openapi('DashboardResponse');
