@@ -86,7 +86,12 @@ function AmountField({
         className="h-9 w-9 shrink-0 rounded-md flex items-center justify-center text-base font-bold select-none"
         style={{ background: D.surface, color: D.muted }}
         onMouseDown={(e) => e.preventDefault()}
-        onClick={() => onChange(Math.max(0, value - step))}
+        onClick={() => {
+          const next = Math.max(0, value - step)
+          onChange(next)
+          // フォーカス中は raw も同期してblur時の上書きを防ぐ
+          if (focused) setRaw(next.toString())
+        }}
         whileTap={{ scale: 0.85 }}
         transition={SPRING.SNAP}
         aria-label={`${step.toLocaleString('ja-JP')}円減らす`}
@@ -124,7 +129,11 @@ function AmountField({
         className="h-9 w-9 shrink-0 rounded-md flex items-center justify-center text-base font-bold select-none"
         style={{ background: D.surface, color: D.muted }}
         onMouseDown={(e) => e.preventDefault()}
-        onClick={() => onChange(value + step)}
+        onClick={() => {
+          const next = value + step
+          onChange(next)
+          if (focused) setRaw(next.toString())
+        }}
         whileTap={{ scale: 0.85 }}
         transition={SPRING.SNAP}
         aria-label={`${step.toLocaleString('ja-JP')}円増やす`}
@@ -167,7 +176,12 @@ function SalaryDayPicker({ value, onChange }: { value: number; onChange: (v: num
   useEffect(() => {
     if (!open) return
     function onClickOutside(e: MouseEvent) {
-      if (pickerRef.current && !pickerRef.current.contains(e.target as Node)) {
+      const target = e.target as Node
+      // triggerRef も除外してトリガーボタン二重発火を防ぐ
+      if (
+        pickerRef.current && !pickerRef.current.contains(target) &&
+        triggerRef.current && !triggerRef.current.contains(target)
+      ) {
         setOpen(false)
       }
     }
@@ -434,9 +448,16 @@ export function PersonalSettingsBPrototype() {
     })
   }
 
+  // saved になったらタイマーで遷移（アンマウント時はクリーンアップ）
+  useEffect(() => {
+    if (saved) {
+      const timer = setTimeout(() => navigate('/home'), 1800)
+      return () => clearTimeout(timer)
+    }
+  }, [saved, navigate])
+
   function handleSave() {
     setSaved(true)
-    setTimeout(() => navigate('/home'), 1800)
   }
 
   // 給料日まで何日か
