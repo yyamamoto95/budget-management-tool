@@ -695,6 +695,48 @@ components:
       required:
         - resetToken
         - newPassword
+    FixedExpensesDetail:
+      type: object
+      nullable: true
+      properties:
+        rent:
+          type: integer
+          minimum: 0
+          description: 家賃（円）
+          example: 80000
+        utilities:
+          type: integer
+          minimum: 0
+          description: 光熱費（円）
+          example: 15000
+        insurance:
+          type: integer
+          minimum: 0
+          description: 保険（円）
+          example: 10000
+        subscriptions:
+          type: integer
+          minimum: 0
+          description: サブスク（円）
+          example: 5000
+        transportation:
+          type: integer
+          minimum: 0
+          description: 交通費（円）
+          example: 10000
+        other:
+          type: integer
+          minimum: 0
+          description: その他（円）
+          example: 5000
+      required:
+        - rent
+        - utilities
+        - insurance
+        - subscriptions
+        - transportation
+        - other
+      description: 固定費内訳（null = 未設定）
     UserSettingsResponse:
       type: object
       properties:
@@ -719,6 +761,8 @@ components:
           minimum: 0
           description: 月次固定費合計（円）
           example: 80000
+        fixedExpensesDetail:
+          $ref: "#/components/schemas/FixedExpensesDetail"
         initialSetupCompleted:
           type: boolean
           description: 初回設定完了フラグ
@@ -728,6 +772,7 @@ components:
         - monthlyIncome
         - paydayDay
         - fixedExpenses
+        - fixedExpensesDetail
         - initialSetupCompleted
     UpsertUserSettingsBody:
       type: object
@@ -751,8 +796,12 @@ components:
         fixedExpenses:
           type: integer
           minimum: 0
-          description: 月次固定費合計（円）
+          description: 月次固定費合計（円）— fixedExpensesDetail がある場合は無視
           example: 80000
+        fixedExpensesDetail:
+          allOf:
+            - $ref: "#/components/schemas/FixedExpensesDetail"
+            - description: 固定費内訳（省略時は既存値を維持）
         initialSetupCompleted:
           type: boolean
           description: 初回設定完了フラグ

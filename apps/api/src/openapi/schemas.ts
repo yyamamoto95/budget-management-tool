@@ -461,12 +461,26 @@ export const ExportQuerySchema = z.object({
 
 // ─── ユーザー設定 (Settings) ──────────────────────────────────────
 
+const FixedExpensesDetailSchema = z
+    .object({
+        rent: z.number().int().min(0).openapi({ description: '家賃（円）', example: 80000 }),
+        utilities: z.number().int().min(0).openapi({ description: '光熱費（円）', example: 15000 }),
+        insurance: z.number().int().min(0).openapi({ description: '保険（円）', example: 10000 }),
+        subscriptions: z.number().int().min(0).openapi({ description: 'サブスク（円）', example: 5000 }),
+        transportation: z.number().int().min(0).openapi({ description: '交通費（円）', example: 10000 }),
+        other: z.number().int().min(0).openapi({ description: 'その他（円）', example: 5000 }),
+    })
+    .openapi('FixedExpensesDetail');
+
 export const UserSettingsResponseSchema = z
     .object({
         totalAssets: z.number().int().min(0).openapi({ description: '総資産（円）', example: 5000000 }),
         monthlyIncome: z.number().int().min(0).openapi({ description: '月次固定収入（円）', example: 200000 }),
         paydayDay: z.number().int().min(1).max(31).openapi({ description: '給料日（月の何日か: 1〜31）', example: 25 }),
         fixedExpenses: z.number().int().min(0).openapi({ description: '月次固定費合計（円）', example: 80000 }),
+        fixedExpensesDetail: FixedExpensesDetailSchema.nullable().openapi({
+            description: '固定費内訳（null = 未設定）',
+        }),
         initialSetupCompleted: z.boolean().openapi({ description: '初回設定完了フラグ', example: false }),
     })
     .openapi('UserSettingsResponse');
@@ -493,7 +507,10 @@ export const UpsertUserSettingsBodySchema = z
             .number({ invalid_type_error: '固定費は数値で入力してください' })
             .int()
             .min(0, '固定費は0以上の値を入力してください')
-            .openapi({ description: '月次固定費合計（円）', example: 80000 }),
+            .openapi({ description: '月次固定費合計（円）— fixedExpensesDetail がある場合は無視', example: 80000 }),
+        fixedExpensesDetail: FixedExpensesDetailSchema.nullable()
+            .optional()
+            .openapi({ description: '固定費内訳（省略時は既存値を維持）' }),
         initialSetupCompleted: z
             .boolean({
                 invalid_type_error: '初回設定完了フラグは真偽値で入力してください',
