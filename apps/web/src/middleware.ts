@@ -96,5 +96,5 @@ export async function middleware(request: NextRequest) {
 export const config = {
   // /register, /forgot-password は公開ルートのため除外
   // /setup は認証が必要なため含める
-  matcher: ["/expenses/:path*", "/report", "/report/:path*", "/settings", "/settings/:path*", "/analysis", "/analysis/:path*", "/setup"],
+  matcher: ["/records", "/records/:path*", "/expenses/:path*", "/report", "/report/:path*", "/settings", "/settings/:path*", "/setup"],
 };

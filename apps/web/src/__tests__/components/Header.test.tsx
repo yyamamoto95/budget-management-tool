@@ -42,7 +42,7 @@ describe('Header', () => {
         // PC サイドバー・モバイルヘッダー両方にロゴが存在する
         expect(screen.getAllByText('家計かんり').length).toBeGreaterThanOrEqual(1)
         expect(screen.getByText('ホーム')).toBeInTheDocument()
-        expect(screen.getByText('カレンダー')).toBeInTheDocument()
+        expect(screen.getByText('明細')).toBeInTheDocument()
         expect(screen.getByText('レポート')).toBeInTheDocument()
         expect(screen.getByText('設定')).toBeInTheDocument()
         // 「記録する」は CTA ボタン・サイドバー両方に存在する
@@ -75,12 +75,12 @@ describe('Header', () => {
         expect(homeLink.className).toContain('text-[#f18840]')
     })
 
-    it('現在のパスが /calendar のとき、カレンダーがアクティブになる', () => {
-        vi.mocked(usePathname).mockReturnValue('/calendar')
+    it('現在のパスが /records のとき、明細がアクティブになる', () => {
+        vi.mocked(usePathname).mockReturnValue('/records')
         render(<Header />)
 
-        const calendarLink = screen.getByRole('link', { name: /カレンダー/ })
-        expect(calendarLink.className).toContain('text-[#f18840]')
+        const recordsLink = screen.getByRole('link', { name: /明細/ })
+        expect(recordsLink.className).toContain('text-[#f18840]')
     })
 
     it('サイドバー折りたたみボタンを押すと折りたたみ状態になる', () => {
