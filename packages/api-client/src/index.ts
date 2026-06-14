@@ -69,6 +69,7 @@ export type CategoryAnalysis = components['schemas']['CategoryAnalysis'];
 // UserSettings 型
 export type UserSettingsResponse = components['schemas']['UserSettingsResponse'];
 export type UpsertUserSettingsBody = components['schemas']['UpsertUserSettingsBody'];
+export type FixedExpensesDetail = NonNullable<components['schemas']['FixedExpensesDetail']>;
 
 // Category 型
 export type CategoryItem = components['schemas']['CategoryItem'];

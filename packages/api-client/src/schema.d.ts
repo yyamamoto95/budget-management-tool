@@ -309,6 +309,51 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/dashboard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** ダッシュボード集約データ取得 */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description ダッシュボードデータ */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["DashboardResponse"];
+                    };
+                };
+                /** @description 未認証 */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/expense": {
         parameters: {
             query?: never;
@@ -319,7 +364,13 @@ export interface paths {
         /** 支出一覧取得 */
         get: {
             parameters: {
-                query?: never;
+                query?: {
+                    period?: "week" | "month" | "lastMonth" | "all";
+                    search?: string;
+                    date?: string;
+                    limit?: number;
+                    offset?: number | null;
+                };
                 header?: never;
                 path?: never;
                 cookie?: never;
@@ -1711,6 +1762,81 @@ export interface components {
              */
             deletedDate: string | null;
         };
+        DashboardResponse: {
+            /**
+             * @description 本日の支出合計（円）
+             * @example 1500
+             */
+            todayExpense: number;
+            /** @description 1日予算（設定未完了の場合 null） */
+            dailyBudget: {
+                /**
+                 * @description 1日予算（円）
+                 * @example 3000
+                 */
+                amount: number;
+                /**
+                 * @description 本日の残予算（円）
+                 * @example 1500
+                 */
+                remaining: number;
+                /**
+                 * @description 残予算比率（0〜1+）
+                 * @example 0.5
+                 */
+                ratio: number;
+                /**
+                 * @description 給料日まで何日
+                 * @example 12
+                 */
+                daysUntilPayday: number;
+            } | null;
+            monthSummary: {
+                /**
+                 * @description 今月の支出合計
+                 * @example 45000
+                 */
+                expense: number;
+                /**
+                 * @description 今月の収入合計
+                 * @example 200000
+                 */
+                income: number;
+            };
+            /**
+             * @description 先月の支出合計
+             * @example 50000
+             */
+            lastMonthExpense: number;
+            weeklyRecord: {
+                /**
+                 * @description 日付 (YYYY-MM-DD)
+                 * @example 2026-06-13
+                 */
+                date: string;
+                /**
+                 * @description 曜日
+                 * @example 金
+                 */
+                dow: string;
+                /**
+                 * @description 支出合計（円）
+                 * @example 1500
+                 */
+                expense: number;
+                /**
+                 * @description 記録があるか
+                 * @example true
+                 */
+                recorded: boolean;
+            }[];
+            recentExpenses: components["schemas"]["ExpenseResponse"][];
+            /**
+             * @description 連続記録日数
+             * @example 5
+             */
+            streak: number;
+        };
         ExpenseListResponse: {
             expense: components["schemas"]["ExpenseResponse"][];
         };
@@ -2052,6 +2178,39 @@ export interface components {
             /** @description 新しいパスワード（平文） */
             newPassword: string;
         };
+        /** @description 固定費内訳（null = 未設定） */
+        FixedExpensesDetail: {
+            /**
+             * @description 家賃（円）
+             * @example 80000
+             */
+            rent: number;
+            /**
+             * @description 光熱費（円）
+             * @example 15000
+             */
+            utilities: number;
+            /**
+             * @description 保険（円）
+             * @example 10000
+             */
+            insurance: number;
+            /**
+             * @description サブスク（円）
+             * @example 5000
+             */
+            subscriptions: number;
+            /**
+             * @description 交通費（円）
+             * @example 10000
+             */
+            transportation: number;
+            /**
+             * @description その他（円）
+             * @example 5000
+             */
+            other: number;
+        } | null;
         UserSettingsResponse: {
             /**
              * @description 総資産（円）
@@ -2073,6 +2232,7 @@ export interface components {
              * @example 80000
              */
             fixedExpenses: number;
+            fixedExpensesDetail: components["schemas"]["FixedExpensesDetail"];
             /**
              * @description 初回設定完了フラグ
              * @example false
@@ -2096,10 +2256,11 @@ export interface components {
              */
             paydayDay: number;
             /**
-             * @description 月次固定費合計（円）
+             * @description 月次固定費合計（円）— fixedExpensesDetail がある場合は無視
              * @example 80000
              */
             fixedExpenses: number;
+            fixedExpensesDetail?: components["schemas"]["FixedExpensesDetail"] & unknown;
             /**
              * @description 初回設定完了フラグ
              * @example true
