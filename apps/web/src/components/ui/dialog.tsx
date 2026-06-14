@@ -41,7 +41,7 @@ function DialogContent({
       <DialogPrimitive.Content
         className={cn(
           'fixed left-1/2 top-1/2 z-50 w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2',
-          'grid gap-4 rounded-2xl border-2 border-[#1c1410]/10 bg-white p-6 shadow-lg',
+          'grid gap-4 rounded-2xl border border-[rgba(28,20,16,0.08)] bg-white p-6 shadow-lg',
           'sm:max-w-lg',
           'data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95',
           'data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95',

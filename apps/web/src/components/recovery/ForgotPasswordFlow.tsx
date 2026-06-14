@@ -82,7 +82,7 @@ function VerifyStep({
         <form action={formAction} className="flex flex-col gap-4">
             <input type="hidden" name="userId" value={userId} />
 
-            <div className="rounded-xl border border-[#e8c8b0] bg-[#fffdf5] px-4 py-3">
+            <div className="rounded-xl border border-[rgba(28,20,16,0.08)] bg-[#fffdf5] px-4 py-3">
                 <p className="text-xs font-bold text-[#1c1410]/40 mb-1">秘密の質問</p>
                 <p className="text-sm font-bold text-[#1c1410]">{questionText}</p>
             </div>
@@ -182,13 +182,13 @@ export function ForgotPasswordFlow() {
     return (
         <div className="flex min-h-screen items-center justify-center bg-[#fffdf5] px-4">
             <section
-                className="w-full max-w-sm rounded-2xl border-2 border-[#1c1410] bg-white p-8"
-                style={{ boxShadow: "var(--shadow-pop)" }}
+                className="w-full max-w-sm rounded-2xl border border-[rgba(28,20,16,0.08)] bg-white p-8"
+                style={{ boxShadow: "var(--shadow-card)" }}
             >
                 <div className="mb-2 flex items-center gap-3">
                     <span
-                        className="flex h-8 w-8 items-center justify-center rounded-xl border-2 border-[#1c1410] bg-[#f18840] text-xs font-extrabold text-white"
-                        style={{ boxShadow: "var(--shadow-pop-sm)" }}
+                        className="flex h-8 w-8 items-center justify-center rounded-xl border border-[rgba(28,20,16,0.08)] bg-[#f18840] text-xs font-extrabold text-white"
+                        style={{ boxShadow: "0 1px 4px rgba(28,20,16,0.08)" }}
                     >
                         B
                     </span>
@@ -234,7 +234,7 @@ export function ForgotPasswordFlow() {
                 )}
                 {step === "reset" && <ResetStep resetToken={resetToken} />}
 
-                <div className="mt-6 border-t border-[#e8c8b0] pt-4 text-center">
+                <div className="mt-6 border-t border-[rgba(28,20,16,0.08)] pt-4 text-center">
                     <Link
                         href="/login"
                         className="text-sm font-semibold text-[#1c1410]/40 underline underline-offset-2 hover:text-[#f18840] transition-colors"

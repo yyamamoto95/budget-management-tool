@@ -35,7 +35,7 @@ function DrawerContent({
       <DrawerPrimitive.Content
         className={cn(
           'fixed bottom-0 inset-x-0 z-50 flex flex-col',
-          'mt-24 max-h-[80vh] rounded-t-2xl border-t-2 border-[#1c1410]/10 bg-white',
+          'mt-24 max-h-[80vh] rounded-t-2xl border-t border-[rgba(28,20,16,0.08)] bg-white',
           className,
         )}
         {...props}

@@ -88,19 +88,12 @@
   --color-status-danger-glow: rgba(244, 63, 94, 0.18);
 
   /* ボーダー */
-  --border-default: #e8c8b0;
+  --border-default: rgba(28, 20, 16, 0.08);
   --border-strong: #1c1410;
 
-  /* Soft Pop シャドウ（Refined Edition）
-   *  高優先UI（ボタン・モーダル）: 2px offset hard shadow
-   *  中優先カード: subtle soft shadow のみ
-   *  低優先ブロック: シャドウなし（bg差のみ）
-   */
-  --shadow-pop-sm: 1px 1px 0px 0px #1c1410;
-  --shadow-pop:    2px 2px 0px 0px #1c1410;
-  --shadow-pop-lg: 3px 3px 0px 0px #1c1410;
-  --shadow-card:   0 1px 4px 0 rgba(28, 20, 16, 0.07), 0 0 0 1px rgba(28, 20, 16, 0.06);
-  --shadow-card-hover: 0 4px 12px 0 rgba(28, 20, 16, 0.10), 0 0 0 1px rgba(28, 20, 16, 0.08);
+  /* シャドウ — サンドボックス準拠のソフトシャドウ */
+  --shadow-card:   0 2px 12px rgba(28, 20, 16, 0.08), 0 0 0 1px rgba(28, 20, 16, 0.06);
+  --shadow-card-hover: 0 4px 16px rgba(28, 20, 16, 0.12), 0 0 0 1px rgba(28, 20, 16, 0.08);
   --shadow-card-elevated: 0 4px 16px rgba(28, 20, 16, 0.09), 0 0 0 1px rgba(28, 20, 16, 0.06);
 
   /* モーションイージング（Material You: Emphasized） */
@@ -113,14 +106,11 @@
     --background: #1a1008;
     --foreground: #f0ebe5;
 
-    --border-default: #4a3020;
+    --border-default: rgba(240, 235, 229, 0.08);
     --border-strong: #f0ebe5;
 
-    --shadow-pop-sm: 1px 1px 0px 0px #f0ebe5;
-    --shadow-pop:    2px 2px 0px 0px #f0ebe5;
-    --shadow-pop-lg: 3px 3px 0px 0px #f0ebe5;
-    --shadow-card:   0 1px 4px 0 rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.06);
-    --shadow-card-hover: 0 4px 12px 0 rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.08);
+    --shadow-card:   0 2px 12px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.06);
+    --shadow-card-hover: 0 4px 16px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.08);
 
     --color-brand-primary: #f29050;
     --color-brand-secondary: #e07840;
@@ -228,19 +218,19 @@
   --font-mono: var(--font-geist-mono);
 }
 
-/* ── Refined Geometric コンポーネントパターン ────────────────────
+/* ── コンポーネントパターン（サンドボックス準拠）────────────────
  *
- *  情報優先度による使い分け:
- *  高（メインボタン）: .btn-candy  — オレンジ + 2px ハードシャドウ
- *  中（カード）      : .card-pop   — soft shadow + 1px ボーダー
+ *  ソフトシャドウ＋薄ボーダーのクリーンなデザイン。
+ *  高（メインボタン）: .btn-candy  — オレンジ + グローシャドウ
+ *  中（カード）      : .card-pop   — soft shadow + 薄ボーダー
  *  低（背景要素）    : トーン差のみ（ボーダー・シャドウなし）
  *
    ──────────────────────────────────────────────────────────── */
 @layer components {
-  /* 中優先カード — soft shadow + 1px ボーダー（pop offset なし） */
+  /* 中優先カード — soft shadow + 薄ボーダー */
   .card-pop {
     @apply bg-white rounded-2xl p-6;
-    border: 1px solid rgba(28, 20, 16, 0.12);
+    border: 1px solid rgba(28, 20, 16, 0.08);
     box-shadow: var(--shadow-card);
     transition: box-shadow 0.2s var(--ease-standard);
   }
@@ -248,44 +238,44 @@
     box-shadow: var(--shadow-card-hover);
   }
 
-  /* 高優先プライマリボタン — オレンジ + 2px ハードシャドウ */
+  /* プライマリボタン — オレンジ + グローシャドウ */
   .btn-candy {
-    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm text-white bg-[#f18840] border-2 border-[#1c1410] cursor-pointer select-none;
-    box-shadow: var(--shadow-pop);
-    transition: transform 0.2s var(--ease-standard), box-shadow 0.2s var(--ease-standard);
+    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm text-white bg-[#f18840] cursor-pointer select-none;
+    box-shadow: 0 4px 16px rgba(241, 136, 64, 0.33);
+    transition: opacity 0.2s var(--ease-standard), transform 0.15s var(--ease-standard);
   }
   .btn-candy:hover {
-    transform: translate(-1px, -1px);
-    box-shadow: var(--shadow-pop-lg);
+    opacity: 0.92;
   }
   .btn-candy:active {
-    transform: translate(1px, 1px);
-    box-shadow: none;
+    transform: scale(0.97);
   }
 
-  /* セカンダリボタン — 1px ボーダー + ホバーでbg変化（シャドウなし） */
+  /* ゴーストボタン — ライトオレンジ背景 + 薄ブランドボーダー */
   .btn-ghost {
-    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm bg-white cursor-pointer select-none text-[#1c1410];
-    border: 1px solid rgba(28, 20, 16, 0.25);
+    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm cursor-pointer select-none;
+    background-color: #fff6ee;
+    color: #f18840;
+    border: 1.5px solid rgba(241, 136, 64, 0.22);
     transition: background-color 0.2s var(--ease-standard), border-color 0.2s var(--ease-standard);
   }
   .btn-ghost:hover {
-    background-color: #fff6ee;
-    border-color: rgba(28, 20, 16, 0.40);
+    background-color: #fff0e0;
+    border-color: rgba(241, 136, 64, 0.35);
   }
   .btn-ghost:active {
-    background-color: #fff6ee;
+    background-color: #fff0e0;
   }
 
-  /* 入力フィールド — フォーカス時にオレンジリング */
+  /* 入力フィールド — フォーカス時に背景変化 */
   .input-pop {
     @apply w-full rounded-xl bg-white px-3 py-2 text-sm outline-none;
-    border: 1px solid rgba(28, 20, 16, 0.18);
-    transition: border-color 0.2s var(--ease-standard), box-shadow 0.2s var(--ease-standard);
+    border: 1px solid rgba(28, 20, 16, 0.08);
+    transition: border-color 0.2s var(--ease-standard), background-color 0.2s var(--ease-standard);
   }
   .input-pop:focus {
     border-color: #f18840;
-    box-shadow: 0 0 0 3px rgba(241, 136, 64, 0.14);
+    background-color: #fff6ee;
   }
 }
 

@@ -39,7 +39,7 @@ export const InsideButton: Story = {
   render: () => (
     <button
       disabled
-      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm text-white bg-[#f18840] border-2 border-[#1c1410] opacity-50 cursor-not-allowed"
+      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm text-white bg-[#f18840] border border-[rgba(28,20,16,0.08)] opacity-50 cursor-not-allowed"
     >
       <LoadingSpinner size="sm" />
       <span>処理中...</span>

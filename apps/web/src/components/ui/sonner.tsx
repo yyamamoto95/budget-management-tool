@@ -16,7 +16,7 @@ function Toaster({ ...props }: React.ComponentProps<typeof SonnerToaster>) {
       toastOptions={{
         classNames: {
           toast:
-            'rounded-xl border-2 border-[#1c1410]/10 bg-white text-[#1c1410] shadow-lg text-sm font-medium',
+            'rounded-xl border border-[rgba(28,20,16,0.08)] bg-white text-[#1c1410] shadow-lg text-sm font-medium',
           title: 'font-semibold',
           description: 'text-[#1c1410]/60',
           success: 'border-[#35b5a2]/30 bg-[#ecfaf8]',
