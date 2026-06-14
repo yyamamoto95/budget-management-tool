@@ -18,11 +18,13 @@ export function SwRegister() {
                     reg.unregister();
                 }
             });
-            caches.keys().then((keys) => {
-                for (const key of keys) {
-                    caches.delete(key);
-                }
-            });
+            if (typeof caches !== 'undefined') {
+                caches.keys().then((keys) => {
+                    for (const key of keys) {
+                        caches.delete(key);
+                    }
+                });
+            }
             return;
         }
 
