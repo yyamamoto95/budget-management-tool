@@ -405,54 +405,6 @@ export const ResetPasswordBodySchema = z
     })
     .openapi('ResetPasswordBody');
 
-// ─── Xデー (XDay) ────────────────────────────────────────────────────
-
-export const XDayQuerySchema = z.object({
-    totalAssets: z.coerce.number().int().min(0).openapi({ description: '現在の総資産残高（円）', example: 5000000 }),
-    monthlyIncome: z.coerce
-        .number()
-        .int()
-        .min(0)
-        .default(0)
-        .openapi({ description: '月次固定収入（円）。0は収入なし', example: 0 }),
-});
-
-export const XDayResponseSchema = z
-    .object({
-        xDate: z.string().nullable().openapi({ example: '2031-09-14T00:00:00.000Z' }),
-        daysRemaining: z.number().nullable().openapi({ example: 1978 }),
-        effectiveDailyExpense: z.number().openapi({ example: 4067 }),
-        netDailyExpense: z.number().openapi({ example: 4067 }),
-        trustWeight: z.number().openapi({ example: 0.5 }),
-        minutesPerYen: z.number().openapi({ example: 0.354 }),
-        realtimeAssets: z.number().openapi({ example: 4999812 }),
-        recordedDays: z.number().openapi({ example: 45 }),
-        avgDailyExpense: z.number().openapi({ example: 3200 }),
-        snapshotAt: z.string().openapi({ example: '2026-04-14T10:00:00.000Z' }),
-    })
-    .openapi('XDayResponse');
-
-export const CategoryAnalysisSchema = z
-    .object({
-        category: z.string().openapi({ example: 'food' }),
-        label: z.string().openapi({ example: '食費' }),
-        monthlyAmount: z.number().openapi({ example: 62400 }),
-        deviation: z.number().openapi({ example: 78 }),
-        level: z.enum(['surplus', 'normal', 'caution', 'danger']).openapi({ example: 'danger' }),
-        color: z.string().openapi({ example: '#FF0000' }),
-        xDayImpactDays: z.number().openapi({ example: 64 }),
-    })
-    .openapi('CategoryAnalysis');
-
-export const ExpenditureAnalysisResponseSchema = z
-    .object({
-        month: z.string().openapi({ example: '2026-04' }),
-        categories: z.array(CategoryAnalysisSchema),
-        totalDeviation: z.number().openapi({ example: 71 }),
-        totalMonthlyAmount: z.number().openapi({ example: 141500 }),
-    })
-    .openapi('ExpenditureAnalysisResponse');
-
 // ─── データエクスポート (Export) ─────────────────────────────────────
 
 export const ExportQuerySchema = z.object({

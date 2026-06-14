@@ -19,8 +19,6 @@ import { GetUsersUseCase } from './application/use-cases/user/GetUsersUseCase';
 import { UpdateUserUseCase } from './application/use-cases/user/UpdateUserUseCase';
 import { GetUserSettingsUseCase } from './application/use-cases/settings/GetUserSettingsUseCase';
 import { UpsertUserSettingsUseCase } from './application/use-cases/settings/UpsertUserSettingsUseCase';
-import { GetExpenditureAnalysisUseCase } from './application/use-cases/xday/GetExpenditureAnalysisUseCase';
-import { GetXDayUseCase } from './application/use-cases/xday/GetXDayUseCase';
 import { PrismaCategoryRepository } from './infrastructure/persistence/PrismaCategoryRepository';
 import { PrismaExpenseRepository } from './infrastructure/persistence/PrismaExpenseRepository';
 import { PrismaPasswordResetTokenRepository } from './infrastructure/persistence/PrismaPasswordResetTokenRepository';
@@ -87,8 +85,5 @@ export function buildServices(deps: AppDeps, tokenService: TokenService): RouteS
         upsertUserSettingsUseCase: new UpsertUserSettingsUseCase(deps.userSettingsRepository),
         // Dashboard
         getDashboardUseCase: new GetDashboardUseCase(deps.expenseRepository, deps.userSettingsRepository),
-        // XDay
-        getXDayUseCase: new GetXDayUseCase(deps.expenseRepository),
-        getAnalysisUseCase: new GetExpenditureAnalysisUseCase(deps.expenseRepository),
     };
 }
