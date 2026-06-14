@@ -27,6 +27,12 @@ function formatAmount(amount: number): string {
   return `¥${amount.toLocaleString("ja-JP")}`;
 }
 
+/** 金額入力の文字列を数値に変換する（先頭ゼロ除去・非数値除去） */
+function parseAmountInput(raw: string): number {
+  const cleaned = raw.replace(/[^0-9]/g, "").replace(/^0+/, "");
+  return cleaned === "" ? 0 : Number(cleaned);
+}
+
 const STEP_TRANSITION = { ...SPRING.quick };
 
 export function InitialSetupWizard() {
@@ -211,12 +217,15 @@ function PaydayStep({ paydayDay, monthlyIncome, onChange, onNext }: PaydayStepPr
           </label>
           <div className="flex items-center gap-2">
             <input
-              type="number"
-              min={1}
-              max={31}
-              value={paydayDay}
-              onChange={(e) => onChange({ paydayDay: Number(e.target.value) })}
+              type="text"
+              inputMode="numeric"
+              value={paydayDay || ""}
+              onChange={(e) => {
+                const v = parseAmountInput(e.target.value);
+                if (v <= 31) onChange({ paydayDay: v });
+              }}
               className="input-field w-24 text-center text-lg font-bold"
+              placeholder="25"
               aria-label="給料日"
             />
             <span
@@ -242,12 +251,12 @@ function PaydayStep({ paydayDay, monthlyIncome, onChange, onNext }: PaydayStepPr
               ¥
             </span>
             <input
-              type="number"
-              min={0}
-              step={1000}
-              value={monthlyIncome}
-              onChange={(e) => onChange({ monthlyIncome: Number(e.target.value) })}
+              type="text"
+              inputMode="numeric"
+              value={monthlyIncome || ""}
+              onChange={(e) => onChange({ monthlyIncome: parseAmountInput(e.target.value) })}
               className="input-field flex-1 font-bold"
+              placeholder="0"
               aria-label="月収"
             />
           </div>
@@ -305,12 +314,12 @@ function FixedExpensesStep({ fixedExpenses, onChange, onNext, onBack }: FixedExp
             ¥
           </span>
           <input
-            type="number"
-            min={0}
-            step={1000}
-            value={fixedExpenses}
-            onChange={(e) => onChange(Number(e.target.value))}
+            type="text"
+            inputMode="numeric"
+            value={fixedExpenses || ""}
+            onChange={(e) => onChange(parseAmountInput(e.target.value))}
             className="input-field flex-1 font-bold"
+            placeholder="0"
             aria-label="固定費"
           />
         </div>
@@ -377,12 +386,12 @@ function TotalAssetsStep({ totalAssets, onChange, onNext, onBack }: TotalAssetsS
             ¥
           </span>
           <input
-            type="number"
-            min={0}
-            step={1000}
-            value={totalAssets}
-            onChange={(e) => onChange(Number(e.target.value))}
+            type="text"
+            inputMode="numeric"
+            value={totalAssets || ""}
+            onChange={(e) => onChange(parseAmountInput(e.target.value))}
             className="input-field flex-1 font-bold"
+            placeholder="0"
             aria-label="現在の残高"
           />
         </div>

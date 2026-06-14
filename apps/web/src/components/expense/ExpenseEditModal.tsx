@@ -102,7 +102,8 @@ export function ExpenseEditModal({ expense, onClose, expenseCategories, incomeCa
           <div className="flex flex-col gap-1">
             <label className="text-xs font-bold text-[#1c1410]/60">金額（円）</label>
             <input
-              type="number"
+              type="text"
+              inputMode="numeric"
               name="amount"
               defaultValue={expense.amount}
               min={1}
