@@ -9,13 +9,13 @@ const buttonVariants = cva(
     variants: {
       variant: {
         primary:
-          'text-white bg-[#f18840] border-2 border-[#1c1410] [box-shadow:var(--shadow-pop)] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:[box-shadow:var(--shadow-pop-lg)] active:translate-x-[1px] active:translate-y-[1px] active:[box-shadow:none]',
+          'text-white bg-[#f18840] [box-shadow:0_4px_16px_rgba(241,136,64,0.33)] hover:opacity-[0.92] active:scale-[0.97]',
         secondary:
-          'text-[#1c1410] bg-white border border-[#1c1410]/25 hover:bg-[#fff6ee] hover:border-[#1c1410]/40',
+          'text-[#f18840] bg-[#fff6ee] border-[1.5px] border-[rgba(241,136,64,0.22)] hover:bg-[#fff0e0] hover:border-[rgba(241,136,64,0.35)]',
         ghost:
           'text-[#1c1410]/70 bg-transparent hover:bg-[#1c1410]/5',
         destructive:
-          'text-white bg-[#f43f5e] border-2 border-[#1c1410] [box-shadow:var(--shadow-pop)] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:[box-shadow:var(--shadow-pop-lg)] active:translate-x-[1px] active:translate-y-[1px] active:[box-shadow:none]',
+          'text-[#f43f5e] bg-transparent hover:bg-[#f43f5e]/5 active:scale-[0.97]',
         link:
           'text-[#f18840] underline underline-offset-2 hover:text-[#e07030] p-0 h-auto',
       },

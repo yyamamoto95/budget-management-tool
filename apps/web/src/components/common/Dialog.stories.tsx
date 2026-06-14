@@ -59,7 +59,7 @@ export const Form: Story = {
             <input
               type="number"
               placeholder="例：150000"
-              className="rounded-xl border-2 border-[#1c1410]/20 px-4 py-2.5 text-sm focus:border-[#f18840] focus:outline-none focus:ring-2 focus:ring-[#f18840]/20"
+              className="rounded-xl border border-[rgba(28,20,16,0.08)] px-4 py-2.5 text-sm focus:border-[#f18840] focus:outline-none focus:bg-[#fff6ee]"
             />
           </label>
         </div>

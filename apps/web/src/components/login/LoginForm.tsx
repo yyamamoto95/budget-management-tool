@@ -57,7 +57,7 @@ export function LoginForm({ returnTo }: Props) {
             width={48}
             height={48}
             className="rounded-2xl"
-            style={{ boxShadow: "var(--shadow-pop-sm)" }}
+            style={{ boxShadow: "0 1px 4px rgba(28,20,16,0.08)" }}
           />
           <span className="text-2xl font-extrabold text-[#1c1410] tracking-tight">
             Budget
@@ -68,7 +68,7 @@ export function LoginForm({ returnTo }: Props) {
         </p>
       </div>
 
-      <section className="w-full max-w-sm rounded-2xl border border-[#e8c8b0] bg-white p-8">
+      <section className="w-full max-w-sm rounded-2xl border border-[rgba(28,20,16,0.08)] bg-white p-8" style={{ boxShadow: "var(--shadow-card)" }}>
         <h1 className="mb-5 text-lg font-bold text-[#1c1410]">ログイン</h1>
 
         <Suspense>
@@ -136,7 +136,7 @@ export function LoginForm({ returnTo }: Props) {
           </button>
         </form>
 
-        <div className="mt-4 border-t border-[#e8c8b0] pt-4 space-y-3">
+        <div className="mt-4 border-t border-[rgba(28,20,16,0.08)] pt-4 space-y-3">
           <form action={guestLoginAction}>
             {returnTo && (
               <input type="hidden" name="returnTo" value={returnTo} />

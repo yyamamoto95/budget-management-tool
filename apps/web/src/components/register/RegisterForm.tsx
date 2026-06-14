@@ -49,14 +49,14 @@ export function RegisterForm() {
             />
 
             <section
-                className="w-full max-w-md rounded-2xl border-2 border-[#1c1410] bg-white p-8"
-                style={{ boxShadow: "var(--shadow-pop)" }}
+                className="w-full max-w-md rounded-2xl border border-[rgba(28,20,16,0.08)] bg-white p-8"
+                style={{ boxShadow: "var(--shadow-card)" }}
             >
                 <div className="mb-6 flex items-start justify-between gap-4">
                     <div className="flex items-center gap-3">
                         <span
-                            className="flex h-10 w-10 items-center justify-center rounded-xl border-2 border-[#1c1410] bg-[#f18840] text-base font-extrabold text-white"
-                            style={{ boxShadow: "var(--shadow-pop-sm)" }}
+                            className="flex h-10 w-10 items-center justify-center rounded-xl border border-[rgba(28,20,16,0.08)] bg-[#f18840] text-base font-extrabold text-white"
+                            style={{ boxShadow: "0 1px 4px rgba(28,20,16,0.08)" }}
                         >
                             B
                         </span>
@@ -117,7 +117,7 @@ export function RegisterForm() {
                     </div>
 
                     {/* 秘密の質問 */}
-                    <div className="rounded-xl border border-[#e8c8b0] bg-[#fffdf5] p-4 space-y-3">
+                    <div className="rounded-xl border border-[rgba(28,20,16,0.08)] bg-[#fffdf5] p-4 space-y-3">
                         <p className="text-sm font-extrabold text-[#1c1410]">
                             秘密の質問
                         </p>
@@ -182,7 +182,7 @@ export function RegisterForm() {
                     </button>
                 </form>
 
-                <div className="mt-4 border-t border-[#e8c8b0] pt-4 text-center">
+                <div className="mt-4 border-t border-[rgba(28,20,16,0.08)] pt-4 text-center">
                     <p className="text-sm text-[#1c1410]/60">
                         すでにアカウントをお持ちですか？{" "}
                         <Link

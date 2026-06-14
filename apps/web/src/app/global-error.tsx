@@ -30,11 +30,11 @@ export default function GlobalError({ error, reset }: Props) {
               width: "100%",
               maxWidth: "360px",
               borderRadius: "16px",
-              border: "2px solid #1c1410",
+              border: "1px solid rgba(28,20,16,0.08)",
               backgroundColor: "white",
               padding: "32px",
               textAlign: "center",
-              boxShadow: "4px 4px 0 #1c1410",
+              boxShadow: "0 1px 4px rgba(28,20,16,0.08)",
             }}
           >
             <p style={{ fontSize: "48px", fontWeight: 900, color: "#f18840", margin: 0 }}>

@@ -48,10 +48,10 @@ export function Header({ userName }: Props) {
         {/* ロゴ */}
         <div className="flex h-14 items-center justify-center border-b border-[#1c1410]/10 px-3">
           {collapsed ? (
-            <LogoImage size={32} style={{ boxShadow: "var(--shadow-pop-sm)" }} />
+            <LogoImage size={32} style={{ boxShadow: "0 1px 4px rgba(28,20,16,0.08)" }} />
           ) : (
             <Link href="/" className="flex items-center gap-2 w-full">
-              <LogoImage size={32} style={{ flexShrink: 0, boxShadow: "var(--shadow-pop-sm)" }} />
+              <LogoImage size={32} style={{ flexShrink: 0, boxShadow: "0 1px 4px rgba(28,20,16,0.08)" }} />
               <div className="flex flex-col leading-none">
                 <span className="text-sm font-extrabold text-[#1c1410]">家計かんり</span>
                 <span className="text-[10px] text-[#1c1410]/40">家計を、もっとシンプルに。</span>
@@ -133,7 +133,7 @@ export function Header({ userName }: Props) {
       {/* ─── モバイル: ミニヘッダー（md未満） ────────────────────── */}
       <header className="sticky top-0 z-20 flex h-14 items-center justify-between border-b border-[#1c1410]/10 bg-[#fffdf5]/90 px-4 backdrop-blur-md md:hidden">
         <Link href="/" className="flex items-center gap-2">
-          <LogoImage size={28} style={{ boxShadow: "var(--shadow-pop-sm)" }} />
+          <LogoImage size={28} style={{ boxShadow: "0 1px 4px rgba(28,20,16,0.08)" }} />
           <span className="text-sm font-extrabold text-[#1c1410]">家計かんり</span>
         </Link>
         <Link href="/expenses/new" className="btn-candy text-xs px-3 py-1.5">

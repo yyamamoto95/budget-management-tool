@@ -60,8 +60,8 @@ export function BottomNav({ userId, expenseCategories, incomeCategories }: Props
             onClick={() => setDrawerOpen(!drawerOpen)}
             className="relative -top-3 flex h-14 w-14 items-center justify-center rounded-full shadow-lg transition-transform active:scale-95"
             style={{
-              background: "var(--color-brand-primary, #f08030)",
-              boxShadow: "0 4px 16px rgba(240,128,48,0.4)",
+              background: "linear-gradient(135deg, #f18840 0%, #e8622a 100%)",
+              boxShadow: "0 4px 20px rgba(241,136,64,0.45), 0 1px 4px rgba(241,136,64,0.20)",
             }}
           >
             {drawerOpen ? (
