@@ -3,8 +3,12 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { serverFetch, ApiError } from "../api/client";
+import { getSettings } from "../api/settings";
 import type { LoginResponse, LogoutResponse } from "../api/types";
 import { loginSchema } from "@budget/common";
+
+/** 初回設定完了 Cookie の有効期間（1年） */
+const SETUP_COOKIE_MAX_AGE = 365 * 24 * 60 * 60;
 
 // アクセストークン：15分（APIと揃える）
 const ACCESS_TOKEN_MAX_AGE = 15 * 60;
@@ -68,6 +72,27 @@ async function clearTokenCookies(): Promise<void> {
   cookieStore.delete("user_id");
 }
 
+/** DBの初回設定フラグをクッキーに同期する（完了済み→セット / 未完了→削除） */
+async function syncSetupCookie(): Promise<void> {
+  try {
+    const settings = await getSettings();
+    const cookieStore = await cookies();
+    if (settings.initialSetupCompleted) {
+      cookieStore.set("setup_completed", "1", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        maxAge: SETUP_COOKIE_MAX_AGE,
+        path: "/",
+      });
+    } else {
+      cookieStore.delete("setup_completed");
+    }
+  } catch {
+    // 設定取得失敗時はクッキーなしで続行（middlewareが /setup にリダイレクト）
+  }
+}
+
 /** ログイン Server Action */
 export async function loginAction(
   _prev: LoginState,
@@ -90,6 +115,7 @@ export async function loginAction(
       body: JSON.stringify(result.data),
     });
     await setTokenCookies({ ...res, userId: res.userId });
+    await syncSetupCookie();
   } catch (err) {
     if (err instanceof ApiError && err.status === 401) {
       return { error: "ユーザー名またはパスワードが正しくありません" };
@@ -108,6 +134,7 @@ export async function guestLoginAction(formData: FormData): Promise<void> {
     method: "POST",
   });
   await setTokenCookies({ ...res, userId: res.userId });
+  await syncSetupCookie();
 
   // returnTo が / 始まりの場合のみ使用（オープンリダイレクト対策）
   const returnTo = String(formData.get("returnTo") ?? "");

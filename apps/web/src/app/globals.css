@@ -267,13 +267,15 @@
     background-color: #fff0e0;
   }
 
-  /* 入力フィールド — フォーカス時に背景変化 */
-  .input-pop {
+  /* 入力フィールド — フォーカス時に背景変化（input-field は InitialSetupWizard 用エイリアス） */
+  .input-pop,
+  .input-field {
     @apply w-full rounded-xl bg-white px-3 py-2 text-sm outline-none;
     border: 1px solid rgba(28, 20, 16, 0.08);
     transition: border-color 0.2s var(--ease-standard), background-color 0.2s var(--ease-standard);
   }
-  .input-pop:focus {
+  .input-pop:focus,
+  .input-field:focus {
     border-color: #f18840;
     background-color: #fff6ee;
   }
