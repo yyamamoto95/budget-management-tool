@@ -45,7 +45,7 @@ export function CategoryBreakdown({ categories, totalExpense }: Props) {
           <motion.div
             key={cat.label}
             style={{ background: cat.color }}
-            animate={{ width: `${(cat.amount / totalExpense) * 100}%` }}
+            animate={{ width: totalExpense > 0 ? `${(cat.amount / totalExpense) * 100}%` : "0%" }}
             transition={SPRING.base}
           />
         ))}
@@ -54,7 +54,7 @@ export function CategoryBreakdown({ categories, totalExpense }: Props) {
       {/* カテゴリリスト */}
       <div className="space-y-3">
         {categories.map((cat, i) => {
-          const pct = (cat.amount / totalExpense) * 100;
+          const pct = totalExpense > 0 ? (cat.amount / totalExpense) * 100 : 0;
           return (
             <motion.div
               key={cat.label}

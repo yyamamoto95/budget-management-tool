@@ -23,7 +23,11 @@ export function AmountField({ value, onChange, step = 1000, suffix }: Props) {
         className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-base font-bold select-none"
         style={{ background: "var(--color-surface-subtle)", color: "var(--foreground)", opacity: 0.5 }}
         onMouseDown={(e) => e.preventDefault()}
-        onClick={() => onChange(Math.max(0, value - step))}
+        onClick={() => {
+          const next = Math.max(0, value - step);
+          onChange(next);
+          if (focused) setRaw(next.toString());
+        }}
         whileTap={{ scale: 0.85 }}
         transition={SPRING.snap}
         aria-label={`${step.toLocaleString("ja-JP")}円減らす`}
@@ -78,7 +82,11 @@ export function AmountField({ value, onChange, step = 1000, suffix }: Props) {
         className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-base font-bold select-none"
         style={{ background: "var(--color-surface-subtle)", color: "var(--foreground)", opacity: 0.5 }}
         onMouseDown={(e) => e.preventDefault()}
-        onClick={() => onChange(value + step)}
+        onClick={() => {
+          const next = value + step;
+          onChange(next);
+          if (focused) setRaw(next.toString());
+        }}
         whileTap={{ scale: 0.85 }}
         transition={SPRING.snap}
         aria-label={`${step.toLocaleString("ja-JP")}円増やす`}

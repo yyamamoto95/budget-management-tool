@@ -43,9 +43,10 @@ export class GetDashboardUseCase {
         const lastMonthDate = new Date(today.getFullYear(), today.getMonth() - 1, 1);
         const lastMonth = `${lastMonthDate.getFullYear()}-${String(lastMonthDate.getMonth() + 1).padStart(2, '0')}`;
 
-        // 支出のみ（balanceType=0, 未削除）
-        const outgoExpenses = expenses.filter((e) => e.balanceType === 0);
-        const incomeExpenses = expenses.filter((e) => e.balanceType === 1);
+        // 未削除の経費のみ対象
+        const activeExpenses = expenses.filter((e) => !e.deletedDate);
+        const outgoExpenses = activeExpenses.filter((e) => e.balanceType === 0);
+        const incomeExpenses = activeExpenses.filter((e) => e.balanceType === 1);
 
         // 今日の支出
         const todayExpense = outgoExpenses.filter((e) => e.date === todayStr).reduce((sum, e) => sum + e.amount, 0);
@@ -82,23 +83,25 @@ export class GetDashboardUseCase {
             };
         }
 
+        // 日付の高速ルックアップ用 Set
+        const recordedDates = new Set(activeExpenses.map((e) => e.date));
+
         // 週間記録（過去7日）
         const weeklyRecord: DashboardResult['weeklyRecord'] = [];
         for (let i = 6; i >= 0; i--) {
             const d = new Date(today.getFullYear(), today.getMonth(), today.getDate() - i);
             const dateStr = toDateString(d);
             const dayExpense = outgoExpenses.filter((e) => e.date === dateStr).reduce((sum, e) => sum + e.amount, 0);
-            const hasRecord = expenses.some((e) => e.date === dateStr);
             weeklyRecord.push({
                 date: dateStr,
                 dow: DOW_LABELS[d.getDay()],
                 expense: dayExpense,
-                recorded: hasRecord,
+                recorded: recordedDates.has(dateStr),
             });
         }
 
         // 最新5件
-        const recentExpenses = [...expenses]
+        const recentExpenses = [...activeExpenses]
             .sort((a, b) => b.createdDate.getTime() - a.createdDate.getTime())
             .slice(0, 5);
 
@@ -107,7 +110,7 @@ export class GetDashboardUseCase {
         for (let i = 0; i < 365; i++) {
             const d = new Date(today.getFullYear(), today.getMonth(), today.getDate() - i);
             const dateStr = toDateString(d);
-            if (expenses.some((e) => e.date === dateStr)) {
+            if (recordedDates.has(dateStr)) {
                 streak++;
             } else {
                 break;

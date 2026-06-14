@@ -1113,7 +1113,7 @@ paths:
           in: query
         - schema:
             type: string
-            description: テキスト検索（content + カテゴリ名）
+            description: テキスト検索（content）
           required: false
           name: search
           in: query

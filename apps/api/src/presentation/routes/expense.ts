@@ -31,7 +31,7 @@ const ExpenseDetailResponseSchema = z.object({ expense: ExpenseResponseSchema })
 
 const ExpenseQuerySchema = z.object({
     period: z.enum(['week', 'month', 'lastMonth', 'all']).optional().openapi({ description: '期間フィルタ' }),
-    search: z.string().optional().openapi({ description: 'テキスト検索（content + カテゴリ名）' }),
+    search: z.string().optional().openapi({ description: 'テキスト検索（content）' }),
     date: z.string().optional().openapi({ description: '日付フィルタ (YYYY-MM-DD)' }),
     limit: z.coerce.number().int().min(1).max(100).optional().openapi({ description: '取得件数上限' }),
     offset: z.coerce.number().int().min(0).optional().openapi({ description: 'オフセット' }),
