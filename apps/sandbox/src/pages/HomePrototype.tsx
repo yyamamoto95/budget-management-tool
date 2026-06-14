@@ -21,7 +21,7 @@
 import { useState, useMemo, useRef, useEffect, createElement, type ReactNode } from "react";
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 import { HomeTour } from "../components/HomeTour";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import {
     animate,
     motion,
@@ -963,8 +963,11 @@ export function HomePrototype() {
     // ── 機能 state ───────────────────────────────────────────────────────────
     // ⑥ ベル通知パネル
     const [notifPanelOpen, setNotifPanelOpen] = useState(false);
-    // ⑤ 初回設定完了後の空状態デモトグル
-    const [isFirstSetup, setIsFirstSetup] = useState(false);
+    // ⑤ 初回設定完了後の空状態（ウィザードから遷移してきた場合に true）
+    const location = useLocation()
+    const [isFirstSetup, setIsFirstSetup] = useState(
+        () => (location.state as { fromWizard?: boolean } | null)?.fromWizard ?? false
+    );
 
     // ── SP スワイプカルーセル（今日の状況・今月の貯蓄予測・今月のサマリー）────
     const CAROUSEL_COUNT  = 3
@@ -1321,10 +1324,9 @@ export function HomePrototype() {
             {/* ─── メインコンテンツ ─────────────────────────────────────────── */}
             <main className="mx-auto max-w-7xl px-4 py-4 md:px-6 md:py-5">
 
-                {/* ⑤ 初回設定デモトグル + SP通知ベル */}
-                <div className="mb-3 flex items-center justify-between">
-                    {/* Bell — SP のみ（コンテンツ先頭に自然に配置） */}
-                    <div className="relative lg:hidden">
+                {/* SP通知ベル */}
+                <div className="mb-3 lg:hidden">
+                    <div className="relative">
                         <motion.button
                             type="button"
                             onClick={() => setNotifPanelOpen((p) => !p)}
@@ -1403,36 +1405,6 @@ export function HomePrototype() {
                         </AnimatePresence>
                     </div>
 
-                    {/* PC では左を空ける */}
-                    <div className="hidden lg:block" />
-
-                    {/* デモトグル（右寄せ） */}
-                    <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-semibold" style={{ color: C.muted }}>
-                            デモ: 初回設定完了後の空状態
-                        </span>
-                        <button
-                            type="button"
-                            onClick={() => setIsFirstSetup((p) => !p)}
-                            className="flex h-6 w-11 items-center rounded-full border transition-colors"
-                            style={{
-                                background:  isFirstSetup ? C.brand : "rgba(28,20,16,0.12)",
-                                borderColor: isFirstSetup ? C.brandDeep : "transparent",
-                            }}
-                            aria-pressed={isFirstSetup}
-                            aria-label="初回設定デモを切り替え"
-                        >
-                            <motion.div
-                                layout
-                                transition={SPRING.quick}
-                                className="h-4 w-4 rounded-full bg-white"
-                                style={{
-                                    marginLeft: isFirstSetup ? "24px" : "4px",
-                                    boxShadow: "0 1px 3px rgba(0,0,0,0.15)",
-                                }}
-                            />
-                        </button>
-                    </div>
                 </div>
 
                 {/* ── ⑤ 初回設定完了後の空状態 ─────────────────────────────── */}

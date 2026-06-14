@@ -203,6 +203,99 @@ components:
         - createdDate
         - updatedDate
         - deletedDate
+    DashboardResponse:
+      type: object
+      properties:
+        todayExpense:
+          type: integer
+          description: 本日の支出合計（円）
+          example: 1500
+        dailyBudget:
+          type: object
+          nullable: true
+          properties:
+            amount:
+              type: integer
+              description: 1日予算（円）
+              example: 3000
+            remaining:
+              type: integer
+              description: 本日の残予算（円）
+              example: 1500
+            ratio:
+              type: number
+              description: 残予算比率（0〜1+）
+              example: 0.5
+            daysUntilPayday:
+              type: integer
+              description: 給料日まで何日
+              example: 12
+          required:
+            - amount
+            - remaining
+            - ratio
+            - daysUntilPayday
+          description: 1日予算（設定未完了の場合 null）
+        monthSummary:
+          type: object
+          properties:
+            expense:
+              type: integer
+              description: 今月の支出合計
+              example: 45000
+            income:
+              type: integer
+              description: 今月の収入合計
+              example: 200000
+          required:
+            - expense
+            - income
+        lastMonthExpense:
+          type: integer
+          description: 先月の支出合計
+          example: 50000
+        weeklyRecord:
+          type: array
+          items:
+            type: object
+            properties:
+              date:
+                type: string
+                description: 日付 (YYYY-MM-DD)
+                example: 2026-06-13
+              dow:
+                type: string
+                description: 曜日
+                example: 金
+              expense:
+                type: integer
+                description: 支出合計（円）
+                example: 1500
+              recorded:
+                type: boolean
+                description: 記録があるか
+                example: true
+            required:
+              - date
+              - dow
+              - expense
+              - recorded
+        recentExpenses:
+          type: array
+          items:
+            $ref: "#/components/schemas/ExpenseResponse"
+        streak:
+          type: integer
+          description: 連続記録日数
+          example: 5
+      required:
+        - todayExpense
+        - dailyBudget
+        - monthSummary
+        - lastMonthExpense
+        - weeklyRecord
+        - recentExpenses
+        - streak
     ExpenseListResponse:
       type: object
       properties:
@@ -695,6 +788,48 @@ components:
       required:
         - resetToken
         - newPassword
+    FixedExpensesDetail:
+      type: object
+      nullable: true
+      properties:
+        rent:
+          type: integer
+          minimum: 0
+          description: 家賃（円）
+          example: 80000
+        utilities:
+          type: integer
+          minimum: 0
+          description: 光熱費（円）
+          example: 15000
+        insurance:
+          type: integer
+          minimum: 0
+          description: 保険（円）
+          example: 10000
+        subscriptions:
+          type: integer
+          minimum: 0
+          description: サブスク（円）
+          example: 5000
+        transportation:
+          type: integer
+          minimum: 0
+          description: 交通費（円）
+          example: 10000
+        other:
+          type: integer
+          minimum: 0
+          description: その他（円）
+          example: 5000
+      required:
+        - rent
+        - utilities
+        - insurance
+        - subscriptions
+        - transportation
+        - other
+      description: 固定費内訳（null = 未設定）
     UserSettingsResponse:
       type: object
       properties:
@@ -719,6 +854,8 @@ components:
           minimum: 0
           description: 月次固定費合計（円）
           example: 80000
+        fixedExpensesDetail:
+          $ref: "#/components/schemas/FixedExpensesDetail"
         initialSetupCompleted:
           type: boolean
           description: 初回設定完了フラグ
@@ -728,6 +865,7 @@ components:
         - monthlyIncome
         - paydayDay
         - fixedExpenses
+        - fixedExpensesDetail
         - initialSetupCompleted
     UpsertUserSettingsBody:
       type: object
@@ -751,8 +889,12 @@ components:
         fixedExpenses:
           type: integer
           minimum: 0
-          description: 月次固定費合計（円）
+          description: 月次固定費合計（円）— fixedExpensesDetail がある場合は無視
           example: 80000
+        fixedExpensesDetail:
+          allOf:
+            - $ref: "#/components/schemas/FixedExpensesDetail"
+            - description: 固定費内訳（省略時は既存値を維持）
         initialSetupCompleted:
           type: boolean
           description: 初回設定完了フラグ
@@ -762,110 +904,6 @@ components:
         - monthlyIncome
         - paydayDay
         - fixedExpenses
-    XDayResponse:
-      type: object
-      properties:
-        xDate:
-          type: string
-          nullable: true
-          example: 2031-09-14T00:00:00.000Z
-        daysRemaining:
-          type: number
-          nullable: true
-          example: 1978
-        effectiveDailyExpense:
-          type: number
-          example: 4067
-        netDailyExpense:
-          type: number
-          example: 4067
-        trustWeight:
-          type: number
-          example: 0.5
-        minutesPerYen:
-          type: number
-          example: 0.354
-        realtimeAssets:
-          type: number
-          example: 4999812
-        recordedDays:
-          type: number
-          example: 45
-        avgDailyExpense:
-          type: number
-          example: 3200
-        snapshotAt:
-          type: string
-          example: 2026-04-14T10:00:00.000Z
-      required:
-        - xDate
-        - daysRemaining
-        - effectiveDailyExpense
-        - netDailyExpense
-        - trustWeight
-        - minutesPerYen
-        - realtimeAssets
-        - recordedDays
-        - avgDailyExpense
-        - snapshotAt
-    CategoryAnalysis:
-      type: object
-      properties:
-        category:
-          type: string
-          example: food
-        label:
-          type: string
-          example: 食費
-        monthlyAmount:
-          type: number
-          example: 62400
-        deviation:
-          type: number
-          example: 78
-        level:
-          type: string
-          enum:
-            - surplus
-            - normal
-            - caution
-            - danger
-          example: danger
-        color:
-          type: string
-          example: "#FF0000"
-        xDayImpactDays:
-          type: number
-          example: 64
-      required:
-        - category
-        - label
-        - monthlyAmount
-        - deviation
-        - level
-        - color
-        - xDayImpactDays
-    ExpenditureAnalysisResponse:
-      type: object
-      properties:
-        month:
-          type: string
-          example: 2026-04
-        categories:
-          type: array
-          items:
-            $ref: "#/components/schemas/CategoryAnalysis"
-        totalDeviation:
-          type: number
-          example: 71
-        totalMonthlyAmount:
-          type: number
-          example: 141500
-      required:
-        - month
-        - categories
-        - totalDeviation
-        - totalMonthlyAmount
   parameters: {}
 paths:
   /api/login:
@@ -1034,6 +1072,26 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /api/dashboard:
+    get:
+      tags:
+        - Dashboard
+      summary: ダッシュボード集約データ取得
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: ダッシュボードデータ
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardResponse"
+        "401":
+          description: 未認証
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /api/expense:
     get:
       tags:
@@ -1041,6 +1099,46 @@ paths:
       summary: 支出一覧取得
       security:
         - bearerAuth: []
+      parameters:
+        - schema:
+            type: string
+            enum:
+              - week
+              - month
+              - lastMonth
+              - all
+            description: 期間フィルタ
+          required: false
+          name: period
+          in: query
+        - schema:
+            type: string
+            description: テキスト検索（content）
+          required: false
+          name: search
+          in: query
+        - schema:
+            type: string
+            description: 日付フィルタ (YYYY-MM-DD)
+          required: false
+          name: date
+          in: query
+        - schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            description: 取得件数上限
+          required: false
+          name: limit
+          in: query
+        - schema:
+            type: integer
+            nullable: true
+            minimum: 0
+            description: オフセット
+          required: false
+          name: offset
+          in: query
       responses:
         "200":
           description: 支出一覧
@@ -1774,79 +1872,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
-        "401":
-          description: 未認証
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-  /api/xday:
-    get:
-      tags:
-        - XDay
-      summary: Xデー（資産枯渇日）の算出
-      description: 総資産・収入・実績支出データから資産が底をつく日を計算する。
-      security:
-        - bearerAuth: []
-      parameters:
-        - schema:
-            type: integer
-            nullable: true
-            minimum: 0
-            description: 現在の総資産残高（円）
-            example: 5000000
-          required: false
-          name: totalAssets
-          in: query
-        - schema:
-            type: integer
-            nullable: true
-            minimum: 0
-            default: 0
-            description: 月次固定収入（円）。0は収入なし
-            example: 0
-          required: false
-          name: monthlyIncome
-          in: query
-      responses:
-        "200":
-          description: Xデー算出結果
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/XDayResponse"
-        "401":
-          description: 未認証
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-  /api/xday/analysis:
-    get:
-      tags:
-        - XDay
-      summary: 支出解剖（断罪UI）
-      description: 今月のカテゴリ別支出と統計偏差値・Xデーへの影響日数を返す。
-      security:
-        - bearerAuth: []
-      parameters:
-        - schema:
-            type: number
-            nullable: true
-            minimum: 0
-            default: 0
-            description: Xデー算出で得た純日次消費（E_net）。0の場合はXデーへの影響日数は計算しない
-            example: 4067
-          required: false
-          name: netDailyExpense
-          in: query
-      responses:
-        "200":
-          description: 支出解剖データ
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ExpenditureAnalysisResponse"
         "401":
           description: 未認証
           content:

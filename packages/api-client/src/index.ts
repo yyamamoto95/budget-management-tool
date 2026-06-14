@@ -61,14 +61,11 @@ export type CreateBudgetBody = components['schemas']['CreateBudgetBody'];
 export type GetBudgetsResponse = BudgetListResponse;
 export type GetBudgetResponse = BudgetDetailResponse;
 
-// XDay 型
-export type XDayResponse = components['schemas']['XDayResponse'];
-export type ExpenditureAnalysisResponse = components['schemas']['ExpenditureAnalysisResponse'];
-export type CategoryAnalysis = components['schemas']['CategoryAnalysis'];
 
 // UserSettings 型
 export type UserSettingsResponse = components['schemas']['UserSettingsResponse'];
 export type UpsertUserSettingsBody = components['schemas']['UpsertUserSettingsBody'];
+export type FixedExpensesDetail = NonNullable<components['schemas']['FixedExpensesDetail']>;
 
 // Category 型
 export type CategoryItem = components['schemas']['CategoryItem'];

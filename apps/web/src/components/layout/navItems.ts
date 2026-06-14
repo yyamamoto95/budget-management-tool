@@ -1,4 +1,4 @@
-import { Home, Calendar, BarChart2, Settings } from "lucide-react";
+import { Home, Receipt, BarChart2, Settings } from "lucide-react";
 
 export type NavItem = {
   label: string;
@@ -8,8 +8,8 @@ export type NavItem = {
 
 /** PC サイドバー・モバイルボトムナビ共通のナビゲーション定義 */
 export const NAV_ITEMS: NavItem[] = [
-  { label: "ホーム",       href: "/",         icon: Home },
-  { label: "カレンダー",   href: "/calendar",  icon: Calendar },
-  { label: "レポート",     href: "/report",    icon: BarChart2 },
-  { label: "設定",         href: "/settings",  icon: Settings },
+  { label: "ホーム",   href: "/",         icon: Home },
+  { label: "明細",     href: "/records",  icon: Receipt },
+  { label: "レポート", href: "/report",    icon: BarChart2 },
+  { label: "設定",     href: "/settings",  icon: Settings },
 ];

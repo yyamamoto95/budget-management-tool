@@ -60,6 +60,33 @@
   --color-danger: #ef4444;
   --color-danger-light: #fef2f2;
 
+  /* ブランド拡張 */
+  --color-brand-deep: #e8622a;
+  --color-brand-light: #fff6ee;
+
+  /* ステータストーン（予算残高比率に応じた UI 表現）
+   *  safe    : 余裕あり（残予算 ≥ 80%）→ ウォームニュートラル
+   *  caution : 注意（残予算 20〜80%）→ レッド系
+   *  danger  : ピンチ（残予算 < 20%）→ ローズ系
+   */
+  --color-status-safe-bg: #f8faf8;
+  --color-status-safe-border: rgba(196, 181, 165, 0.5);
+  --color-status-safe-hero: #6b5b52;
+  --color-status-safe-badge: #c4b5a5;
+  --color-status-safe-glow: rgba(107, 91, 82, 0.12);
+
+  --color-status-caution-bg: #fef4f4;
+  --color-status-caution-border: rgba(248, 113, 113, 0.35);
+  --color-status-caution-hero: #b91c1c;
+  --color-status-caution-badge: #f87171;
+  --color-status-caution-glow: rgba(248, 113, 113, 0.16);
+
+  --color-status-danger-bg: #fff1f2;
+  --color-status-danger-border: rgba(244, 63, 94, 0.35);
+  --color-status-danger-hero: #9f1239;
+  --color-status-danger-badge: #f43f5e;
+  --color-status-danger-glow: rgba(244, 63, 94, 0.18);
+
   /* ボーダー */
   --border-default: #e8c8b0;
   --border-strong: #1c1410;
@@ -74,6 +101,7 @@
   --shadow-pop-lg: 3px 3px 0px 0px #1c1410;
   --shadow-card:   0 1px 4px 0 rgba(28, 20, 16, 0.07), 0 0 0 1px rgba(28, 20, 16, 0.06);
   --shadow-card-hover: 0 4px 12px 0 rgba(28, 20, 16, 0.10), 0 0 0 1px rgba(28, 20, 16, 0.08);
+  --shadow-card-elevated: 0 4px 16px rgba(28, 20, 16, 0.09), 0 0 0 1px rgba(28, 20, 16, 0.06);
 
   /* モーションイージング（Material You: Emphasized） */
   --ease-standard: cubic-bezier(0.2, 0, 0, 1);
@@ -116,6 +144,29 @@
     --color-caution-light: #2a2000;
     --color-danger: #f87171;
     --color-danger-light: #2a1010;
+
+    --color-brand-deep: #f07838;
+    --color-brand-light: #3a1a08;
+
+    --color-status-safe-bg: #1e2218;
+    --color-status-safe-border: rgba(196, 181, 165, 0.25);
+    --color-status-safe-hero: #c4b5a5;
+    --color-status-safe-badge: #8a7b6b;
+    --color-status-safe-glow: rgba(107, 91, 82, 0.2);
+
+    --color-status-caution-bg: #2a1818;
+    --color-status-caution-border: rgba(248, 113, 113, 0.25);
+    --color-status-caution-hero: #f87171;
+    --color-status-caution-badge: #dc2626;
+    --color-status-caution-glow: rgba(248, 113, 113, 0.2);
+
+    --color-status-danger-bg: #2a1020;
+    --color-status-danger-border: rgba(244, 63, 94, 0.25);
+    --color-status-danger-hero: #f43f5e;
+    --color-status-danger-badge: #be123c;
+    --color-status-danger-glow: rgba(244, 63, 94, 0.22);
+
+    --shadow-card-elevated: 0 4px 16px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.06);
   }
 }
 
@@ -142,12 +193,35 @@
   --color-playful-amber: var(--color-playful-amber);
   --color-playful-amber-light: var(--color-playful-amber-light);
 
+  --color-brand-deep: var(--color-brand-deep);
+  --color-brand-light: var(--color-brand-light);
+
   --color-safe: var(--color-safe);
   --color-safe-light: var(--color-safe-light);
   --color-caution: var(--color-caution);
   --color-caution-light: var(--color-caution-light);
   --color-danger: var(--color-danger);
   --color-danger-light: var(--color-danger-light);
+
+  --color-status-safe-bg: var(--color-status-safe-bg);
+  --color-status-safe-border: var(--color-status-safe-border);
+  --color-status-safe-hero: var(--color-status-safe-hero);
+  --color-status-safe-badge: var(--color-status-safe-badge);
+  --color-status-safe-glow: var(--color-status-safe-glow);
+
+  --color-status-caution-bg: var(--color-status-caution-bg);
+  --color-status-caution-border: var(--color-status-caution-border);
+  --color-status-caution-hero: var(--color-status-caution-hero);
+  --color-status-caution-badge: var(--color-status-caution-badge);
+  --color-status-caution-glow: var(--color-status-caution-glow);
+
+  --color-status-danger-bg: var(--color-status-danger-bg);
+  --color-status-danger-border: var(--color-status-danger-border);
+  --color-status-danger-hero: var(--color-status-danger-hero);
+  --color-status-danger-badge: var(--color-status-danger-badge);
+  --color-status-danger-glow: var(--color-status-danger-glow);
+
+  --shadow-card-elevated: var(--shadow-card-elevated);
 
   --font-sans: var(--font-outfit);
   --font-display: var(--font-outfit);

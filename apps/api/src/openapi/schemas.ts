@@ -405,54 +405,6 @@ export const ResetPasswordBodySchema = z
     })
     .openapi('ResetPasswordBody');
 
-// ─── Xデー (XDay) ────────────────────────────────────────────────────
-
-export const XDayQuerySchema = z.object({
-    totalAssets: z.coerce.number().int().min(0).openapi({ description: '現在の総資産残高（円）', example: 5000000 }),
-    monthlyIncome: z.coerce
-        .number()
-        .int()
-        .min(0)
-        .default(0)
-        .openapi({ description: '月次固定収入（円）。0は収入なし', example: 0 }),
-});
-
-export const XDayResponseSchema = z
-    .object({
-        xDate: z.string().nullable().openapi({ example: '2031-09-14T00:00:00.000Z' }),
-        daysRemaining: z.number().nullable().openapi({ example: 1978 }),
-        effectiveDailyExpense: z.number().openapi({ example: 4067 }),
-        netDailyExpense: z.number().openapi({ example: 4067 }),
-        trustWeight: z.number().openapi({ example: 0.5 }),
-        minutesPerYen: z.number().openapi({ example: 0.354 }),
-        realtimeAssets: z.number().openapi({ example: 4999812 }),
-        recordedDays: z.number().openapi({ example: 45 }),
-        avgDailyExpense: z.number().openapi({ example: 3200 }),
-        snapshotAt: z.string().openapi({ example: '2026-04-14T10:00:00.000Z' }),
-    })
-    .openapi('XDayResponse');
-
-export const CategoryAnalysisSchema = z
-    .object({
-        category: z.string().openapi({ example: 'food' }),
-        label: z.string().openapi({ example: '食費' }),
-        monthlyAmount: z.number().openapi({ example: 62400 }),
-        deviation: z.number().openapi({ example: 78 }),
-        level: z.enum(['surplus', 'normal', 'caution', 'danger']).openapi({ example: 'danger' }),
-        color: z.string().openapi({ example: '#FF0000' }),
-        xDayImpactDays: z.number().openapi({ example: 64 }),
-    })
-    .openapi('CategoryAnalysis');
-
-export const ExpenditureAnalysisResponseSchema = z
-    .object({
-        month: z.string().openapi({ example: '2026-04' }),
-        categories: z.array(CategoryAnalysisSchema),
-        totalDeviation: z.number().openapi({ example: 71 }),
-        totalMonthlyAmount: z.number().openapi({ example: 141500 }),
-    })
-    .openapi('ExpenditureAnalysisResponse');
-
 // ─── データエクスポート (Export) ─────────────────────────────────────
 
 export const ExportQuerySchema = z.object({
@@ -461,12 +413,26 @@ export const ExportQuerySchema = z.object({
 
 // ─── ユーザー設定 (Settings) ──────────────────────────────────────
 
+const FixedExpensesDetailSchema = z
+    .object({
+        rent: z.number().int().min(0).openapi({ description: '家賃（円）', example: 80000 }),
+        utilities: z.number().int().min(0).openapi({ description: '光熱費（円）', example: 15000 }),
+        insurance: z.number().int().min(0).openapi({ description: '保険（円）', example: 10000 }),
+        subscriptions: z.number().int().min(0).openapi({ description: 'サブスク（円）', example: 5000 }),
+        transportation: z.number().int().min(0).openapi({ description: '交通費（円）', example: 10000 }),
+        other: z.number().int().min(0).openapi({ description: 'その他（円）', example: 5000 }),
+    })
+    .openapi('FixedExpensesDetail');
+
 export const UserSettingsResponseSchema = z
     .object({
         totalAssets: z.number().int().min(0).openapi({ description: '総資産（円）', example: 5000000 }),
         monthlyIncome: z.number().int().min(0).openapi({ description: '月次固定収入（円）', example: 200000 }),
         paydayDay: z.number().int().min(1).max(31).openapi({ description: '給料日（月の何日か: 1〜31）', example: 25 }),
         fixedExpenses: z.number().int().min(0).openapi({ description: '月次固定費合計（円）', example: 80000 }),
+        fixedExpensesDetail: FixedExpensesDetailSchema.nullable().openapi({
+            description: '固定費内訳（null = 未設定）',
+        }),
         initialSetupCompleted: z.boolean().openapi({ description: '初回設定完了フラグ', example: false }),
     })
     .openapi('UserSettingsResponse');
@@ -493,7 +459,10 @@ export const UpsertUserSettingsBodySchema = z
             .number({ invalid_type_error: '固定費は数値で入力してください' })
             .int()
             .min(0, '固定費は0以上の値を入力してください')
-            .openapi({ description: '月次固定費合計（円）', example: 80000 }),
+            .openapi({ description: '月次固定費合計（円）— fixedExpensesDetail がある場合は無視', example: 80000 }),
+        fixedExpensesDetail: FixedExpensesDetailSchema.nullable()
+            .optional()
+            .openapi({ description: '固定費内訳（省略時は既存値を維持）' }),
         initialSetupCompleted: z
             .boolean({
                 invalid_type_error: '初回設定完了フラグは真偽値で入力してください',
@@ -520,3 +489,34 @@ export const CategoryItemSchema = z
     .openapi('CategoryItem');
 
 export const CategoriesResponseSchema = z.array(CategoryItemSchema).openapi('CategoriesResponse');
+
+// ─── ダッシュボード ───────────────────────────────────────────────
+
+const WeeklyRecordItemSchema = z.object({
+    date: z.string().openapi({ description: '日付 (YYYY-MM-DD)', example: '2026-06-13' }),
+    dow: z.string().openapi({ description: '曜日', example: '金' }),
+    expense: z.number().int().openapi({ description: '支出合計（円）', example: 1500 }),
+    recorded: z.boolean().openapi({ description: '記録があるか', example: true }),
+});
+
+const DailyBudgetSchema = z.object({
+    amount: z.number().int().openapi({ description: '1日予算（円）', example: 3000 }),
+    remaining: z.number().int().openapi({ description: '本日の残予算（円）', example: 1500 }),
+    ratio: z.number().openapi({ description: '残予算比率（0〜1+）', example: 0.5 }),
+    daysUntilPayday: z.number().int().openapi({ description: '給料日まで何日', example: 12 }),
+});
+
+export const DashboardResponseSchema = z
+    .object({
+        todayExpense: z.number().int().openapi({ description: '本日の支出合計（円）', example: 1500 }),
+        dailyBudget: DailyBudgetSchema.nullable().openapi({ description: '1日予算（設定未完了の場合 null）' }),
+        monthSummary: z.object({
+            expense: z.number().int().openapi({ description: '今月の支出合計', example: 45000 }),
+            income: z.number().int().openapi({ description: '今月の収入合計', example: 200000 }),
+        }),
+        lastMonthExpense: z.number().int().openapi({ description: '先月の支出合計', example: 50000 }),
+        weeklyRecord: z.array(WeeklyRecordItemSchema),
+        recentExpenses: z.array(ExpenseResponseSchema),
+        streak: z.number().int().openapi({ description: '連続記録日数', example: 5 }),
+    })
+    .openapi('DashboardResponse');

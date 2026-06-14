@@ -20,8 +20,7 @@ import type { GetUsersUseCase } from './application/use-cases/user/GetUsersUseCa
 import type { UpdateUserUseCase } from './application/use-cases/user/UpdateUserUseCase';
 import type { GetUserSettingsUseCase } from './application/use-cases/settings/GetUserSettingsUseCase';
 import type { UpsertUserSettingsUseCase } from './application/use-cases/settings/UpsertUserSettingsUseCase';
-import type { GetExpenditureAnalysisUseCase } from './application/use-cases/xday/GetExpenditureAnalysisUseCase';
-import type { GetXDayUseCase } from './application/use-cases/xday/GetXDayUseCase';
+import type { GetDashboardUseCase } from './application/use-cases/dashboard/GetDashboardUseCase';
 import { buildServices } from './container';
 import type { ICategoryRepository } from './domain/repositories/ICategoryRepository';
 import type { IExpenseRepository } from './domain/repositories/IExpenseRepository';
@@ -31,6 +30,7 @@ import type { IUserSettingsRepository } from './domain/repositories/IUserSetting
 import type { ISecurityAnswerRepository } from './domain/repositories/ISecurityAnswerRepository';
 import type { IUserRepository } from './domain/repositories/IUserRepository';
 import { createCategoryRoutes } from './presentation/routes/category';
+import { createDashboardRoutes } from './presentation/routes/dashboard';
 import { createAuthRoutes } from './presentation/routes/auth';
 import { createSettingsRoutes } from './presentation/routes/settings';
 import { createBudgetRoutes } from './presentation/routes/budget';
@@ -38,7 +38,6 @@ import { createExpenseRoutes } from './presentation/routes/expense';
 import { createExportRoutes } from './presentation/routes/export';
 import { createRecoveryRoutes } from './presentation/routes/recovery';
 import { createUserRoutes } from './presentation/routes/user';
-import { createXDayRoutes } from './presentation/routes/xday';
 import { DomainException } from './shared/errors/DomainException';
 
 export type AppDeps = {
@@ -85,9 +84,8 @@ export type RouteServices = {
     // Settings
     getUserSettingsUseCase: GetUserSettingsUseCase;
     upsertUserSettingsUseCase: UpsertUserSettingsUseCase;
-    // XDay
-    getXDayUseCase: GetXDayUseCase;
-    getAnalysisUseCase: GetExpenditureAnalysisUseCase;
+    // Dashboard
+    getDashboardUseCase: GetDashboardUseCase;
 };
 
 /** Hono context の型変数定義（認証済みルートで userId を参照するために使用） */
@@ -123,13 +121,13 @@ export function createApp(deps: AppDeps) {
 
     app.route('/api', createAuthRoutes(services));
     app.route('/api', createCategoryRoutes(services));
+    app.route('/api', createDashboardRoutes(services));
     app.route('/api', createExpenseRoutes(services));
     app.route('/api', createBudgetRoutes(services));
     app.route('/api', createUserRoutes(services));
     app.route('/api', createRecoveryRoutes(services));
     app.route('/api', createExportRoutes(services));
     app.route('/api', createSettingsRoutes(services));
-    app.route('/api', createXDayRoutes(services));
 
     app.onError((err, c) => {
         if (err instanceof DomainException) {

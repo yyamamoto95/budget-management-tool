@@ -133,6 +133,7 @@ model UserSettings {
   monthlyIncome         Int      @default(0) @map("monthly_income")
   paydayDay             Int      @default(25) @map("payday_day")
   fixedExpenses         Int      @default(0) @map("fixed_expenses")
+  fixedExpensesDetail   Json?    @map("fixed_expenses_detail")
   initialSetupCompleted Boolean  @default(false) @map("initial_setup_completed")
   createdAt             DateTime @default(now()) @db.DateTime(6) @map("created_at")
   updatedAt             DateTime @updatedAt @db.DateTime(6) @map("updated_at")

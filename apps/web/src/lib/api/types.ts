@@ -16,9 +16,6 @@ export type {
     BudgetDetailResponse,
     GetBudgetsResponse,
     GetBudgetResponse,
-    XDayResponse,
-    ExpenditureAnalysisResponse,
-    CategoryAnalysis,
     UserSettingsResponse,
     UpsertUserSettingsBody,
     CategoryItem,
@@ -30,3 +27,24 @@ export type BalanceType = 0 | 1;
 
 // @budget/common からの既存 re-export を維持（後方互換）
 export type { CreateExpenseInput } from "@budget/common";
+
+/** ダッシュボード集約レスポンス（api-client に型が追加されるまでの暫定定義） */
+export type DashboardResponse = {
+  todayExpense: number;
+  dailyBudget: {
+    amount: number;
+    remaining: number;
+    ratio: number;
+    daysUntilPayday: number;
+  } | null;
+  monthSummary: { expense: number; income: number };
+  lastMonthExpense: number;
+  weeklyRecord: Array<{
+    date: string;
+    dow: string;
+    expense: number;
+    recorded: boolean;
+  }>;
+  recentExpenses: import("@budget/api-client").ExpenseResponse[];
+  streak: number;
+};

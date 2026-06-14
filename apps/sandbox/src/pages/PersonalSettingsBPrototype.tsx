@@ -451,7 +451,7 @@ export function PersonalSettingsBPrototype() {
   // saved になったらタイマーで遷移（アンマウント時はクリーンアップ）
   useEffect(() => {
     if (saved) {
-      const timer = setTimeout(() => navigate('/home'), 1800)
+      const timer = setTimeout(() => navigate('/home', { state: { fromWizard: true } }), 1800)
       return () => clearTimeout(timer)
     }
   }, [saved, navigate])
