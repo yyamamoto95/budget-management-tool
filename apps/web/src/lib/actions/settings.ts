@@ -21,7 +21,7 @@ export async function saveUserSettingsAction(
     data: UpsertUserSettingsBody,
 ): Promise<{ error: string } | null> {
     try {
-        await putSettings(data);
+        await putSettings({ ...data, initialSetupCompleted: true });
         const cookieStore = await cookies();
         cookieStore.set("setup_completed", "1", {
             httpOnly: true,

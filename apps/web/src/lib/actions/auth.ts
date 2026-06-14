@@ -3,8 +3,12 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { serverFetch, ApiError } from "../api/client";
+import { getSettings } from "../api/settings";
 import type { LoginResponse, LogoutResponse } from "../api/types";
 import { loginSchema } from "@budget/common";
+
+/** 初回設定完了 Cookie の有効期間（1年） */
+const SETUP_COOKIE_MAX_AGE = 365 * 24 * 60 * 60;
 
 // アクセストークン：15分（APIと揃える）
 const ACCESS_TOKEN_MAX_AGE = 15 * 60;
@@ -90,6 +94,23 @@ export async function loginAction(
       body: JSON.stringify(result.data),
     });
     await setTokenCookies({ ...res, userId: res.userId });
+
+    // DBの初回設定フラグをクッキーに同期
+    try {
+      const settings = await getSettings();
+      if (settings.initialSetupCompleted) {
+        const cookieStore = await cookies();
+        cookieStore.set("setup_completed", "1", {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: "strict",
+          maxAge: SETUP_COOKIE_MAX_AGE,
+          path: "/",
+        });
+      }
+    } catch {
+      // 設定取得失敗時はクッキーなしで続行（middlewareが /setup にリダイレクト）
+    }
   } catch (err) {
     if (err instanceof ApiError && err.status === 401) {
       return { error: "ユーザー名またはパスワードが正しくありません" };
@@ -108,6 +129,23 @@ export async function guestLoginAction(formData: FormData): Promise<void> {
     method: "POST",
   });
   await setTokenCookies({ ...res, userId: res.userId });
+
+  // DBの初回設定フラグをクッキーに同期
+  try {
+    const settings = await getSettings();
+    if (settings.initialSetupCompleted) {
+      const cookieStore = await cookies();
+      cookieStore.set("setup_completed", "1", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        maxAge: SETUP_COOKIE_MAX_AGE,
+        path: "/",
+      });
+    }
+  } catch {
+    // 設定取得失敗時はクッキーなしで続行（middlewareが /setup にリダイレクト）
+  }
 
   // returnTo が / 始まりの場合のみ使用（オープンリダイレクト対策）
   const returnTo = String(formData.get("returnTo") ?? "");

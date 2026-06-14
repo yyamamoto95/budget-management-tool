@@ -277,6 +277,17 @@
     border-color: #f18840;
     background-color: #fff6ee;
   }
+
+  /* 入力フィールド — input-pop のエイリアス（InitialSetupWizard 等で使用） */
+  .input-field {
+    @apply w-full rounded-xl bg-white px-3 py-2 text-sm outline-none;
+    border: 1px solid rgba(28, 20, 16, 0.08);
+    transition: border-color 0.2s var(--ease-standard), background-color 0.2s var(--ease-standard);
+  }
+  .input-field:focus {
+    border-color: #f18840;
+    background-color: #fff6ee;
+  }
 }
 
 body {
