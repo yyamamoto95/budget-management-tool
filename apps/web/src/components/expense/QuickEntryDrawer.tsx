@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useState, useEffect, useCallback } from "react";
 import {
   Delete, PenLine, ChevronDown, Receipt,
 } from "lucide-react";
@@ -51,7 +51,7 @@ export function QuickEntryDrawer({
     setShowAll(false);
   }
 
-  function handleNumKey(k: string) {
+  const handleNumKey = useCallback((k: string) => {
     if (k === "⌫") {
       setAmountStr((prev) => prev.slice(0, -1));
       return;
@@ -62,7 +62,27 @@ export function QuickEntryDrawer({
       if (Number(next) > MAX_AMOUNT) return prev;
       return next;
     });
-  }
+  }, []);
+
+  // キーボードで数字入力・削除を可能にする
+  useEffect(() => {
+    if (!open) return;
+    function onKeyDown(e: KeyboardEvent) {
+      // テキスト入力中（メモ欄など）はスキップ
+      const tag = (e.target as HTMLElement)?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA") return;
+
+      if (e.key >= "0" && e.key <= "9") {
+        e.preventDefault();
+        handleNumKey(e.key);
+      } else if (e.key === "Backspace") {
+        e.preventDefault();
+        handleNumKey("⌫");
+      }
+    }
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [open, handleNumKey]);
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>

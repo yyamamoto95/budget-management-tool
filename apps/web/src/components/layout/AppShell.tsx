@@ -25,8 +25,8 @@ export async function AppShell({ userName, children }: Props) {
 
       {/* コンテンツ本体 */}
       <div className="flex flex-1 flex-col min-w-0">
-        {/* モバイルのボトムナビ分の余白 */}
-        <div className="flex-1 pb-16 md:pb-0">{children}</div>
+        {/* モバイルのボトムナビ分の余白（safe-area-inset-bottom を加算） */}
+        <div className="flex-1 md:pb-0" style={{ paddingBottom: "calc(4rem + env(safe-area-inset-bottom, 0px))" }}>{children}</div>
         <BottomNav userId={userName} expenseCategories={expenseCategories} incomeCategories={incomeCategories} />
       </div>
     </div>

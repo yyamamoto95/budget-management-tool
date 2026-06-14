@@ -3,6 +3,7 @@ import { Outfit } from "next/font/google";
 import { Geist_Mono } from "next/font/google";
 import { SwRegister } from "@/components/SwRegister";
 import { Toaster } from "@/components/ui/sonner";
+import { MotionProvider } from "@/components/providers/MotionProvider";
 import "./globals.css";
 
 const outfit = Outfit({
@@ -45,6 +46,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   minimumScale: 1,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({
@@ -58,7 +60,9 @@ export default function RootLayout({
       className={`${outfit.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-[var(--background)] text-[var(--foreground)]">
-        {children}
+        <MotionProvider>
+          {children}
+        </MotionProvider>
         <Toaster />
         <SwRegister />
       </body>

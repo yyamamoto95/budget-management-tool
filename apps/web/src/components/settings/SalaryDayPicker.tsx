@@ -19,7 +19,7 @@ export function SalaryDayPicker({ value, onChange }: Props) {
   const pickerRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
 
-  // クリック外で閉じる
+  // クリック外で閉じる + Escape キーで閉じる
   useEffect(() => {
     if (!open) return;
     function onClickOutside(e: MouseEvent) {
@@ -27,8 +27,18 @@ export function SalaryDayPicker({ value, onChange }: Props) {
         setOpen(false);
       }
     }
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        setOpen(false);
+        triggerRef.current?.focus();
+      }
+    }
     document.addEventListener("mousedown", onClickOutside);
-    return () => document.removeEventListener("mousedown", onClickOutside);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", onClickOutside);
+      document.removeEventListener("keydown", onKeyDown);
+    };
   }, [open]);
 
   function handleToggle() {
