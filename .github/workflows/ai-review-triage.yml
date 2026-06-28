@@ -4,7 +4,7 @@
 # 役割: Gemini Code Assist のレビュー投稿を検知して
 #       "needs-ai-triage" ラベルを PR に付与するだけ。
 #
-# 実際のトリアージ処理は Claude Code の /pr-triage スキルが行う。
+# 実際のトリアージ処理は AI エージェントの /pr-triage スキルが行う。
 # → .github/skills/pr-triage.md を参照
 # ============================================================
 

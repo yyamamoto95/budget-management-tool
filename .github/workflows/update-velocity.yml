@@ -30,61 +30,16 @@ jobs:
             const pr = context.payload.pull_request;
             const prBody = pr.body || '';
 
-            // PR 本文から Closes #番号 を抽出
-            const issueMatch = prBody.match(/Closes\s+#(\d+)/i);
-            if (!issueMatch) {
+            // PR 本文から Closes #番号 をすべて抽出
+            const issueNumbers = [
+              ...new Set(
+                Array.from(prBody.matchAll(/Closes\s+#(\d+)/gi), m => parseInt(m[1], 10))
+              ),
+            ];
+            if (issueNumbers.length === 0) {
               console.log('Closes #番号 が PR 本文に見つかりませんでした。スキップします。');
               core.setOutput('updated', 'false');
               return;
-            }
-            const issueNumber = parseInt(issueMatch[1], 10);
-
-            // Issue の詳細を取得
-            let issue;
-            try {
-              const { data } = await github.rest.issues.get({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: issueNumber,
-              });
-              issue = data;
-            } catch (e) {
-              console.log(`Issue #${issueNumber} の取得に失敗しました: ${e.message}`);
-              core.setOutput('updated', 'false');
-              return;
-            }
-
-            // size ラベルからポイントを算出
-            const POINT_SCALE = { XS: 1, S: 2, M: 3, L: 5, XL: 8 };
-            const sizeLabel = issue.labels.find(l => l.name.startsWith('size: '));
-            const sizeKey = sizeLabel ? sizeLabel.name.replace('size: ', '') : null;
-            const points = sizeKey ? (POINT_SCALE[sizeKey] ?? null) : null;
-
-            if (points === null) {
-              console.log(`Issue #${issueNumber} に size ラベルがありません。ポイントを null として記録します。`);
-            }
-
-            // サイクルタイムを Issue コメントから取得
-            const comments = await github.rest.issues.listComments({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: issueNumber,
-              per_page: 100,
-            });
-
-            const startComment = comments.data.find(c =>
-              c.body.includes('スプリント開始') && c.body.includes('開始日時')
-            );
-
-            let cycleTimeHours = null;
-            if (startComment) {
-              const dateMatch = startComment.body.match(/(\d{4}-\d{2}-\d{2} \d{2}:\d{2}) JST/);
-              if (dateMatch) {
-                const startedAt = new Date(dateMatch[1].replace(' ', 'T') + ':00+09:00');
-                const mergedAt = new Date(pr.merged_at);
-                const diffMs = mergedAt - startedAt;
-                cycleTimeHours = Math.round((diffMs / (1000 * 60 * 60)) * 10) / 10;
-              }
             }
 
             // マージ日を JST で取得（スプリントエントリの date フィールドに使用）
@@ -132,9 +87,64 @@ jobs:
               }
             }
 
-            // PBI を追記（重複チェック）
-            const alreadyRecorded = sprint.pbis.some(p => p.issue === issueNumber);
-            if (!alreadyRecorded) {
+            const POINT_SCALE = { XS: 1, S: 2, M: 3, L: 5, XL: 8 };
+            const recordedIssues = [];
+            let recordedPoints = 0;
+
+            for (const issueNumber of issueNumbers) {
+              // Issue の詳細を取得
+              let issue;
+              try {
+                const { data } = await github.rest.issues.get({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issueNumber,
+                });
+                issue = data;
+              } catch (e) {
+                console.log(`Issue #${issueNumber} の取得に失敗しました: ${e.message}`);
+                continue;
+              }
+
+              // size ラベルからポイントを算出
+              const sizeLabel = issue.labels.find(l => l.name.startsWith('size: '));
+              const sizeKey = sizeLabel ? sizeLabel.name.replace('size: ', '') : null;
+              const points = sizeKey ? (POINT_SCALE[sizeKey] ?? null) : null;
+
+              if (points === null) {
+                console.log(`Issue #${issueNumber} に size ラベルがありません。ポイントを null として記録します。`);
+              }
+
+              // サイクルタイムを Issue コメントから取得
+              const comments = await github.rest.issues.listComments({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+                per_page: 100,
+              });
+
+              const startComment = comments.data.find(c =>
+                c.body.includes('スプリント開始') && c.body.includes('開始日時')
+              );
+
+              let cycleTimeHours = null;
+              if (startComment) {
+                const dateMatch = startComment.body.match(/(\d{4}-\d{2}-\d{2} \d{2}:\d{2}) JST/);
+                if (dateMatch) {
+                  const startedAt = new Date(dateMatch[1].replace(' ', 'T') + ':00+09:00');
+                  const mergedAt = new Date(pr.merged_at);
+                  const diffMs = mergedAt - startedAt;
+                  cycleTimeHours = Math.round((diffMs / (1000 * 60 * 60)) * 10) / 10;
+                }
+              }
+
+              // PBI を追記（重複チェック）
+              const alreadyRecorded = sprint.pbis.some(p => p.issue === issueNumber);
+              if (alreadyRecorded) {
+                console.log(`Issue #${issueNumber} は既に記録済みのためスキップします。`);
+                continue;
+              }
+
               sprint.pbis.push({
                 issue: issueNumber,
                 title: issue.title,
@@ -144,18 +154,26 @@ jobs:
                 pr: pr.number,
               });
               sprint.total_points += points ?? 0;
+              recordedPoints += points ?? 0;
+              recordedIssues.push(issueNumber);
+            }
+
+            if (recordedIssues.length === 0) {
+              console.log('新規に記録する PBI がありませんでした。');
+              core.setOutput('updated', 'false');
+              return;
             }
 
             // ファイルに書き戻し
             fs.writeFileSync(logPath, JSON.stringify(log, null, 2) + '\n');
 
             const sprintLabel = sprintNumber !== null ? `スプリント #${sprintNumber}` : mergedDateJst;
-            console.log(`Issue #${issueNumber}: ${points}pt を ${sprintLabel} に記録しました`);
+            console.log(`Issues ${recordedIssues.map(n => `#${n}`).join(', ')}: ${recordedPoints}pt を ${sprintLabel} に記録しました`);
             core.setOutput('updated', 'true');
             core.setOutput('sprint_number', String(sprintNumber ?? ''));
             core.setOutput('sprint_date', mergedDateJst);
-            core.setOutput('issue_number', String(issueNumber));
-            core.setOutput('points', String(points));
+            core.setOutput('issue_numbers', recordedIssues.map(n => `#${n}`).join(', '));
+            core.setOutput('points', String(recordedPoints));
 
       - name: velocity-log.json をコミット
         if: steps.update.outputs.updated == 'true'
@@ -169,5 +187,5 @@ jobs:
           else
             SPRINT_LABEL="${{ steps.update.outputs.sprint_date }}"
           fi
-          git diff --cached --quiet || git commit -m "chore(velocity): Issue #${{ steps.update.outputs.issue_number }} の完了を記録する（${{ steps.update.outputs.points }}pt / ${SPRINT_LABEL}）"
+          git diff --cached --quiet || git commit -m "chore(velocity): Issues ${{ steps.update.outputs.issue_numbers }} の完了を記録する（${{ steps.update.outputs.points }}pt / ${SPRINT_LABEL}）"
           git push

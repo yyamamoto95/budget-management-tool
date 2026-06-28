@@ -80,7 +80,7 @@ gh pr comment {PR_NUMBER} \
 ```markdown
 ## AI トリアージ結果
 
-> Gemini Code Assist のレビューを Claude Code が評価しました。
+> Gemini Code Assist のレビューを AI エージェントが評価しました。
 
 **総合評価**: {一言サマリー}
 
