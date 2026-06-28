@@ -1,0 +1,4 @@
+interface:
+  display_name: "影響調査"
+  short_description: "実装前の影響調査。"
+  default_prompt: "影響範囲を調査して。"

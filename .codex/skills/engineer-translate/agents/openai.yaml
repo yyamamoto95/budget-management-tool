@@ -1,0 +1,4 @@
+interface:
+  display_name: "指示整理"
+  short_description: "依頼を実装単位へ整理。"
+  default_prompt: "この依頼を構造化して。"

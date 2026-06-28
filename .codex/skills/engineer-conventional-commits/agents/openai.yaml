@@ -1,0 +1,4 @@
+interface:
+  display_name: "コミット"
+  short_description: "SSOT で atomic commit。"
+  default_prompt: "現在の変更をコミットして。"
