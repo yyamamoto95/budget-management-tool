@@ -1,0 +1,4 @@
+interface:
+  display_name: "Sprint 開始"
+  short_description: "SSOT でスプリント計画。"
+  default_prompt: "スプリント計画を開始して。"

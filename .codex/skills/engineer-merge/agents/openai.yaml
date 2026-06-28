@@ -1,0 +1,4 @@
+interface:
+  display_name: "マージ"
+  short_description: "レビュー対応からマージ。"
+  default_prompt: "レビュー対応からマージまで進めて。"

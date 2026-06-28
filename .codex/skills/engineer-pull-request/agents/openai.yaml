@@ -1,0 +1,4 @@
+interface:
+  display_name: "PR"
+  short_description: "SSOT で PR 作成。"
+  default_prompt: "PR を作成して。"

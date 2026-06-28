@@ -1,0 +1,4 @@
+interface:
+  display_name: "Sprint 終了"
+  short_description: "SSOT でスプリント終了。"
+  default_prompt: "スプリントを終了して。"

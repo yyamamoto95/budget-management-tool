@@ -1,0 +1,4 @@
+interface:
+  display_name: "PR トリアージ"
+  short_description: "Gemini 指摘を評価。"
+  default_prompt: "AI トリアージ待ち PR を確認して。"
