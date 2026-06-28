@@ -587,6 +587,99 @@ jobs:
 
           echo "チェック完了: 破壊的変更なし。"
 
+  # ─── E2E テスト（Playwright） ──────────────────────────────────────────────
+  # 先に #403（既存 spec 修正）が完了済みのため、初日から全 spec がグリーンになる。
+  # JWT 鍵は pnpm gen:keys で一時生成するため GitHub Secrets の追加は不要。
+  e2e-test:
+    name: E2E Test
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: rootpassword
+          MYSQL_USER: Admin
+          MYSQL_PASSWORD: password
+          MYSQL_DATABASE: budgetdb_test
+        ports:
+          - 3307:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -u root -prootpassword"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --ignore-scripts
+
+      - name: Build common & api-client
+        run: |
+          pnpm --filter @budget/common build
+          pnpm --filter @budget/api-client build
+
+      - name: Generate Prisma client
+        env:
+          DATABASE_URL: "mysql://Admin:password@127.0.0.1:3307/budgetdb_test"
+        run: pnpm --filter @budget/api exec prisma generate
+
+      - name: Run DB migration
+        env:
+          DATABASE_URL: "mysql://Admin:password@127.0.0.1:3307/budgetdb_test"
+        run: pnpm --filter @budget/api exec prisma migrate deploy
+
+      - name: Seed guest user
+        env:
+          DATABASE_URL: "mysql://Admin:password@127.0.0.1:3307/budgetdb_test"
+        run: pnpm --filter @budget/api run seed
+
+      - name: Generate JWT keys
+        run: pnpm gen:keys
+
+      - name: Start API server
+        env:
+          DATABASE_URL: "mysql://Admin:password@127.0.0.1:3307/budgetdb_test"
+          NODE_ENV: test
+        run: pnpm --filter @budget/api run dev &
+
+      - name: Wait for API
+        run: npx wait-on tcp:5000 --timeout 60000
+
+      - name: Start Next.js dev server
+        env:
+          DATABASE_URL: "mysql://Admin:password@127.0.0.1:3307/budgetdb_test"
+        run: pnpm --filter web run dev &
+
+      - name: Wait for Next.js
+        run: npx wait-on tcp:3000 --timeout 120000
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run E2E tests
+        env:
+          BASE_URL: "http://localhost:3000"
+          DATABASE_URL: "mysql://Admin:password@127.0.0.1:3307/budgetdb_test"
+        run: pnpm test:e2e
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
+
   # ─── インフラ構成チェック ──────────────────────────────────────────────────
   infra-check:
     name: Infrastructure Check
