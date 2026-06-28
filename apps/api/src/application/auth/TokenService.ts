@@ -5,6 +5,14 @@ import type { IRefreshTokenRepository } from '../../domain/repositories/IRefresh
 const ALGORITHM = 'RS256';
 const ACCESS_TOKEN_TTL = 15 * 60; // 15分（秒）
 const REFRESH_TOKEN_TTL = 7 * 24 * 60 * 60; // 7日（秒）
+/**
+ * 失効済みトークンの「再利用」を厳格に攻撃と判定するまでの猶予（ミリ秒）。
+ * ページのリロードで RSC + ページ取得など複数リクエストが同じ refresh token
+ * を並行使用すると、片方が rotation 後に他方が「失効済み再利用」として
+ * 全セッション失効を起こす race が成立する。この窓内の再利用は同一クライアントの
+ * 並行リクエストと見なし、新トークン発行のみ行う（全セッション失効しない）。
+ */
+const REFRESH_REUSE_GRACE_MS = 10 * 1000;
 
 export type JwtPayload = {
     sub: string; // userId
@@ -81,14 +89,24 @@ export class TokenService {
             throw new Error('INVALID_REFRESH_TOKEN');
         }
 
-        if (stored.isRevoked) {
-            // 失効済みトークンの再利用 → 侵害の可能性 → 全セッション無効化
-            await this.refreshTokenRepo.revokeAllByUserId(stored.userId);
-            throw new Error('REFRESH_TOKEN_REUSE_DETECTED');
-        }
-
         if (stored.isExpired) {
             throw new Error('REFRESH_TOKEN_EXPIRED');
+        }
+
+        if (stored.isRevoked) {
+            // 失効済みトークンが提示されたとき、失効直後（猶予窓内）であれば
+            // クライアントの並行リクエスト（リロードに伴う RSC+ページ取得など）と判断し、
+            // 新トークン発行のみ行う。猶予窓を超えていれば本物の再利用 → 全セッション失効。
+            const revokedAtMs = stored.revokedAt?.getTime() ?? 0;
+            if (Date.now() - revokedAtMs < REFRESH_REUSE_GRACE_MS) {
+                const [accessToken, refreshToken] = await Promise.all([
+                    this.signAccessToken(stored.userId),
+                    this.issueRefreshToken(stored.userId),
+                ]);
+                return { accessToken, refreshToken, userId: stored.userId };
+            }
+            await this.refreshTokenRepo.revokeAllByUserId(stored.userId);
+            throw new Error('REFRESH_TOKEN_REUSE_DETECTED');
         }
 
         // ローテーション：旧トークンを失効させ、新トークンを発行
