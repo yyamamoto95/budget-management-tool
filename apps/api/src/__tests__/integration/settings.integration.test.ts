@@ -186,6 +186,89 @@ describeIf('Settings 統合テスト（実 DB）', () => {
             });
         });
 
+        it('正常系: fixedExpensesDetail を保存し、内訳と自動算出した固定費合計を返す', async () => {
+            const { users } = await seedTestData({ pattern: 'minimal' });
+            const agent = await loginClient(users[0].userId);
+
+            const detail = {
+                rent: 80000,
+                utilities: 12000,
+                insurance: 5000,
+                subscriptions: 3000,
+                transportation: 10000,
+                other: 2000,
+            };
+            const res = await agent.put('/api/settings', {
+                totalAssets: 1000000,
+                monthlyIncome: 300000,
+                paydayDay: 25,
+                // fixedExpensesDetail がある場合 fixedExpenses は無視され自動算出される
+                fixedExpenses: 0,
+                fixedExpensesDetail: detail,
+            });
+            expect(res.status).toBe(200);
+            expect(res.body.fixedExpensesDetail).toEqual(detail);
+            expect(res.body.fixedExpenses).toBe(112000);
+
+            const getRes = await agent.get('/api/settings');
+            expect(getRes.body.fixedExpensesDetail).toEqual(detail);
+            expect(getRes.body.fixedExpenses).toBe(112000);
+        });
+
+        it('正常系: fixedExpensesDetail を省略した更新で既存の内訳が保持される', async () => {
+            const { users } = await seedTestData({ pattern: 'minimal' });
+            const agent = await loginClient(users[0].userId);
+
+            const detail = {
+                rent: 80000,
+                utilities: 0,
+                insurance: 0,
+                subscriptions: 0,
+                transportation: 0,
+                other: 0,
+            };
+            await agent.put('/api/settings', {
+                totalAssets: 0,
+                monthlyIncome: 0,
+                paydayDay: 25,
+                fixedExpenses: 0,
+                fixedExpensesDetail: detail,
+            });
+
+            // fixedExpensesDetail を省略して更新
+            await agent.put('/api/settings', {
+                totalAssets: 500000,
+                monthlyIncome: 0,
+                paydayDay: 25,
+                fixedExpenses: 0,
+            });
+
+            const getRes = await agent.get('/api/settings');
+            expect(getRes.body.fixedExpensesDetail).toEqual(detail);
+            expect(getRes.body.totalAssets).toBe(500000);
+        });
+
+        it('バリデーションエラー: fixedExpensesDetail の項目が負数のとき 400 を返す', async () => {
+            const { users } = await seedTestData({ pattern: 'minimal' });
+            const agent = await loginClient(users[0].userId);
+
+            const res = await agent.put('/api/settings', {
+                totalAssets: 0,
+                monthlyIncome: 0,
+                paydayDay: 25,
+                fixedExpenses: 0,
+                fixedExpensesDetail: {
+                    rent: -1,
+                    utilities: 0,
+                    insurance: 0,
+                    subscriptions: 0,
+                    transportation: 0,
+                    other: 0,
+                },
+            });
+            expect(res.status).toBe(400);
+        });
+
         it('バリデーションエラー: totalAssets が負数のとき 400 を返す', async () => {
             const { users } = await seedTestData({ pattern: 'minimal' });
             const agent = await loginClient(users[0].userId);

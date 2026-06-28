@@ -9,9 +9,11 @@ type Props = {
   onChange: (v: number) => void;
   step?: number;
   suffix?: string;
+  /** 入力フィールドのアクセシブル名（a11y / E2E セレクタ用） */
+  label?: string;
 };
 
-export function AmountField({ value, onChange, step = 1000, suffix }: Props) {
+export function AmountField({ value, onChange, step = 1000, suffix, label }: Props) {
   const [focused, setFocused] = useState(false);
   const [raw, setRaw] = useState("");
 
@@ -52,6 +54,7 @@ export function AmountField({ value, onChange, step = 1000, suffix }: Props) {
         <input
           type="text"
           inputMode="numeric"
+          aria-label={label}
           className="min-w-0 flex-1 bg-transparent text-right text-sm font-bold tabular-nums outline-none"
           style={{ color: "var(--foreground)" }}
           value={focused ? raw : value.toLocaleString("ja-JP")}
