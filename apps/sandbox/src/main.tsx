@@ -15,7 +15,6 @@ import { StatusColorPalettePrototype } from './pages/StatusColorPalettePrototype
 import { SavingsForecastPalettePrototype } from './pages/SavingsForecastPalettePrototype'
 import { TodayStatusPalettePrototype } from './pages/TodayStatusPalettePrototype'
 import { CategoryColorPalettePrototype } from './pages/CategoryColorPalettePrototype'
-import { AmountInputPrototype } from './pages/AmountInputPrototype'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -34,7 +33,6 @@ createRoot(document.getElementById('root')!).render(
         <Route path="/savings-forecast-palette" element={<SavingsForecastPalettePrototype />} />
         <Route path="/today-status-palette" element={<TodayStatusPalettePrototype />} />
         <Route path="/category-color-palette" element={<CategoryColorPalettePrototype />} />
-        <Route path="/amount-input"        element={<AmountInputPrototype />} />
       </Routes>
     </BrowserRouter>
   </StrictMode>,
