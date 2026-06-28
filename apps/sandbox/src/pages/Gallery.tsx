@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { ArrowRight, LayoutDashboard, PieChart, Settings, CircleUser, Wand2, BarChart2, Receipt, Layers, PiggyBank, SunMedium, Shapes } from 'lucide-react'
+import { ArrowRight, LayoutDashboard, PieChart, Settings, CircleUser, Wand2, BarChart2, Receipt, Layers, PiggyBank, SunMedium, Shapes, Hash } from 'lucide-react'
 
 type PrototypeCard = {
   path: string
@@ -90,6 +90,14 @@ const prototypes: PrototypeCard[] = [
     icon: Shapes,
     issue: 'sandbox',
     status: 'wip' as const,
+  },
+  {
+    path: '/amount-input',
+    title: '金額入力 — 先頭ゼロ問題の根治',
+    description: 'react-number-format で共通化。桁区切り・先頭ゼロ除去・キャレット制御をライブラリに委譲。新旧を並べて挙動比較。',
+    icon: Hash,
+    issue: 'sandbox',
+    status: 'ready' as const,
   },
   {
     path: '/my-page',

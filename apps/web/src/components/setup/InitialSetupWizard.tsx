@@ -6,6 +6,7 @@ import { ChevronRight, ChevronLeft, Check, Calendar, Banknote, Receipt, Wallet }
 import { calcDailyBudget } from "@budget/common";
 import { SPRING } from "@/lib/motion";
 import { saveUserSettingsAction } from "@/lib/actions/settings";
+import { MoneyInput } from "@/components/common/MoneyInput";
 
 type FormData = {
   paydayDay: number;
@@ -25,12 +26,6 @@ const STEP_COUNT = 4;
 
 function formatAmount(amount: number): string {
   return `¥${amount.toLocaleString("ja-JP")}`;
-}
-
-/** 金額入力の文字列を数値に変換する（先頭ゼロ除去・非数値除去） */
-function parseAmountInput(raw: string): number {
-  const cleaned = raw.replace(/[^0-9]/g, "").replace(/^0+/, "");
-  return cleaned === "" ? 0 : Number(cleaned);
 }
 
 const STEP_TRANSITION = { ...SPRING.quick };
@@ -216,17 +211,15 @@ function PaydayStep({ paydayDay, monthlyIncome, onChange, onNext }: PaydayStepPr
             給料日（毎月何日？）
           </label>
           <div className="flex items-center gap-2">
-            <input
-              type="text"
-              inputMode="numeric"
-              value={paydayDay || ""}
-              onChange={(e) => {
-                const v = parseAmountInput(e.target.value);
-                if (v <= 31) onChange({ paydayDay: v });
-              }}
+            <MoneyInput
+              value={paydayDay}
+              onChange={(v) => onChange({ paydayDay: v })}
+              max={31}
+              thousandSeparator={false}
+              blankWhenZero
               className="input-field w-24 text-center text-lg font-bold"
               placeholder="25"
-              aria-label="給料日"
+              label="給料日"
             />
             <span
               className="text-sm font-bold"
@@ -250,14 +243,13 @@ function PaydayStep({ paydayDay, monthlyIncome, onChange, onNext }: PaydayStepPr
             >
               ¥
             </span>
-            <input
-              type="text"
-              inputMode="numeric"
-              value={monthlyIncome || ""}
-              onChange={(e) => onChange({ monthlyIncome: parseAmountInput(e.target.value) })}
+            <MoneyInput
+              value={monthlyIncome}
+              onChange={(v) => onChange({ monthlyIncome: v })}
+              blankWhenZero
               className="input-field flex-1 font-bold"
               placeholder="0"
-              aria-label="月収"
+              label="月収"
             />
           </div>
         </div>
@@ -313,14 +305,13 @@ function FixedExpensesStep({ fixedExpenses, onChange, onNext, onBack }: FixedExp
           >
             ¥
           </span>
-          <input
-            type="text"
-            inputMode="numeric"
-            value={fixedExpenses || ""}
-            onChange={(e) => onChange(parseAmountInput(e.target.value))}
+          <MoneyInput
+            value={fixedExpenses}
+            onChange={onChange}
+            blankWhenZero
             className="input-field flex-1 font-bold"
             placeholder="0"
-            aria-label="固定費"
+            label="固定費"
           />
         </div>
       </div>
@@ -385,14 +376,13 @@ function TotalAssetsStep({ totalAssets, onChange, onNext, onBack }: TotalAssetsS
           >
             ¥
           </span>
-          <input
-            type="text"
-            inputMode="numeric"
-            value={totalAssets || ""}
-            onChange={(e) => onChange(parseAmountInput(e.target.value))}
+          <MoneyInput
+            value={totalAssets}
+            onChange={onChange}
+            blankWhenZero
             className="input-field flex-1 font-bold"
             placeholder="0"
-            aria-label="現在の残高"
+            label="現在の残高"
           />
         </div>
       </div>

@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { SPRING, PAGE_VARIANTS, PAGE_ITEM_VARIANTS } from "@/lib/motion";
 import type { UserSettingsResponse, FixedExpensesDetail } from "@budget/api-client";
-import { AmountField } from "./AmountField";
+import { AmountField } from "../common/AmountField";
 import { SalaryDayPicker } from "./SalaryDayPicker";
 import { DataExportSection } from "./DataExportSection";
 
