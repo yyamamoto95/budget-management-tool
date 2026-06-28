@@ -45,13 +45,8 @@ e2e/
 ```bash
 pnpm db:start                              # MySQL 起動
 pnpm db:migrate:deploy                     # マイグレーション適用
-pnpm --filter @budget/api exec prisma generate   # Prisma Client 生成（★スキーマ変更後は必須）
 pnpm --filter @budget/api run seed         # ゲストユーザー(Guest)投入（冪等）
 ```
-
-> ⚠️ **`prisma generate` を忘れると Prisma Client が古いままになり、新カラム
-> （例: `fixedExpensesDetail`）を含む保存が API 500 になる。** スキーマ変更後・
-> API 起動前に必ず実行する。`pnpm dev` / CI ビルドでは codegen 経由で自動実行される。
 
 ### 起動と実行
 
