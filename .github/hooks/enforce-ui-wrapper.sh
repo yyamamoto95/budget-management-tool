@@ -2,15 +2,14 @@
 # ============================================================
 # enforce-ui-wrapper.sh — shadcn/ui ラッパー強制フック
 #
-# Claude Code の PreToolUse フックとして動作する。
-# Write / Edit ツール実行前に、書き込まれるコンテンツを検査し、
+# 各エージェントのフックまたは手動実行から呼び出される共通実体。
+# Write / Edit 相当の操作前に、書き込まれるコンテンツを検査し、
 # @radix-ui/* や vaul を src/components/ui/ 外から直接インポートしようとした場合に
 # exit 1 でツール実行をブロックし、ラッパーの使用を促す。
 #
-# stdin には Claude Code から JSON 形式でツール入力が渡される。
+# stdin には対応エージェントから JSON 形式でツール入力が渡される。
 #
-# Cursor / GitHub Copilot: 自動実行は不可。
-# lefthook の pre-commit lint チェックで同等の強制が行われる。
+# 自動実行できない環境では、lefthook の pre-commit lint チェックで同等の強制が行われる。
 # ============================================================
 
 set -euo pipefail

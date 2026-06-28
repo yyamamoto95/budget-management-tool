@@ -20,7 +20,7 @@ name: Sync Project Board
 # ── PROJECT_TOKEN について ─────────────────────────────────────────
 #   ProjectV2 フィールド更新には project スコープの PAT が必要。
 #   GITHUB_TOKEN は ProjectV2 mutations を実行できないため代替不可。
-#   PAT は Settings → Secrets → PROJECT_TOKEN として登録済み。
+#   PAT は Settings → Secrets → PROJECT_TOKEN として登録する。
 # ──────────────────────────────────────────────────────────────────
 
 on:
@@ -36,13 +36,13 @@ jobs:
       - uses: actions/github-script@v7
         env:
           PROJECT_TOKEN: ${{ secrets.PROJECT_TOKEN }}
-          PROJECT_ID: "PVT_kwHOA-qlQM4BWtuo"
-          STATUS_FIELD_ID: "PVTSSF_lAHOA-qlQM4BWtuozhR_pd4"
+          PROJECT_ID: ${{ vars.PROJECT_ID || 'PVT_kwHOA-qlQM4BWtuo' }}
+          STATUS_FIELD_ID: ${{ vars.PROJECT_STATUS_FIELD_ID || 'PVTSSF_lAHOA-qlQM4BWtuozhR_pd4' }}
           # Status 選択肢 ID（GitHub Project の Settings → Fields → Status で確認可能）
-          STATUS_BACKLOG: "59fe9f7b"
-          STATUS_SPRINT_BACKLOG: "54a6b3ab"
-          STATUS_IN_REVIEW: "4935d554"
-          STATUS_DONE: "5a3dd530"
+          STATUS_BACKLOG: ${{ vars.PROJECT_STATUS_BACKLOG || '59fe9f7b' }}
+          STATUS_SPRINT_BACKLOG: ${{ vars.PROJECT_STATUS_SPRINT_BACKLOG || '54a6b3ab' }}
+          STATUS_IN_REVIEW: ${{ vars.PROJECT_STATUS_IN_REVIEW || '4935d554' }}
+          STATUS_DONE: ${{ vars.PROJECT_STATUS_DONE || '5a3dd530' }}
         with:
           github-token: ${{ secrets.PROJECT_TOKEN }}
           script: |
