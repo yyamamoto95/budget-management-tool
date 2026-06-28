@@ -650,6 +650,10 @@ jobs:
         env:
           DATABASE_URL: "mysql://Admin:password@127.0.0.1:3307/budgetdb_test"
           NODE_ENV: test
+          # apps/api の dev スクリプトが `wait-on tcp:${DB_HOSTNAME}:${DB_PORT}` を実行するため、
+          # テスト DB のポート (3307) を明示する（未指定だとデフォルト 3306 を待ち続ける）
+          DB_HOSTNAME: 127.0.0.1
+          DB_PORT: "3307"
         run: pnpm --filter @budget/api run dev &
 
       - name: Wait for API
