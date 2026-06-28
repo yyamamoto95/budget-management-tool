@@ -35,12 +35,13 @@ export class QuickEntryPage {
 
     /** カテゴリグリッドからカテゴリ名で選択する */
     async selectCategory(name: string): Promise<void> {
-        const catButton = this.dialog.getByRole('button', { name, exact: true })
-        // 「もっと見る」で折りたたまれている場合は展開する
-        if (!(await catButton.isVisible())) {
-            await this.dialog.getByRole('button', { name: /もっと見る/ }).click()
+        // 折りたたみ表示の場合のみ「もっと見る」が表示されているので、それを基準に展開判定する。
+        // 目的のカテゴリの可視性で判定すると、レンダリング遅延で false 検出 → 余計なクリックでタイムアウトを誘発する。
+        const moreButton = this.dialog.getByRole('button', { name: /もっと見る/ })
+        if (await moreButton.isVisible()) {
+            await moreButton.click()
         }
-        await catButton.click()
+        await this.dialog.getByRole('button', { name, exact: true }).click()
     }
 
     /** メモ（任意）フィールドに入力する */

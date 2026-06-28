@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test'
 import { ExpensePage } from './pages/ExpensePage'
+import { RecordsPage } from './pages/RecordsPage'
 
 /**
  * 収支記録 E2E テスト
@@ -51,8 +52,9 @@ test.describe('支出の新規登録と一覧反映', () => {
         await expensePage.expectSaveSucceeded()
 
         // /records ページで登録したメモが一覧に反映されていることを確認
-        await page.goto('/records')
-        await expect(page.getByText(uniqueMemo)).toBeVisible({ timeout: 10000 })
+        const recordsPage = new RecordsPage(page)
+        await recordsPage.gotoWithSearch(uniqueMemo)
+        await recordsPage.expectEntryVisible(uniqueMemo)
     })
 
     test('ログアウトボタンが表示され、クリックするとログインページに遷移する', async ({ page }) => {

@@ -38,8 +38,12 @@ export class RecordsPage extends BasePage {
     async searchFor(text: string): Promise<void> {
         const input = this.page.getByPlaceholder('メモ・カテゴリで検索')
         await input.fill(text)
-        // router.push による遷移 + Server Component 再フェッチを待機
-        await this.page.waitForURL(`**/records?**search=**`, { timeout: 10000 })
+        // router.push による遷移 + Server Component 再フェッチを待機。
+        // 関数述語で pathname / searchParams を直接検証し、glob の `?` の挙動依存を避ける。
+        await this.page.waitForURL(
+            (url) => url.pathname === '/records' && url.searchParams.has('search'),
+            { timeout: 10000 },
+        )
     }
 
     /**

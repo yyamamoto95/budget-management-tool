@@ -43,7 +43,11 @@ test.describe('QuickEntryDrawer（モバイル）での家計登録フロー', (
     let testMemo = ''
 
     test.afterEach(async ({ page }) => {
-        if (testMemo) await cleanupByMemo(page, testMemo)
+        if (testMemo) {
+            await cleanupByMemo(page, testMemo)
+            // 次テストの beforeEach/前段で失敗した場合に前回 memo を再処理しないようリセット
+            testMemo = ''
+        }
     })
 
     test('支出を登録して明細に反映される', async ({ page }) => {
@@ -97,7 +101,11 @@ test.describe('/expenses/new フォームでの家計登録フロー', () => {
     let testMemo = ''
 
     test.afterEach(async ({ page }) => {
-        if (testMemo) await cleanupByMemo(page, testMemo)
+        if (testMemo) {
+            await cleanupByMemo(page, testMemo)
+            // 次テストの beforeEach/前段で失敗した場合に前回 memo を再処理しないようリセット
+            testMemo = ''
+        }
     })
 
     test('フォームから支出を登録して明細に反映される', async ({ page }) => {
