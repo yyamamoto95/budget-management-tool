@@ -38,6 +38,18 @@ export async function saveUserSettingsAction(
     redirect("/");
 }
 
+/** 設定ページから直接呼び出す Server Action（JSON 形式） */
+export async function saveSettingsAction(
+  data: UpsertUserSettingsBody,
+): Promise<SettingsActionState> {
+  try {
+    await putSettings(data);
+    return { error: null, success: true };
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "保存に失敗しました", success: false };
+  }
+}
+
 /** ユーザー設定をサーバーに保存する Server Action */
 export async function upsertSettingsAction(
   _prev: SettingsActionState,

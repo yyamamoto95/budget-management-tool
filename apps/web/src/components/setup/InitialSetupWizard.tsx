@@ -6,6 +6,7 @@ import { ChevronRight, ChevronLeft, Check, Calendar, Banknote, Receipt, Wallet }
 import { calcDailyBudget } from "@budget/common";
 import { SPRING } from "@/lib/motion";
 import { saveUserSettingsAction } from "@/lib/actions/settings";
+import { MoneyInput } from "@/components/common/MoneyInput";
 
 type FormData = {
   paydayDay: number;
@@ -210,14 +211,15 @@ function PaydayStep({ paydayDay, monthlyIncome, onChange, onNext }: PaydayStepPr
             給料日（毎月何日？）
           </label>
           <div className="flex items-center gap-2">
-            <input
-              type="number"
-              min={1}
-              max={31}
+            <MoneyInput
               value={paydayDay}
-              onChange={(e) => onChange({ paydayDay: Number(e.target.value) })}
+              onChange={(v) => onChange({ paydayDay: v })}
+              max={31}
+              thousandSeparator={false}
+              blankWhenZero
               className="input-field w-24 text-center text-lg font-bold"
-              aria-label="給料日"
+              placeholder="25"
+              label="給料日"
             />
             <span
               className="text-sm font-bold"
@@ -241,14 +243,13 @@ function PaydayStep({ paydayDay, monthlyIncome, onChange, onNext }: PaydayStepPr
             >
               ¥
             </span>
-            <input
-              type="number"
-              min={0}
-              step={1000}
+            <MoneyInput
               value={monthlyIncome}
-              onChange={(e) => onChange({ monthlyIncome: Number(e.target.value) })}
+              onChange={(v) => onChange({ monthlyIncome: v })}
+              blankWhenZero
               className="input-field flex-1 font-bold"
-              aria-label="月収"
+              placeholder="0"
+              label="月収"
             />
           </div>
         </div>
@@ -304,14 +305,13 @@ function FixedExpensesStep({ fixedExpenses, onChange, onNext, onBack }: FixedExp
           >
             ¥
           </span>
-          <input
-            type="number"
-            min={0}
-            step={1000}
+          <MoneyInput
             value={fixedExpenses}
-            onChange={(e) => onChange(Number(e.target.value))}
+            onChange={onChange}
+            blankWhenZero
             className="input-field flex-1 font-bold"
-            aria-label="固定費"
+            placeholder="0"
+            label="固定費"
           />
         </div>
       </div>
@@ -376,14 +376,13 @@ function TotalAssetsStep({ totalAssets, onChange, onNext, onBack }: TotalAssetsS
           >
             ¥
           </span>
-          <input
-            type="number"
-            min={0}
-            step={1000}
+          <MoneyInput
             value={totalAssets}
-            onChange={(e) => onChange(Number(e.target.value))}
+            onChange={onChange}
+            blankWhenZero
             className="input-field flex-1 font-bold"
-            aria-label="現在の残高"
+            placeholder="0"
+            label="現在の残高"
           />
         </div>
       </div>

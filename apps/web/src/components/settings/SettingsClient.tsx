@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import { saveSettingsAction } from "@/lib/actions/settings";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import {
@@ -10,7 +11,7 @@ import {
 } from "lucide-react";
 import { SPRING, PAGE_VARIANTS, PAGE_ITEM_VARIANTS } from "@/lib/motion";
 import type { UserSettingsResponse, FixedExpensesDetail } from "@budget/api-client";
-import { AmountField } from "./AmountField";
+import { AmountField } from "../common/AmountField";
 import { SalaryDayPicker } from "./SalaryDayPicker";
 import { DataExportSection } from "./DataExportSection";
 
@@ -103,20 +104,15 @@ export function SettingsClient({ settings }: Props) {
     setSaving(true);
     setError(null);
     try {
-      const res = await fetch("/api/settings", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          totalAssets: currentBalance,
-          monthlyIncome,
-          paydayDay: salaryDay,
-          fixedExpenses: totalFixed,
-          fixedExpensesDetail: fixedDetail,
-        }),
+      const result = await saveSettingsAction({
+        totalAssets: currentBalance,
+        monthlyIncome,
+        paydayDay: salaryDay,
+        fixedExpenses: totalFixed,
+        fixedExpensesDetail: fixedDetail,
       });
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({ message: "保存に失敗しました" }));
-        throw new Error((body as { message?: string }).message ?? "保存に失敗しました");
+      if (result.error) {
+        throw new Error(result.error);
       }
       setToast(true);
       setTimeout(() => setToast(false), 2500);
@@ -321,6 +317,7 @@ export function SettingsClient({ settings }: Props) {
                       value={currentBalance}
                       onChange={setCurrentBalance}
                       step={10000}
+                      label="口座残高"
                     />
                   </div>
                 </SectionCard>
@@ -380,6 +377,7 @@ export function SettingsClient({ settings }: Props) {
                       }}
                       step={savingsMode === "monthly" ? 5000 : 60000}
                       suffix={savingsMode === "monthly" ? "/ 月" : "/ 年"}
+                      label="貯蓄目標"
                     />
 
                     <AnimatePresence>
@@ -525,7 +523,7 @@ function FieldRow({
         </span>
       </div>
       <div className="flex-1">
-        <AmountField value={value} onChange={onChange} step={step} />
+        <AmountField value={value} onChange={onChange} step={step} label={label} />
       </div>
     </div>
   );

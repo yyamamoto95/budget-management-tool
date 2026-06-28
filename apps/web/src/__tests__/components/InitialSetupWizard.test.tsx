@@ -26,8 +26,8 @@ describe('InitialSetupWizard', () => {
         render(<InitialSetupWizard />)
 
         expect(screen.getByText('給料日と月収を教えてください')).toBeInTheDocument()
-        expect(screen.getByRole('spinbutton', { name: '給料日' })).toBeInTheDocument()
-        expect(screen.getByRole('spinbutton', { name: '月収' })).toBeInTheDocument()
+        expect(screen.getByRole('textbox', { name: '給料日' })).toBeInTheDocument()
+        expect(screen.getByRole('textbox', { name: '月収' })).toBeInTheDocument()
     })
 
     it('「次へ」ボタンを押すとステップ2（固定費）に進むこと', () => {
@@ -36,7 +36,7 @@ describe('InitialSetupWizard', () => {
         fireEvent.click(screen.getByRole('button', { name: /次へ/ }))
 
         expect(screen.getByText('月の固定費を教えてください')).toBeInTheDocument()
-        expect(screen.getByRole('spinbutton', { name: '固定費' })).toBeInTheDocument()
+        expect(screen.getByRole('textbox', { name: '固定費' })).toBeInTheDocument()
     })
 
     it('ステップ2 → ステップ3（現在残高）に進めること', () => {
@@ -46,7 +46,7 @@ describe('InitialSetupWizard', () => {
         fireEvent.click(screen.getByRole('button', { name: /次へ/ }))
 
         expect(screen.getByText('今の残高を教えてください')).toBeInTheDocument()
-        expect(screen.getByRole('spinbutton', { name: '現在の残高' })).toBeInTheDocument()
+        expect(screen.getByRole('textbox', { name: '現在の残高' })).toBeInTheDocument()
     })
 
     it('ステップ3 → ステップ4（サマリー）に進めること', () => {
