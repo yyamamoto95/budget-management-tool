@@ -1,77 +1,50 @@
 import { test, expect } from '@playwright/test'
+import { ReportPage } from './pages/ReportPage'
 
 /**
  * レポート画面 E2E テスト
- * auth.setup.ts で確立したログインセッションを使用する
+ * - 期間切り替えはボタン式（週/月/先月）
+ * - URL パラメータ: week / month / lastMonth（デフォルトは month）
  */
-test.describe('レポート画面の期間切り替えとグラフ表示', () => {
+test.describe('レポート画面の期間切り替えとサマリー表示', () => {
     test.beforeEach(async ({ page }) => {
-        await page.goto('/report')
-        await expect(page.getByRole('heading', { name: 'レポート' })).toBeVisible()
+        const reportPage = new ReportPage(page)
+        await reportPage.goto()
     })
 
     test('レポートページが正しく表示される', async ({ page }) => {
-        // ページタイトルとPeriodSelectorの表示確認
-        await expect(page.getByRole('heading', { name: 'レポート' })).toBeVisible()
+        const reportPage = new ReportPage(page)
+        await reportPage.expectPeriodTabsVisible()
     })
 
-    test('デフォルトで「直近7日間」が選択されている', async ({ page }) => {
-        // URLに period パラメータがないか、7days が設定されている
+    test('デフォルトで「今月」が選択されている', async ({ page }) => {
+        // 省略時のデフォルトは month（URLパラメータなし、または period=month）
         const url = page.url()
         const hasNoParam = !url.includes('period=')
-        const has7days = url.includes('period=7days')
-        expect(hasNoParam || has7days).toBe(true)
+        const hasMonthParam = url.includes('period=month')
+        expect(hasNoParam || hasMonthParam).toBe(true)
     })
 
-    test('「今月」に切り替えるとURLパラメータが変わる', async ({ page }) => {
-        // 期間セレクタで「今月」を選択
-        const periodSelector = page.getByRole('combobox')
-        if (await periodSelector.isVisible()) {
-            await periodSelector.selectOption('current-month')
-            await expect(page).toHaveURL(/period=current-month/)
-        } else {
-            // ボタン形式のセレクタの場合
-            const currentMonthButton = page.getByRole('button', { name: '今月' })
-            if (await currentMonthButton.isVisible()) {
-                await currentMonthButton.click()
-                await expect(page).toHaveURL(/period=current-month/)
-            }
-        }
+    test('「直近7日」に切り替えるとURLパラメータが変わる', async ({ page }) => {
+        const reportPage = new ReportPage(page)
+        await reportPage.selectPeriod('week')
+        await reportPage.expectUrlPeriod('week')
     })
 
     test('「先月」に切り替えるとURLパラメータが変わる', async ({ page }) => {
-        const periodSelector = page.getByRole('combobox')
-        if (await periodSelector.isVisible()) {
-            await periodSelector.selectOption('last-month')
-            await expect(page).toHaveURL(/period=last-month/)
-        } else {
-            const lastMonthButton = page.getByRole('button', { name: '先月' })
-            if (await lastMonthButton.isVisible()) {
-                await lastMonthButton.click()
-                await expect(page).toHaveURL(/period=last-month/)
-            }
-        }
+        const reportPage = new ReportPage(page)
+        await reportPage.selectPeriod('lastMonth')
+        await reportPage.expectUrlPeriod('lastMonth')
     })
 
-    test('URLで period=current-month を指定するとレポートが表示される', async ({ page }) => {
-        await page.goto('/report?period=current-month')
-
-        // レポートページが表示されていること
-        await expect(page.getByRole('heading', { name: 'レポート' })).toBeVisible()
-
-        // データなしのメッセージか、サマリーが表示されることを確認
-        const hasData = await page.getByText('支出合計').isVisible()
-        const noData = await page.getByText('この期間のデータはありません').isVisible()
-        expect(hasData || noData).toBe(true)
+    test('URLで period=month を指定するとレポートが表示される', async ({ page }) => {
+        await page.goto('/report?period=month')
+        // 「支出合計」は集計カードに加えて「カテゴリ別支出合計」見出しにも含まれるため exact マッチで限定する
+        await expect(page.getByText('支出合計', { exact: true })).toBeVisible()
     })
 
-    test('URLで period=last-month を指定するとレポートが表示される', async ({ page }) => {
-        await page.goto('/report?period=last-month')
-
-        await expect(page.getByRole('heading', { name: 'レポート' })).toBeVisible()
-
-        const hasData = await page.getByText('支出合計').isVisible()
-        const noData = await page.getByText('この期間のデータはありません').isVisible()
-        expect(hasData || noData).toBe(true)
+    test('URLで period=lastMonth を指定するとレポートが表示される', async ({ page }) => {
+        await page.goto('/report?period=lastMonth')
+        await expect(page.getByText('支出合計', { exact: true })).toBeVisible()
     })
 })

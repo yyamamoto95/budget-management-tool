@@ -102,7 +102,7 @@ export function QuickEntryDrawer({
           <input type="hidden" name="date" value={date} />
           <input type="hidden" name="categoryId" value={categoryId} />
           <input type="hidden" name="amount" value={amountStr || "0"} />
-          {memo && <input type="hidden" name="memo" value={memo} />}
+          {memo && <input type="hidden" name="content" value={memo} />}
 
           {/* 支出 / 収入 セグメントコントロール */}
           <div
