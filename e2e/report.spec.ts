@@ -39,12 +39,12 @@ test.describe('レポート画面の期間切り替えとサマリー表示', ()
 
     test('URLで period=month を指定するとレポートが表示される', async ({ page }) => {
         await page.goto('/report?period=month')
-        // 支出合計は常にカード内に表示される
-        await expect(page.getByText('支出合計')).toBeVisible()
+        // 「支出合計」は集計カードに加えて「カテゴリ別支出合計」見出しにも含まれるため exact マッチで限定する
+        await expect(page.getByText('支出合計', { exact: true })).toBeVisible()
     })
 
     test('URLで period=lastMonth を指定するとレポートが表示される', async ({ page }) => {
         await page.goto('/report?period=lastMonth')
-        await expect(page.getByText('支出合計')).toBeVisible()
+        await expect(page.getByText('支出合計', { exact: true })).toBeVisible()
     })
 })

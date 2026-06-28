@@ -18,18 +18,29 @@ import { ExpensePage } from './pages/ExpensePage'
 
 const API_BASE = process.env.INTERNAL_API_URL ?? 'http://localhost:5000'
 
-/** テスト後のデータクリーンアップ（メモで検索して該当IDを全削除） */
+/** テスト後のデータクリーンアップ（メモで検索して該当IDを全削除）
+ *
+ * API は Authorization: Bearer <JWT> を要求する。
+ * Cookie 経由のセッションは Next.js (port 3000) 専用で、page.request から localhost:5000 へ直接叩く際は
+ * cookie だけでは 401 になるため、ブラウザコンテキストから access_token を取り出して Bearer ヘッダーで付与する。
+ */
 async function cleanupByMemo(
     page: import('@playwright/test').Page,
     memo: string,
 ): Promise<void> {
+    const cookies = await page.context().cookies()
+    const accessToken = cookies.find((c) => c.name === 'access_token')?.value
+    if (!accessToken) return
+    const headers = { Authorization: `Bearer ${accessToken}` }
+
     const res = await page.request.get(
         `${API_BASE}/api/expense?search=${encodeURIComponent(memo)}`,
+        { headers },
     )
     if (!res.ok()) return
     const body = await res.json().catch(() => null)
     for (const e of body?.expense ?? []) {
-        await page.request.delete(`${API_BASE}/api/expense/${e.id}`)
+        await page.request.delete(`${API_BASE}/api/expense/${e.id}`, { headers })
     }
 }
 

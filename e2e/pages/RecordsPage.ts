@@ -19,8 +19,8 @@ export class RecordsPage extends BasePage {
     protected readonly path = '/records'
 
     protected async waitForReady(): Promise<void> {
-        // サマリーカードの「支出合計」が描画されるまで待機
-        await expect(this.page.getByText('支出合計')).toBeVisible({ timeout: 15000 })
+        // サマリーカードの「支出合計」が描画されるまで待機（exact で「カテゴリ別支出合計」等と区別）
+        await expect(this.page.getByText('支出合計', { exact: true })).toBeVisible({ timeout: 15000 })
     }
 
     /**
