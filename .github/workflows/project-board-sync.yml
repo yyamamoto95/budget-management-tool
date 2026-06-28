@@ -5,7 +5,7 @@ name: Sync Project Board
 #
 # トリガーと遷移先:
 #   Issue opened          → Status: Backlog（プロジェクトへ自動追加）
-#   PR opened/reopened    → リンク Issue の Status: In Review
+#   PR opened/reopened/synchronize → リンク Issue の Status: In Review
 #   PR closed (not merged)→ リンク Issue の Status: Sprint Backlog（差し戻し）
 #
 # ※ PR merged 時の Issue → Done 遷移は sync-project-status.yml が担当
@@ -27,7 +27,7 @@ on:
   issues:
     types: [opened]
   pull_request:
-    types: [opened, reopened, ready_for_review, closed]
+    types: [opened, reopened, ready_for_review, synchronize, closed]
 
 jobs:
   sync:
@@ -118,49 +118,57 @@ jobs:
               return [...new Set(numbers)];
             }
 
-            // ── Issue opened: プロジェクトに追加して Backlog に設定 ──────────────
-            if (context.eventName === 'issues' && context.payload.action === 'opened') {
-              const issue = context.payload.issue;
-              console.log(`Issue #${issue.number} opened → adding to project as Backlog`);
-              const itemId = await addIssueToProject(issue.node_id);
-              await setStatus(itemId, OPT_BACKLOG);
-              console.log(`#${issue.number} → Backlog`);
-            }
+            try {
+              // ── Issue opened: プロジェクトに追加して Backlog に設定 ──────────────
+              if (context.eventName === 'issues' && context.payload.action === 'opened') {
+                const issue = context.payload.issue;
+                console.log(`Issue #${issue.number} opened → adding to project as Backlog`);
+                const itemId = await addIssueToProject(issue.node_id);
+                await setStatus(itemId, OPT_BACKLOG);
+                console.log(`#${issue.number} → Backlog`);
+              }
 
-            // ── PR opened/reopened/ready_for_review: リンク Issue → In Review ───
-            if (
-              context.eventName === 'pull_request' &&
-              ['opened', 'reopened', 'ready_for_review'].includes(context.payload.action)
-            ) {
-              const pr = context.payload.pull_request;
-              const issues = extractLinkedIssues(pr.body);
-              console.log(`PR #${pr.number} opened → linked issues: ${issues}`);
-              for (const num of issues) {
-                const itemId = await findProjectItemId(num);
-                if (itemId) {
-                  await setStatus(itemId, OPT_IN_REVIEW);
-                  console.log(`#${num} → In Review`);
-                } else {
-                  console.log(`#${num} not found in project, skipping`);
+              // ── PR opened/reopened/ready_for_review/synchronize: リンク Issue → In Review ───
+              if (
+                context.eventName === 'pull_request' &&
+                ['opened', 'reopened', 'ready_for_review', 'synchronize'].includes(context.payload.action)
+              ) {
+                const pr = context.payload.pull_request;
+                const issues = extractLinkedIssues(pr.body);
+                console.log(`PR #${pr.number} updated → linked issues: ${issues}`);
+                for (const num of issues) {
+                  const itemId = await findProjectItemId(num);
+                  if (itemId) {
+                    await setStatus(itemId, OPT_IN_REVIEW);
+                    console.log(`#${num} → In Review`);
+                  } else {
+                    console.log(`#${num} not found in project, skipping`);
+                  }
                 }
               }
-            }
 
-            // ── PR closed (not merged): リンク Issue → Sprint Backlog（差し戻し）──
-            // PR merged 時の Done 遷移は sync-project-status.yml が担当
-            if (context.eventName === 'pull_request' && context.payload.action === 'closed') {
-              const pr = context.payload.pull_request;
-              if (pr.merged) {
-                console.log(`PR #${pr.number} merged → Done 遷移は sync-project-status.yml が処理`);
+              // ── PR closed (not merged): リンク Issue → Sprint Backlog（差し戻し）──
+              // PR merged 時の Done 遷移は sync-project-status.yml が担当
+              if (context.eventName === 'pull_request' && context.payload.action === 'closed') {
+                const pr = context.payload.pull_request;
+                if (pr.merged) {
+                  console.log(`PR #${pr.number} merged → Done 遷移は sync-project-status.yml が処理`);
+                  return;
+                }
+                const issues = extractLinkedIssues(pr.body);
+                console.log(`PR #${pr.number} closed (not merged) → linked issues: ${issues}`);
+                for (const num of issues) {
+                  const itemId = await findProjectItemId(num);
+                  if (itemId) {
+                    await setStatus(itemId, OPT_SPRINT_BACKLOG);
+                    console.log(`#${num} → Sprint Backlog (reverted)`);
+                  }
+                }
+              }
+            } catch (error) {
+              if (error.status === 401 || error.status === 403) {
+                core.warning(`Project board sync skipped: PROJECT_TOKEN is unavailable or invalid (${error.status}).`);
                 return;
               }
-              const issues = extractLinkedIssues(pr.body);
-              console.log(`PR #${pr.number} closed (not merged) → linked issues: ${issues}`);
-              for (const num of issues) {
-                const itemId = await findProjectItemId(num);
-                if (itemId) {
-                  await setStatus(itemId, OPT_SPRINT_BACKLOG);
-                  console.log(`#${num} → Sprint Backlog (reverted)`);
-                }
-              }
+              throw error;
             }
