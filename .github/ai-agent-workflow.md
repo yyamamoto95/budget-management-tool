@@ -11,7 +11,7 @@
 1. **/branch** — 作業開始前に必ず `.github/skills/branch.md` の手順に従い、以下を順に実行せよ：
    1. `git fetch origin main` で最新の main を取得する
    2. `git checkout main && git merge --ff-only origin/main` で local main を最新化する
-   3. `git checkout -b {type}/{description}` で最新の main から作業ブランチを切る
+   3. `git checkout -b {prefix}/{issue-number}-{slug}` で最新の main から作業ブランチを切る
    - **現在のブランチに関わらず毎回実行すること**。古い main から切ったブランチはコンフリクトの原因になるため絶対に禁止する
    - **作業中に main が進んだ場合は `git rebase origin/main` で追従すること**。`git merge main` は禁止。マージコミットはログを汚染し、PR の diff が不明瞭になる
 
