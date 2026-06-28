@@ -104,9 +104,10 @@ export function ExpenseEditModal({ expense, onClose, expenseCategories, incomeCa
             <input
               type="text"
               inputMode="numeric"
+              pattern="[0-9]*"
+              required
               name="amount"
               defaultValue={expense.amount}
-              min={1}
               className="rounded-xl border border-[#e8c8b0] bg-[#fdf8f5] px-3 py-2 text-sm text-[#1c1410] focus:outline-none focus:ring-2 focus:ring-[#f18840]/30"
             />
             {state.fieldErrors?.amount && (

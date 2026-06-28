@@ -96,6 +96,7 @@ export function ExpenseCreateForm({ userId, defaultDate, defaultBalanceType = 0,
               name="amount"
               type="text"
               inputMode="numeric"
+              pattern="[0-9]*"
               required
               placeholder="0"
               className="flex-1 bg-transparent text-4xl font-extrabold tabular-nums outline-none placeholder:text-[#1c1410]/20"
