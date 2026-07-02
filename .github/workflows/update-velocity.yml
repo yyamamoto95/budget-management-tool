@@ -77,14 +77,34 @@ jobs:
             );
 
             let cycleTimeHours = null;
+            let startedAt = null;
+
             if (startComment) {
-              const dateMatch = startComment.body.match(/(\d{4}-\d{2}-\d{2} \d{2}:\d{2}) JST/);
+              // 「開始日時」行から日時を抽出（旧形式「HH:MM:SS.cc」・新形式「HH:MM JST」の両方を許容）
+              const dateMatch = startComment.body.match(/開始日時[^\d]*(\d{4}-\d{2}-\d{2} \d{2}:\d{2})/);
               if (dateMatch) {
-                const startedAt = new Date(dateMatch[1].replace(' ', 'T') + ':00+09:00');
-                const mergedAt = new Date(pr.merged_at);
-                const diffMs = mergedAt - startedAt;
-                cycleTimeHours = Math.round((diffMs / (1000 * 60 * 60)) * 10) / 10;
+                startedAt = new Date(dateMatch[1].replace(' ', 'T') + ':00+09:00');
               }
+            }
+
+            if (!startedAt) {
+              // フォールバック: in-progress ラベル付与イベントの時刻を開始時刻とする
+              const events = await github.paginate(github.rest.issues.listEvents, {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+                per_page: 100,
+              });
+              const labeled = events.find(e => e.event === 'labeled' && e.label?.name === 'in-progress');
+              if (labeled) {
+                startedAt = new Date(labeled.created_at);
+              }
+            }
+
+            if (startedAt) {
+              const mergedAtDate = new Date(pr.merged_at);
+              const diffMs = mergedAtDate - startedAt;
+              cycleTimeHours = Math.round((diffMs / (1000 * 60 * 60)) * 10) / 10;
             }
 
             // マージ日を JST で取得（スプリントエントリの date フィールドに使用）

@@ -22,7 +22,8 @@ jobs:
           script: |
             const now = new Date();
             const jst = new Date(now.getTime() + 9 * 60 * 60 * 1000);
-            const timestamp = jst.toISOString().replace('T', ' ').replace('Z', ' JST').slice(0, 22);
+            // 「YYYY-MM-DD HH:MM JST」形式（パース側の正規表現と一致させること）
+            const timestamp = jst.toISOString().slice(0, 16).replace('T', ' ') + ' JST';
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -132,17 +133,34 @@ jobs:
 
               let cycleTimeText = '計測データなし（in-progress ラベル付与前にマージされた可能性があります）';
               let cycleTimeHours = null;
+              let startedAt = null;
 
               if (startComment) {
-                const dateMatch = startComment.body.match(/(\d{4}-\d{2}-\d{2} \d{2}:\d{2}) JST/);
+                // 「開始日時」行から日時を抽出（旧形式「HH:MM:SS.cc」・新形式「HH:MM JST」の両方を許容）
+                const dateMatch = startComment.body.match(/開始日時[^\d]*(\d{4}-\d{2}-\d{2} \d{2}:\d{2})/);
                 if (dateMatch) {
-                  const startedAt = new Date(dateMatch[1].replace(' ', 'T') + ':00+09:00');
-                  const diffMs = mergedAt - startedAt;
-                  cycleTimeHours = Math.round((diffMs / (1000 * 60 * 60)) * 10) / 10;
-                  const diffH = Math.floor(diffMs / (1000 * 60 * 60));
-                  const diffM = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-                  cycleTimeText = `${diffH}時間 ${diffM}分`;
+                  startedAt = new Date(dateMatch[1].replace(' ', 'T') + ':00+09:00');
                 }
+              }
+
+              if (!startedAt) {
+                // フォールバック: in-progress ラベル付与イベントの時刻を開始時刻とする
+                const events = await github.paginate(github.rest.issues.listEvents, {
+                  owner: context.repo.owner, repo: context.repo.repo,
+                  issue_number: issueNumber, per_page: 100,
+                });
+                const labeled = events.find(e => e.event === 'labeled' && e.label?.name === 'in-progress');
+                if (labeled) {
+                  startedAt = new Date(labeled.created_at);
+                }
+              }
+
+              if (startedAt) {
+                const diffMs = mergedAt - startedAt;
+                cycleTimeHours = Math.round((diffMs / (1000 * 60 * 60)) * 10) / 10;
+                const diffH = Math.floor(diffMs / (1000 * 60 * 60));
+                const diffM = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+                cycleTimeText = `${diffH}時間 ${diffM}分`;
               }
 
               const mergedAtJst = new Date(mergedAt.getTime() + 9 * 60 * 60 * 1000)
