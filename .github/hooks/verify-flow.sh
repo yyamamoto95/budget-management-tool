@@ -13,8 +13,8 @@
 # 使い方:
 #   bash .github/hooks/verify-flow.sh
 #
-# Claude Code: PostToolUse フックまたは /commit 前に手動実行
-# Cursor / GitHub Copilot: 作業完了後に手動実行
+# フック対応エージェント: PostToolUse 相当または /commit 前に実行
+# 手動運用エージェント: 作業完了後に手動実行
 # ============================================================
 
 set -euo pipefail

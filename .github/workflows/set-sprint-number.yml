@@ -26,8 +26,8 @@ jobs:
       - name: Sprint # を velocity-log.json から取得してプロジェクトフィールドに設定する
         env:
           PROJECT_TOKEN: ${{ secrets.PROJECT_TOKEN }}
-          PROJECT_ID: "PVT_kwHOA-qlQM4BWtuo"
-          SPRINT_FIELD_ID: "PVTF_lAHOA-qlQM4BWtuozhSdS10"
+          PROJECT_ID: ${{ vars.PROJECT_ID || 'PVT_kwHOA-qlQM4BWtuo' }}
+          SPRINT_FIELD_ID: ${{ vars.PROJECT_SPRINT_FIELD_ID || 'PVTF_lAHOA-qlQM4BWtuozhSdS10' }}
           ISSUE_NODE_ID: ${{ github.event.issue.node_id }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
         run: |
