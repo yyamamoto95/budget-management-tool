@@ -105,8 +105,7 @@
 ## 8. 依存・参照
 
 - 設計・データモデル: `docs/design/data_model.md`
-- UI コンセプト: `docs/design/ui_concept.md`
-- 核心的価値との整合レビュー: `docs/design/review_alignment_with_core_value.md`
+- UI 原則: `.github/product-identity.md`（デザイン原則・情報階層）
 
 ---
 

@@ -44,7 +44,7 @@ pnpm dev -- --filter @budget/api
 ### 起動先の URL
 
 - フロント（Next.js）: `http://localhost:3000`
-- API（Express）: `http://localhost:3001`
+- API（Hono）: `http://localhost:3001`
 - サンドボックス（Vite）: `http://localhost:5173`
 - MySQL: `localhost:3306`
 
@@ -108,7 +108,7 @@ JWT_PUBLIC_KEY="-----BEGIN PUBLIC KEY-----\n...\n-----END PUBLIC KEY-----"
 ```text
 .
 ├── apps
-│   ├── api          … Hono + TypeORM（バックエンド API）
+│   ├── api          … Hono + Prisma（バックエンド API / DDD・Onion Architecture）
 │   ├── web          … Next.js（App Router）
 │   └── sandbox      … Vite + React + TypeScript（移行検証用）
 ├── packages
@@ -134,7 +134,7 @@ JWT_PUBLIC_KEY="-----BEGIN PUBLIC KEY-----\n...\n-----END PUBLIC KEY-----"
           ┌──────────────────────┐
           │   E2E（Playwright）  │  ← ブラウザ操作を伴うユーザー操作全行程
           ├──────────────────────┤
-          │  統合テスト（実 DB） │  ← Supertest + TypeORM（API ↔ DB 貫通）
+          │  統合テスト（実 DB） │  ← Vitest + 実 MySQL（API ↔ DB 貫通）
           ├──────────────────────┤
           │   API テスト（モック）│  ← Supertest + コントローラモック
           ├──────────────────────┤
@@ -246,42 +246,10 @@ pnpm test:e2e
 
 ---
 
-### テスト追加ガイドライン（新規コード時の必須事項）
+### テスト追加ガイドライン
 
-新規コードを追加・既存コードを修正する際は、以下を基準にテストを作成してください。**テストなしの実装はマージしません。**
-
-#### テスト配置マップ
-
-```
-apps/
-  web/src/__tests__/
-    components/   ← コンポーネント・hooks（Vitest + RTL）
-    actions/      ← Server Actions（Vitest）
-  api/src/__tests__/
-    unit/         ← UseCase・ドメインロジック（Vitest）
-    integration/  ← API エンドポイント（Supertest + 実 DB）
-    e2e/          ← API 全行程（Supertest）
-packages/
-  common/src/__tests__/
-    schemas/      ← Zod スキーマ（Vitest）
-e2e/              ← ブラウザ操作全行程（Playwright）
-```
-
-#### 必須テストケース
-
-| 区分 | 内容 |
-|------|------|
-| **正常系** | 想定入力で想定出力が返ること |
-| **異常系** | 不正入力・エラー時に適切なハンドリングが行われること |
-| **境界値** | 最小値・最大値・空文字・null・0 などの境界を検証すること |
-
-#### テスト名規約
-
-```ts
-// 「〜のとき、〜になる」形式
-it('金額が0のとき、バリデーションエラーになる', ...)
-it('未ログイン状態でアクセスしたとき、ログインページにリダイレクトされる', ...)
-```
+**新規コード・修正コードにはテストを必ず追加します（テストなしの実装はマージしません）。**
+配置先・必須ケース・命名規則・品質基準は `.github/coding-conventions.md` の「テストコード規約」（SSOT）を参照してください。
 
 ---
 
@@ -318,45 +286,8 @@ git add packages/api-spec/openapi.yaml
 
 ## DB スキーマの変更手順（Prisma マイグレーション）
 
-### 基本ルール
-
-**`migration.sql` は手書き禁止。必ず `prisma migrate dev` で自動生成する。**
-
-手書きすると COLLATE・文字コード・FK の非互換など、Prisma が自動で解決するミスを手動で管理しなければならない。
-
-### スキーマ変更の手順
-
-```bash
-# 1. apps/api/prisma/schema.prisma を編集する
-
-# 2. migration.sql を自動生成して開発 DB に適用する
-pnpm db:migrate:dev --name <変更内容の説明>
-#   例: pnpm db:migrate:dev --name add_user_profile_table
-#   → apps/api/prisma/migrations/<timestamp>_<name>/migration.sql が生成される
-#   → 開発 DB に即時適用される
-#   → prisma generate（Prisma Client 再生成）も自動で行われる
-
-# 3. DBML を再生成する（DB 設計書の同期）
-pnpm db:docs
-```
-
-> `pnpm db:migrate:dev` は shadow DB（一時 DB）を使って差分を計算するため、`DATABASE_URL` で指定した DB への接続権限に加え、一時 DB の作成権限が必要です。ローカル開発環境では通常問題ありません。
-
-### 本番 / CI へのデプロイ
-
-```bash
-# 既存の migration.sql をそのまま実行する（SQL は生成しない）
-pnpm db:migrate:deploy
-```
-
-`pnpm setup` 内でも自動的に `prisma migrate deploy` が呼ばれます。
-
-### マイグレーション失敗時のリカバリ
-
-| 状況 | コマンド |
-|---|---|
-| failed 状態のマイグレーションをロールバック済みとしてマーク | `DATABASE_URL=... pnpm exec prisma migrate resolve --rolled-back <migration_name>` |
-| 部分適用されたテーブルを手動で DROP してから再実行 | `pnpm db:migrate:deploy` |
+**`migration.sql` は手書き禁止。必ず `pnpm db:migrate:dev --name <説明>` で自動生成します。**
+本番へは `pnpm db:migrate:deploy`。手順の詳細・失敗時のリカバリは `.github/operation/README.md` を参照してください。
 
 ---
 
@@ -364,7 +295,7 @@ pnpm db:migrate:deploy
 
 ### DBML の生成
 
-TypeORM の Entity から DBML を生成します。
+Prisma スキーマから DBML を生成します。
 
 ```bash
 pnpm db:docs

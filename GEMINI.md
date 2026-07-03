@@ -21,4 +21,4 @@ packages/
   api-client/ # API クライアント
 ```
 
-詳細: `.github/project-overview.md`
+詳細: `.github/product-identity.md` / `.github/sprint-protocol.md`

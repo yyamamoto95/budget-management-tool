@@ -498,8 +498,8 @@ model CategoryList {
 
 ## テストコード規約
 
-> テスト要件（種別・配置先・必須ケース）の全体定義は `.github/ai-agent-workflow.md` を参照。
-> このセクションは「どう書くか」の品質基準を定める。
+> **新規コード・修正コードにはテストを必ず追加・更新する。テストなしの実装はマージしない**（`.github/sprint-protocol.md` セクション 2）。
+> このセクションがテスト規約の SSOT である（種別・配置先・必須ケース・品質基準）。
 
 ### テスト種別と配置先
 
@@ -888,8 +888,7 @@ it('他ユーザーの支出は取得できない', async () => {
 ## Git 操作
 
 - **コミットの粒度**: Atomic Commit（1変更＝1コミット）を徹底する
-- **コミットメッセージ**: `.github/commit-message-instructions.md` に従うこと（SSOT）
-- **PR の生成**: `.github/pull-request-instructions.md` に従うこと（SSOT）
+- **コミットメッセージ・PR の生成**: `.github/git-conventions.md` に従うこと（SSOT）
 - **ブランチ運用**: `{type}/{description}` 形式
 
 ---

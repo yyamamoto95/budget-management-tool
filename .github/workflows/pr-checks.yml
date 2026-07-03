@@ -3,6 +3,7 @@
 #
 # フロー（全ジョブ並列実行）:
 #   0. issue-link-check          — PR body に Closes #NNN が含まれるか検証
+#   0b. docs-guard               — 新規 .md 追加をブロック（docs-approved ラベルで解除）
 #   1. unresolved-review-check   — 未解決レビュースレッドが残っていないか検証
 #   2. lint-typecheck            — lint + 型チェック
 #   3. nextjs-build              — Next.js プロダクションビルド（型エラーの早期検出）
@@ -18,11 +19,13 @@
 #   - Rebase Check
 #   - Test Plan Check
 #   - Issue Link Check
+#   - Docs Guard
 #   - Unresolved Review Check
 #   - Lint & Type Check
 #   - Next.js Build
 #   - Unit Test
 #   - Integration Test
+#   - E2E Test
 #   - Security Scan (FS)
 #   - Migration Check
 #   - Infrastructure Check
@@ -203,6 +206,52 @@ jobs:
               echo "   意図的（複数 Issue 対応・チョア等）であれば無視してください。"
             fi
           fi
+
+  # ─── ドキュメントガード ─────────────────────────────────────────────────────
+  # 新規 .md ファイルの追加をブロックする（ドキュメント肥大化の再発防止）。
+  # ルール: .github/sprint-protocol.md セクション 7「ドキュメント統治」
+  #   ・一過性の分析・提案は GitHub Issue へ
+  #   ・設計決定は .github/arch/decision-log.md へ追記
+  #   ・常設ドキュメントの新設はユーザー承認後、PR に docs-approved ラベルを付与して通過させる
+  docs-guard:
+    name: Docs Guard
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check no new markdown files without approval
+        env:
+          PR_LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
+        run: |
+          git fetch origin "${{ github.base_ref }}" --quiet
+
+          NEW_DOCS=$(git diff --name-only --diff-filter=A \
+            "origin/${{ github.base_ref }}...HEAD" -- '*.md' || true)
+
+          if [ -z "${NEW_DOCS}" ]; then
+            echo "✅ 新規ドキュメントの追加はありません。"
+            exit 0
+          fi
+
+          if echo ",${PR_LABELS}," | grep -q ",docs-approved,"; then
+            echo "✅ docs-approved ラベルが付与されています。以下の新規ドキュメントを許可します:"
+            echo "${NEW_DOCS}"
+            exit 0
+          fi
+
+          echo "❌ 新規 .md ファイルが追加されていますが、docs-approved ラベルがありません:"
+          echo ""
+          echo "${NEW_DOCS}"
+          echo ""
+          echo "   ドキュメントは負債です。以下を検討してください:"
+          echo "   ・一過性の分析・調査・提案 → GitHub Issue に書く"
+          echo "   ・設計決定 → .github/arch/decision-log.md に追記する"
+          echo "   ・規約の追加 → 既存 SSOT ファイルに追記する"
+          echo "   ・本当に常設ドキュメントが必要 → ユーザー承認を得て docs-approved ラベルを付与し、"
+          echo "     .github/sprint-protocol.md の SSOT マップを同時に更新する"
+          exit 1
 
   # ─── lint + 型チェック ─────────────────────────────────────────────────────
   lint-typecheck:

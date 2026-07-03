@@ -8,9 +8,9 @@
         "source.organizeImports": "explicit"
     },
     "github.copilot.chat.commitMessageGeneration.instructions": [
-        { "file": ".github/commit-message-instructions.md" }
+        { "file": ".github/git-conventions.md" }
     ],
     "github.copilot.chat.pullRequestDescriptionGeneration.instructions": [
-        { "file": ".github/pull-request-instructions.md" }
+        { "file": ".github/git-conventions.md" }
     ]
 }

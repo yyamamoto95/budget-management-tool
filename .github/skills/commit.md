@@ -8,7 +8,7 @@
 
 ### 1. 規約の読み取り
 
-`.github/commit-message-instructions.md` を読み込み、フォーマット・型・記述ガイドラインを把握する。
+`.github/git-conventions.md` を読み込み、フォーマット・型・記述ガイドラインを把握する。
 
 ### 2. 差分の網羅的確認
 
@@ -68,7 +68,7 @@ git diff
 
 ### 6. メッセージの生成
 
-`.github/commit-message-instructions.md` のルールに従う。
+`.github/git-conventions.md` のルールに従う。
 
 - **許可プレフィックス**: `feat` | `fix` | `docs` | `style` | `refactor` | `test` | `chore`
 - **Subject**: `{prefix}: {説明}` — 日本語・体言止め・50字以内

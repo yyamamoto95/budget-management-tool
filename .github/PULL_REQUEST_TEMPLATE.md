@@ -1,11 +1,7 @@
 <!--
-PR を開いたら、まず GitHub の「タイトル」欄に入力してください（本文とは別欄）。
-Conventional Commits に近い形式を推奨。
-
-形式の例: feat|fix|refactor: {簡潔な内容}
+タイトル形式: feat|fix|refactor|docs|chore: {簡潔な内容}
 例: feat: 取引保存時に userId を付与する
-例: fix: 週次集計の日付境界のずれを修正
-例: refactor: BudgetController のバリデーションを共通化
+記載ルールの詳細: .github/git-conventions.md
 -->
 
 ## 📋 概要
@@ -18,11 +14,35 @@ Conventional Commits に近い形式を推奨。
 
 -
 
-## 🔍 影響範囲
+## Test plan（テスト項目・エビデンス）
 
-<!-- 修正による副作用や、関連する機能への影響 -->
+<!--
+必須: CI の Test Plan Check が本セクションを検証する。
+・検証した観点（正常系・異常系・境界値）をチェックボックスで列挙する
+・各項目にエビデンスを添える: 追加/更新したテストファイル、実行結果、CI ジョブ名、
+  E2E は CI の playwright-report アーティファクト
+・未チェック（- [ ]）が残っているとマージできない。自動テストで担保できない項目は
+  確認者・確認内容を書いてからチェックする
+-->
+
+- [ ]
+
+**エビデンス**:
+
+<!-- 例: apps/api/src/__tests__/unit/xxx.test.ts を追加（8件パス）/ CI: Unit Test・Integration Test・E2E Test -->
+
+## 📸 スクリーンショット
+
+<!-- UI/UX 変更時は必須（PC + SP 375px、Before/After）。BE のみの変更は「該当なし」と記載 -->
+
+| | Before | After |
+|---|---|---|
+| PC | | |
+| SP（375px） | | |
 
 ## ✅ 規約・設計チェック
+
+<!-- 空のまま提出禁止。評価基準: .github/git-conventions.md -->
 
 - [ ] ユビキタス言語（Expense/Income）を遵守しているか
 - [ ] 境界（Domain/Application/Infrastructure/Presentation）を跨ぐ不正な依存はないか
@@ -30,31 +50,9 @@ Conventional Commits に近い形式を推奨。
 - [ ] マジックナンバーを排除し、定数化されているか
 - [ ] UI/UX 変更がある場合、スクリーンショット（Before/After）を添付しているか
 
-## 📸 スクリーンショット
-
-<!--
-UI/UX に変更がある場合は必須。変更なし（BE のみ・リファクタ等）は「該当なし」と記載して省略可。
-画像は GitHub のコメント欄にドラッグ＆ドロップでアップロードできます。
--->
-
-| | Before | After |
-|---|---|---|
-| PC | <!-- スクリーンショットを貼る --> | <!-- スクリーンショットを貼る --> |
-| SP（375px） | <!-- スクリーンショットを貼る --> | <!-- スクリーンショットを貼る --> |
-
-## 🧪 テスト内容
-
-<!-- 実施したテスト、または追加したテストコード -->
-
 ## 🔗 関連 Issue
 
-<!--
-必須: 対応 Issue の番号を記載する。
-・記載がないと pr-checks.yml の Issue Link Check が失敗し、マージがブロックされる
-・記載がないと velocity-log.json の自動更新がスキップされる
--->
+<!-- 必須: 無いと Issue Link Check が失敗し、velocity-log の自動更新もスキップされる -->
 
-- Closes #<!-- Issue番号（数字のみ） -->
+- Closes #<!-- Issue番号 -->
 - Sprint: <!-- スプリント番号 -->
-
-## ⚠️ 備考

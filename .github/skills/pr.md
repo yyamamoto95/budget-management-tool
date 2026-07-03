@@ -6,7 +6,7 @@
 
 ## 事前に読み込むファイル
 
-- `.github/pull-request-instructions.md` — PR 生成の論理ルール
+- `.github/git-conventions.md` — コミット・PR 生成規約
 - `.github/PULL_REQUEST_TEMPLATE.md` — PR 本文フォーマット
 
 ## 実行プロセス
