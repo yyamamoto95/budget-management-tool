@@ -13,11 +13,13 @@
 
 2. main の最新を取り込む
    ```bash
-   git fetch origin main && git merge --ff-only origin/main
+   git fetch origin main
+   git checkout main
+   git merge --ff-only origin/main
    ```
    ※ fast-forward できない場合は中断してユーザーに報告する
 
-3. 作業内容から適切なプレフィックスと slug を生成してブランチを作成する
+3. 作業内容から適切なプレフィックスと slug を生成し、最新の main からブランチを作成する
    ```bash
    git checkout -b {prefix}/{issue-number}-{slug}
    ```

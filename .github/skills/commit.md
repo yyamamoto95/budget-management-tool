@@ -70,7 +70,7 @@ git diff
 
 `.github/commit-message-instructions.md` のルールに従う。
 
-- **許可プレフィックス**: `feat` | `fix` | `docs` | `style` | `refactor` | `test` | `chore`
+- **許可プレフィックス**: `.github/commit-message-instructions.md` の Type 定義に従う
 - **Subject**: `{prefix}: {説明}` — 日本語・体言止め・50字以内
 - **Body**: 複数ファイル・複数関心・リスクがある場合は空行後に箇条書きで追記
   - `fix` / `refactor` では変更した主要シンボル・パスを明記する
@@ -89,31 +89,5 @@ git diff
 
 ## PR 作成時のチェック（push 後に PR を作る場合）
 
-コミット後に PR を作成する際は以下を必ず含める。
-
-### Issue 紐付け（必須）
-
-PR body の「関連 Issue」セクションに **`Closes #NNN`** を記載する。
-記載がない場合 `pr-checks.yml` の `Issue Link Check` が失敗し、マージがブロックされる。
-
-```
-Closes #123
-```
-
-複数 Issue を閉じる場合は複数行で記載する:
-
-```
-Closes #123
-Closes #456
-```
-
-### Issue 番号の特定方法
-
-1. ブランチ名が `feat/issue-132-xxx` 形式なら `#132` を閉じる
-2. 作業指示の Issue 番号を確認する
-3. 関連する Issue が複数あれば全て記載する
-
-### Issue がない場合
-
-`chore`・`docs`・`refactor` 等で対応 Issue がない場合でも、**先に Issue を作成してから PR を出す**。
-Issue があることで作業の背景・意図がトレースできる。`Issue Link Check` は Issue なし PR をブロックする。
+PR 作成時の Issue 紐付け、テンプレート、`Closes #NNN`、`Sprint: N` の扱いは `.github/skills/pr.md` と `.github/pull-request-instructions.md` を参照する。
+コミットスキル内では PR ルールを重複定義しない。
