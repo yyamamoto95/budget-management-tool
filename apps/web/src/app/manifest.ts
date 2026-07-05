@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
     return {
         name: '家計管理',
         short_name: '家計管理',
-        description: '日々の支出・収入を記録し、家計の寿命を把握するツール',
+        description: '日々の支出・収入を記録し、生活余力を把握するツール',
         start_url: '/',
         display: 'standalone',
         orientation: 'portrait',
