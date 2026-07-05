@@ -20,7 +20,7 @@
 - 外部フレームワークに依存しない
 
 ### Infrastructure（DB・外部ライブラリの実装）
-- Infrastructure 実装（TypeORM リポジトリ、外部ライブラリラッパ等）
+- Infrastructure 実装（Prisma リポジトリ、外部ライブラリラッパ等）
 - DB 接続、マイグレーション、外部 API の実装
 - Domain が定義する Repository インターフェースを実装する
 
@@ -30,7 +30,7 @@
 - 典型的な依存関係は以下の通り:
   - `Presentation -> Application -> Domain`
   - `Infrastructure -> Domain`
-- 具体実装（例: `TypeORMBudgetRepository`）は `Infrastructure` に置き、外部（Presentation/Application）からは **インターフェース経由で利用**する
+- 具体実装（例: `PrismaExpenseRepository`）は `Infrastructure` に置き、外部（Presentation/Application）からは **インターフェース経由で利用**する
 
 ## 3. ユビキタス言語（命名規則）
 

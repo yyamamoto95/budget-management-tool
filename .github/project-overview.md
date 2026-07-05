@@ -61,7 +61,7 @@
 | Runtime | Node.js / TypeScript |
 | Package Manager | pnpm (Workspaces) |
 | FE | Next.js（App Router）|
-| BE | Hono + TypeORM（DDD / Onion Architecture）|
+| BE | Hono + Prisma（DDD / Onion Architecture）|
 | DB | MySQL 8.0（Prisma マイグレーション）|
 | テスト | Vitest / RTL / Playwright |
 | CI | GitHub Actions |
