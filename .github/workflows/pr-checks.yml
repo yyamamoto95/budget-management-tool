@@ -204,6 +204,17 @@ jobs:
             fi
           fi
 
+  # ─── ドキュメントリンクチェック ────────────────────────────────────────────
+  # .github/**/*.md 内の .github/・docs/ ルートのパス参照が実在するか検証する。
+  # 移設・削除でリンクが宙に浮くのを機械的に検出する SSOT 鮮度ガードレール。
+  doc-link-check:
+    name: Doc Link Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check SSOT document links
+        run: bash scripts/check-doc-links.sh
+
   # ─── lint + 型チェック ─────────────────────────────────────────────────────
   lint-typecheck:
     name: Lint & Type Check
