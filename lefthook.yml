@@ -29,16 +29,16 @@ pre-commit:
       fail_text: "OpenAPI スペックが最新ではありません。`pnpm --filter @budget/api run generate:openapi` を実行し、生成結果をステージングしてください。"
 
     # 5. デザイントークン同期チェック:
-    #    docs/design/figma-tokens.json が存在する場合のみ実行。
+    #    .github/design/figma-tokens.json が存在する場合のみ実行。
     #    sync-tokens を実行し、globals.css に差分があればコミットを拒否する。
     #    差分がある場合は「`pnpm run sync:tokens` を実行してからコミットしてください」
     design-tokens-sync:
       run: |
-        if [ -f docs/design/figma-tokens.json ]; then
-          pnpm exec tsx --tsconfig tsconfig.scripts.json scripts/sync-tokens.ts --input docs/design/figma-tokens.json && \
+        if [ -f .github/design/figma-tokens.json ]; then
+          pnpm exec tsx --tsconfig tsconfig.scripts.json scripts/sync-tokens.ts --input .github/design/figma-tokens.json && \
           git diff --exit-code apps/web/src/app/globals.css
         else
-          echo "docs/design/figma-tokens.json が存在しないためスキップします。"
+          echo ".github/design/figma-tokens.json が存在しないためスキップします。"
         fi
       fail_text: "デザイントークンが最新ではありません。`pnpm run sync:tokens` を実行し、生成結果をステージングしてください。"
 

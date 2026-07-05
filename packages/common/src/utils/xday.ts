@@ -1,6 +1,6 @@
 /**
  * Xデー（資産枯渇日）算出ロジック
- * 仕様: docs/core-spec.md
+ * 仕様: .github/spec/core-spec.md
  */
 
 /** Xデー算出に必要な入力変数 */

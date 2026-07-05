@@ -6,12 +6,12 @@
  *
  * 使い方:
  *   # ローカルJSONから同期
- *   ts-node --project tsconfig.scripts.json scripts/sync-tokens.ts --input docs/design/figma-tokens.json
+ *   ts-node --project tsconfig.scripts.json scripts/sync-tokens.ts --input .github/design/figma-tokens.json
  *
  *   # Figma API から直接取得（FIGMA_TOKEN, FIGMA_FILE_ID 環境変数が必要）
  *   ts-node --project tsconfig.scripts.json scripts/sync-tokens.ts --figma
  *
- * Figmaエクスポート形式（docs/design/figma-tokens.json）:
+ * Figmaエクスポート形式（.github/design/figma-tokens.json）:
  * {
  *   "colors": {
  *     "brand/primary": { "value": "#2563eb", "type": "color" },
@@ -58,7 +58,7 @@ interface FigmaTokenSet {
 
 const ROOT = path.resolve(__dirname, '..');
 const GLOBALS_CSS_PATH = path.join(ROOT, 'apps/web/src/app/globals.css');
-const DEFAULT_TOKENS_PATH = path.join(ROOT, 'docs/design/figma-tokens.json');
+const DEFAULT_TOKENS_PATH = path.join(ROOT, '.github/design/figma-tokens.json');
 const GENERATED_MARKER_START = '/* @generated:start by scripts/sync-tokens.ts */';
 const GENERATED_MARKER_END = '/* @generated:end */';
 

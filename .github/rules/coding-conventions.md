@@ -498,7 +498,7 @@ model CategoryList {
 
 ## テストコード規約
 
-> テスト要件（種別・配置先・必須ケース）の全体定義は `.github/ai-agent-workflow.md` を参照。
+> テスト要件（種別・配置先・必須ケース）の全体定義は `.github/rules/workflow.md` を参照。
 > このセクションは「どう書くか」の品質基準を定める。
 
 ### テスト種別と配置先
@@ -888,8 +888,8 @@ it('他ユーザーの支出は取得できない', async () => {
 ## Git 操作
 
 - **コミットの粒度**: Atomic Commit（1変更＝1コミット）を徹底する
-- **コミットメッセージ**: `.github/commit-message-instructions.md` に従うこと（SSOT）
-- **PR の生成**: `.github/pull-request-instructions.md` に従うこと（SSOT）
+- **コミットメッセージ**: `.github/rules/commit-message-instructions.md` に従うこと（SSOT）
+- **PR の生成**: `.github/rules/pull-request-instructions.md` に従うこと（SSOT）
 - **ブランチ運用**: `{type}/{description}` 形式
 
 ---
