@@ -1,6 +1,6 @@
 # コアロジック＆UI仕様書：家計の寿命
 
-> 本仕様は `.github/product-identity.md` および `.github/product-challenges.md` を前提とする。
+> 本仕様は `.github/spec/product.md`（ミッション・課題・要件）を前提とする。
 
 ---
 

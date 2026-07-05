@@ -1,8 +1,8 @@
 # Gemini Code Assist — レビューガイドライン
 
-このリポジトリの規約は **`.github/coding-conventions.md`** に一元管理されています（SSOT）。
+このリポジトリの規約は **`.github/rules/coding-conventions.md`** に一元管理されています（SSOT）。
 
-レビュー時は必ず `.github/coding-conventions.md` を参照してください。
+レビュー時は必ず `.github/rules/coding-conventions.md` を参照してください。
 同ファイルの末尾セクション **「Gemini Code Assist レビューガイド」** に、レビュー対象・優先度・コメントスタイル・指摘不要事項を記載しています。
 
 ---

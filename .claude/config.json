@@ -1,8 +1,8 @@
 {
   "description": "Claude Code 向け SSOT 設定。コミット・PR 生成の規約は .github/ に一元管理されています。",
   "knowledge_base": {
-    "commit_instructions": ".github/commit-message-instructions.md",
-    "pr_instructions": ".github/pull-request-instructions.md",
+    "commit_instructions": ".github/rules/commit-message-instructions.md",
+    "pr_instructions": ".github/rules/pull-request-instructions.md",
     "pr_template": ".github/PULL_REQUEST_TEMPLATE.md"
   },
   "defaults": {

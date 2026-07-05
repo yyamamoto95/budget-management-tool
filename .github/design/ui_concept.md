@@ -65,5 +65,5 @@
 
 ## 7. 参照
 
-- PRD: `.github/PRD/product_requirements.md`
+- PRD: `.github/spec/product.md`
 - データモデル: `.github/design/data_model.md`

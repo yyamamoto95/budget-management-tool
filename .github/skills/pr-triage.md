@@ -7,7 +7,7 @@ Gemini Code Assist がレビューを投稿すると GitHub Actions が自動で
 
 ## 事前に読み込むファイル
 
-- `.github/coding-conventions.md` — 規約の SSOT（判断基準・sandbox 扱い・指摘不要事項を含む）
+- `.github/rules/coding-conventions.md` — 規約の SSOT（判断基準・sandbox 扱い・指摘不要事項を含む）
 
 ---
 
@@ -50,7 +50,7 @@ gh pr view {PR_NUMBER} \
 
 ### 3. 各指摘の妥当性を評価する
 
-`.github/coding-conventions.md`（末尾の「Gemini Code Assist レビューガイド」セクションを含む）を参照し、各指摘について以下を判断する。
+`.github/rules/coding-conventions.md`（末尾の「Gemini Code Assist レビューガイド」セクションを含む）を参照し、各指摘について以下を判断する。
 
 | 判定 | 意味 | 対応 |
 |------|------|------|

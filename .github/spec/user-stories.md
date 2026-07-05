@@ -3,7 +3,7 @@
 **プロダクト方針の4軸**に沿ってユーザーストーリーを整理する。
 各シナリオは「ユーザーが得られる情報・判断・行動変容」を記述し、UI実装の詳細は含まない。
 
-> 参照: `.github/product-identity.md` / `.github/PRD/product_requirements.md`
+> 参照: `.github/spec/product.md`
 
 ---
 

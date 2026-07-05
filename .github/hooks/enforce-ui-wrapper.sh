@@ -53,7 +53,7 @@ if [[ "$FILE_PATH" == *"apps/web/src"* ]] && \
     echo "  @/components/ui/* のラッパーコンポーネントを使用してください。" >&2
     echo "" >&2
     echo "  ラッパーが存在しない場合は先に src/components/ui/{component}.tsx を作成してください。" >&2
-    echo "  詳細: .github/coding-conventions.md「shadcn/ui ラッパーコンポーネント規約」" >&2
+    echo "  詳細: .github/rules/coding-conventions.md「shadcn/ui ラッパーコンポーネント規約」" >&2
     exit 1
   fi
 

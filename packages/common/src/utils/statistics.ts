@@ -1,7 +1,7 @@
 /**
  * 偏差値算出ロジック
  * ベース: 総務省「家計調査」2023年単身世帯データ（月次・円）
- * 仕様: docs/core-spec.md「断罪UI」
+ * 仕様: .github/spec/core-spec.md「断罪UI」
  */
 
 export type ExpenseCategory = 'food' | 'transport' | 'utilities' | 'entertainment' | 'medical' | 'other';

@@ -4,7 +4,7 @@
 
 今のペースで生活すると「あと何年暮らせるか」を数字で突きつけ、ユーザーの決断をサポートする家計管理ツール。
 
-> プロダクト詳細: [.github/product-identity.md](.github/product-identity.md)
+> プロダクト詳細: [.github/spec/product.md](.github/spec/product.md)
 
 ---
 

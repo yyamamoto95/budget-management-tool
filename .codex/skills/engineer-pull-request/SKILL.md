@@ -5,6 +5,6 @@ description: "Use for /pr, PR body generation, template completion, and gh pr cr
 
 # Engineer Pull Request
 
-Codex 用ポインタ。実体は `.github/skills/pr.md`、`.github/pull-request-instructions.md`、`.github/PULL_REQUEST_TEMPLATE.md`。
+Codex 用ポインタ。実体は `.github/skills/pr.md`、`.github/rules/pull-request-instructions.md`、`.github/PULL_REQUEST_TEMPLATE.md`。
 
 必ず `.github/sprint-protocol.md` セクション 5 と上記 SSOT を読み、矛盾時は `.github/` を優先する。

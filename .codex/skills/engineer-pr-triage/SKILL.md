@@ -5,6 +5,6 @@ description: "Use for /pr-triage, needs-ai-triage PRs, Gemini findings, and tria
 
 # Engineer PR Triage
 
-Codex 用ポインタ。実体は `.github/skills/pr-triage.md` と `.github/coding-conventions.md`。
+Codex 用ポインタ。実体は `.github/skills/pr-triage.md` と `.github/rules/coding-conventions.md`。
 
 必ず `.github/sprint-protocol.md` セクション 5 と上記 SSOT を読み、矛盾時は `.github/` を優先する。

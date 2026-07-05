@@ -8,7 +8,7 @@
 
 ### 1. 規約の読み取り
 
-`.github/commit-message-instructions.md` を読み込み、フォーマット・型・記述ガイドラインを把握する。
+`.github/rules/commit-message-instructions.md` を読み込み、フォーマット・型・記述ガイドラインを把握する。
 
 ### 2. 差分の網羅的確認
 
@@ -39,7 +39,7 @@ git diff
 - [ ] `TODO` を追加した場合、`TODO(#Issue番号):` 形式になっているか
 
 **テスト**
-- [ ] 新規・修正コードに対応するテストを追加・更新したか（`.github/coding-conventions.md` のテストコード規約を参照）
+- [ ] 新規・修正コードに対応するテストを追加・更新したか（`.github/rules/coding-conventions.md` のテストコード規約を参照）
 - [ ] `fix` コミットの場合、バグを再現するテストを追加したか
 - [ ] `pnpm test:unit` がパスするか（実行して確認する）
 
@@ -68,9 +68,9 @@ git diff
 
 ### 6. メッセージの生成
 
-`.github/commit-message-instructions.md` のルールに従う。
+`.github/rules/commit-message-instructions.md` のルールに従う。
 
-- **許可プレフィックス**: `.github/commit-message-instructions.md` の Type 定義に従う
+- **許可プレフィックス**: `.github/rules/commit-message-instructions.md` の Type 定義に従う
 - **Subject**: `{prefix}: {説明}` — 日本語・体言止め・50字以内
 - **Body**: 複数ファイル・複数関心・リスクがある場合は空行後に箇条書きで追記
   - `fix` / `refactor` では変更した主要シンボル・パスを明記する
@@ -89,5 +89,5 @@ git diff
 
 ## PR 作成時のチェック（push 後に PR を作る場合）
 
-PR 作成時の Issue 紐付け、テンプレート、`Closes #NNN`、`Sprint: N` の扱いは `.github/skills/pr.md` と `.github/pull-request-instructions.md` を参照する。
+PR 作成時の Issue 紐付け、テンプレート、`Closes #NNN`、`Sprint: N` の扱いは `.github/skills/pr.md` と `.github/rules/pull-request-instructions.md` を参照する。
 コミットスキル内では PR ルールを重複定義しない。
