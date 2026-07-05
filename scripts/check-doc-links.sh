@@ -21,7 +21,8 @@ cd "$ROOT"
 
 # プレースホルダやグロブを含まない、.github/ または docs/ 始まりのパストークンを抽出。
 # 文字クラスに * < > { } ( ) 空白等を含めないことで、例示・グロブを自然に除外する。
-PATTERN='(\.github|docs)/[A-Za-z0-9._/-]+'
+# 末尾は非ピリオド文字で終わることを必須とし、文末ピリオド（例: `... .github/foo.md.`）の誤マッチを防ぐ。
+PATTERN='(\.github|docs)/[A-Za-z0-9._/-]*[A-Za-z0-9_/-]'
 
 broken=0
 checked=0
@@ -37,8 +38,10 @@ while IFS= read -r file; do
       echo "❌ ${file}: 参照先が存在しません → ${token}"
       broken=$((broken + 1))
     fi
-  done < <(grep -oE "$PATTERN" "$file" | sort -u)
-done < <(find .github -name '*.md' -type f | sort)
+    # URL（http/https）を先に除去してから抽出し、URL 内のパス片の誤検知を防ぐ。
+    # マッチ 0 件でも grep は終了コード1を返すため || true でスクリプト全体の異常終了を防ぐ。
+  done < <(sed -E 's#https?://[^ )`]*##g' "$file" | grep -oE "$PATTERN" | sort -u || true)
+done < <(find .github $([ -d docs ] && echo docs) -name '*.md' -type f | sort)
 
 echo ""
 echo "検証済みトークン: ${checked} 件 / リンク切れ: ${broken} 件"
