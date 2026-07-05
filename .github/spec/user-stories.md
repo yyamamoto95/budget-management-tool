@@ -334,5 +334,5 @@ Scenario: 記録がまだないときに次の行動がわかる
 | 機能 | 実体 | 状態 |
 |------|------|------|
 | 自然言語での支出解析 | `POST /api/expense/parse`（LLM: expense_parse） | API のみ。UI 未接続 |
-| Xデー（資産枯渇日）計算 | `XDayCalculator`（API domain）・`packages/common` の `xday.ts` | ロジックのみ。画面未接続（`.github/spec/core-spec.md` ① 参照） |
+| 生活余力（生活費◯ヶ月分）の計算 | `XDayCalculator`（API domain）・`packages/common` の `xday.ts`（コード上は旧称のまま） | ロジックのみ。画面未接続（`.github/spec/core-spec.md` ① 参照） |
 | 統計比較（偏差値） | `packages/common` の `statistics.ts` | ロジックのみ。画面未接続（`.github/spec/core-spec.md` ③ 参照） |
