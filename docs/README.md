@@ -38,6 +38,5 @@ docs/
 | マルチエージェント役割 | `.github/multi-agent-roles.md` |
 | プロダクト要件（PRD） | `.github/PRD/` |
 | 設計・UI/UX | `.github/design/` |
-| アーキテクチャ決定記録 | `.github/arch/` |
-| DDD ルール | `.github/architecture/` |
+| アーキテクチャ決定記録・DDD ルール | `.github/arch/` |
 | 運用ガイド | `.github/operation/` |

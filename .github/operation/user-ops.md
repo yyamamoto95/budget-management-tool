@@ -1,7 +1,7 @@
 # ユーザー管理 操作ガイド
 
 > **対象**: 開発者・運用担当者
-> **関連 ADR**: `docs/arch/decision-log.md` — ADR-007（ユーザー管理機能の設計方針）
+> **関連 ADR**: `.github/arch/decision-log.md` — ADR-007（ユーザー管理機能の設計方針）
 
 ---
 

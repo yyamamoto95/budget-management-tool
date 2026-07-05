@@ -74,6 +74,13 @@ pre-commit:
       run: pnpm turbo run test:unit
       fail_text: "ユニットテストが失敗しました。`pnpm test:unit` を実行して確認してください。新規コードには対応するテストを追加してください。"
 
+    # SSOT ドキュメント内の .github/・docs/ 参照が実在するか検証する。
+    # .github 配下の md を変更したときのみ実行（グロブ絞り）。
+    doc-link-check:
+      glob: ".github/**/*.md"
+      run: bash scripts/check-doc-links.sh
+      fail_text: "SSOT ドキュメントにリンク切れがあります。`pnpm docs:check-links` で確認してください。"
+
 # pre-push フック: 統合テスト（テスト用 DB を自動起動して実行）
 # push 前に実 DB を使った API ↔ DB 貫通テストを検証する
 pre-push:
