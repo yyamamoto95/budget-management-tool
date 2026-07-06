@@ -13,15 +13,26 @@
 
 ## AI が実行するクロージングフロー（詳細）
 
-### Step 1: データ収集
+### Step 1: データ収集（pull 型導出）
 
 ```bash
-# 対象スプリントのPBIデータを取得
-cat .github/velocity-log.json
+# 対象スプリントの完了 PBI・実績 pt をマージ済み PR + size ラベルから導出
+.github/scripts/velocity-report.sh 3
+
+# 進行中スプリントのゴール・仮説・計画 pt（GitHub Variables）
+gh variable get CURRENT_SPRINT
+gh variable get SPRINT_GOAL
+gh variable get SPRINT_HYPOTHESIS
+gh variable get SPRINT_PLANNED_POINTS
+
+# サイクルタイムは measure-cycle-time.yml が各 PBI Issue にコメント投稿済み
+gh issue view {PBI番号} --comments
 
 # 前スプリントのRetro Issueを取得（前回のTry確認用）
 gh issue list --label "retro" --state closed --limit 3 --json number,title,body
 ```
+
+> velocity の恒久記録はこの Retro Issue 自体である。git に派生データ（旧 velocity-log.json）はコミットしない。
 
 ### Step 2: 前回Tryの実行確認
 
@@ -50,7 +61,7 @@ gh issue create \
   --body "Sprint #N のレトロで特定した改善アクション。\n\n## 背景\n{Problemの内容}\n\n## 対応\n{Tryの内容}\n\nRef: Retro #{Retro Issue番号}"
 ```
 
-> **注意**: `size:` ラベルの設定は必須。未設定の場合 `points=null` となりベロシティ計算から除外される。`--label "retro-action,backlog"` の形式ではスペース付きラベルが正しく適用されないため、`--label` を個別に指定すること。
+> **注意**: `size:` ラベルの設定は必須。未設定の場合ポイント集計（velocity-report.sh）から除外される。`--label "retro-action,backlog"` の形式ではスペース付きラベルが正しく適用されないため、`--label` を個別に指定すること。
 
 ### Step 5: Retro Issue をプロジェクトボードに登録
 
@@ -133,8 +144,8 @@ AI は以下を実際のデータで埋めて Issue 本文とすること。`{pl
 
 | 項目 | 内容 |
 |------|------|
-| スプリントゴール | {velocity-log.json の goal フィールドを転記} |
-| 仮説 | {velocity-log.json の hypothesis フィールドを転記} |
+| スプリントゴール | {GitHub Variable SPRINT_GOAL を転記} |
+| 仮説 | {GitHub Variable SPRINT_HYPOTHESIS を転記} |
 | 結果 | {実装完了 / 計測データなし（次スプリントで確認） / 仮説検証済み（理由）} |
 
 ---
@@ -192,7 +203,7 @@ _自動生成: スプリントエージェント — {生成日時}_
 
 ## AI 記入時の注意事項
 
-1. **データを必ず確認してから記入する**（`velocity-log.json` と `gh pr view` で事実ベース）
+1. **データを必ず確認してから記入する**（`.github/scripts/velocity-report.sh`・GitHub Variables・`gh pr view` で事実ベース）
 2. **サイクルタイム乖離の基準**: XS < 0.5h / S < 2h / M < 4h / L < 5h
 3. **前回Tryの確認**: 前スプリントの `retro-action` Issue の状態を `gh issue view` で確認する
 4. **推測・憶測は記載しない**。データがない場合は「計測データなし」と明記する

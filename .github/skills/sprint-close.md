@@ -23,32 +23,33 @@ PR の `Closes #N` 自動クローズが機能しなかった Issue を明示的
 gh issue close {Issue番号} --comment "スプリント #N 完了。PR マージにより対応済み。"
 ```
 
-### 3. velocity-log.json 同期確認
+### 3. スプリント実績を導出する（pull 型）
 
-`.github/velocity-log.json` に今スプリントの実績が記録されているか確認する。
-未記録の場合は以下の形式で追記する：
+```bash
+# 完了 PBI・実績 pt をマージ済み PR + size ラベルから導出
+.github/scripts/velocity-report.sh 3
 
-```json
-{
-  "sprint": N,
-  "velocity": {完了ポイント合計},
-  "completed_pbis": [{Issue番号}, ...],
-  "cycle_times": {}
-}
+# ゴール・仮説・計画 pt（Retro Issue に転記する）
+gh variable get SPRINT_GOAL
+gh variable get SPRINT_HYPOTHESIS
+gh variable get SPRINT_PLANNED_POINTS
 ```
+
+size ラベル未設定の警告が出た PBI があれば、ラベルを補正してから再実行する。
 
 ### 4. レトロスペクティブを生成する
 
-`.github/retrospective-template.md` を読み込み、以下の内容で Issue を作成する：
+`.github/retrospective-template.md` を読み込み、Step 3 の導出データで本文を埋めて Issue を作成する：
 
 ```bash
 gh issue create \
   --title "Retro: Sprint #N" \
-  --label "retro,priority: P2" \
+  --label "retro" --label "priority: P2" \
   --body "{retrospective_body}"
 ```
 
 レトロ本文には今スプリントの KPT（Keep/Problem/Try）を含める。
+**この Retro Issue がスプリント実績（velocity・ゴール・仮説・完了PBI）の恒久記録となる。**
 
 ### 5. プロジェクトボードのステータスを Done に更新する
 
@@ -80,7 +81,7 @@ done
 
 ### 7. クロージングサマリーを報告する
 
-- 完了 PBI 一覧とベロシティ実績
+- 完了 PBI 一覧とベロシティ実績（velocity-report.sh の出力）
 - 次スプリントへの持ち越し Issue（あれば）
 - レトロ Issue の URL
 - SSOT 棚卸し結果（リンク切れ・マップ差分の有無）
@@ -88,4 +89,4 @@ done
 ## 制約
 
 - 全 PR がマージ済みであることを確認してからクロージングを開始する
-- velocity-log.json の更新は必ず main にコミット・プッシュする
+- velocity の派生データを git にコミットしない（恒久記録は Retro Issue）

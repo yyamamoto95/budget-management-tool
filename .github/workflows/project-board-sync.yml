@@ -15,7 +15,8 @@ name: Sync Project Board
 #   project-board-sync.yml: Issue/PR のライフサイクル Status 管理
 #   measure-cycle-time.yml: CT・Sprint#・SP プロジェクトフィールド更新
 #   sync-project-status.yml: Issue close → Status: Done
-#   update-velocity.yml:    velocity-log.json 自動更新
+#   set-sprint-number.yml:  sprint-backlog 付与 → Sprint # フィールド設定
+#   ※ velocity は pull 型導出（.github/scripts/velocity-report.sh）。git への自動コミットは行わない
 #
 # ── PROJECT_TOKEN について ─────────────────────────────────────────
 #   ProjectV2 フィールド更新には project スコープの PAT が必要。
