@@ -1,6 +1,6 @@
 ---
 name: sprint-close
-description: "Use for /sprint-close, cleanup, retrospective issue creation, velocity sync, and PBI closing. / スプリント終了。SSOT: .github/skills/sprint-close.md"
+description: "Use for /sprint-close, cleanup, retrospective issue creation, velocity derivation (pull-based), and PBI closing. / スプリント終了。SSOT: .github/skills/sprint-close.md"
 ---
 
 # Sprint Close

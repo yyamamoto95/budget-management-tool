@@ -9,31 +9,36 @@
 
 ### 1. スプリント番号を採番する（最初に必ず実行）
 
+スプリント番号の SSOT は GitHub Variable `CURRENT_SPRINT`。main へのコミットは不要。
+
 ```bash
-# velocity-log.json を読み込み next_sprint_number を取得・インクリメントして書き戻す
-python3 -c "
-import json
-with open('.github/velocity-log.json') as f:
-    data = json.load(f)
-data['meta']['next_sprint_number'] += 1
-with open('.github/velocity-log.json', 'w') as f:
-    json.dump(data, f, indent=2, ensure_ascii=False)
-print(data['meta']['next_sprint_number'] - 1)
-"
+# 現在値を取得して +1 した値を設定する（スプリント開始宣言）
+CURRENT=$(gh variable get CURRENT_SPRINT)
+NEXT=$((CURRENT + 1))
+gh variable set CURRENT_SPRINT --body "${NEXT}"
+echo "Sprint #${NEXT} を開始"
 ```
 
-採番後、main にコミット・プッシュする：
+以降このスプリントで作成するすべての PR 本文に `Sprint: ${NEXT}` を含める。
+
+### 2. 前スプリントの Retro Issue をクローズする
+
+新スプリント開始時に、前スプリントの Retro Issue（`retro` ラベル・OPEN）をクローズする：
+
 ```bash
-git add .github/velocity-log.json
-git commit -m "chore(sprint): スプリント #N を開始する"
-git push origin main
+gh issue list --label "retro" --state open --json number,title
+gh issue close {Retro Issue番号} --comment "Sprint #${NEXT} 開始に伴いクローズ。"
 ```
 
-### 2. 直近 3 スプリントの平均ベロシティを計算する
+### 3. 直近 3 スプリントの平均ベロシティを計算する
 
-`.github/velocity-log.json` の `sprints` から直近 3 件の `velocity` 平均を算出する（実績なければ初期値 6pt）。
+```bash
+.github/scripts/velocity-report.sh 3
+```
 
-### 3. PBI を選定する
+出力の実績 pt から平均を算出する（実績なければ初期値 6pt）。
+
+### 4. PBI を選定する
 
 全オープン Issue を取得し、以下の基準で今スプリントの PBI を選定する：
 
@@ -42,19 +47,27 @@ git push origin main
 - 合計ポイントが平均ベロシティ以内に収まる組み合わせ
 - 依存関係（ブロッカー）を考慮
 
-### 4. スプリントゴール・仮説を導出する
+### 5. スプリントゴール・仮説を導出し、Variables に記録する
 
-`.github/sprint-protocol.md` セクション 7 の形式でスプリントゴールと仮説をユーザーに提示する。
+`.github/sprint-protocol.md` セクション 7 の形式でスプリントゴールと仮説をユーザーに提示し、承認後に記録する：
 
-### 5. 承認後、PBI にラベルを付与する
+```bash
+gh variable set SPRINT_GOAL --body "{このスプリントで○○を実現する}"
+gh variable set SPRINT_HYPOTHESIS --body "{○○することで△△が期待できる}"
+gh variable set SPRINT_PLANNED_POINTS --body "{選定PBIのsize合計pt}"
+```
+
+> Variables は「進行中スプリント」の一時記録。恒久記録はクロージング時に Retro Issue 本文へ転記される。
+
+### 6. 承認後、PBI にラベルを付与する
 
 ```bash
 gh issue edit {Issue番号} --add-label "sprint-backlog,in-progress"
 ```
 
-選定した PBI ごとに実行する。`set-sprint-number.yml` が Sprint # フィールドを自動設定する。
+選定した PBI ごとに実行する。`set-sprint-number.yml` が `CURRENT_SPRINT` を読んで Sprint # フィールドを自動設定する。
 
 ## 制約
 
-- velocity-log.json の更新は main への直接コミットを許可する（スプリント開始宣言）
 - PBI 選定はユーザーの承認後に実行する
+- velocity の派生データを git にコミットしない（実績は Retro Issue とマージ済み PR から都度導出する）

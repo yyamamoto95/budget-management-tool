@@ -954,7 +954,6 @@ sandbox 内でのみ完結するプロトタイプ的な実装は指摘しない
 
 #### レビュー不要（スキップ）
 
-- `.github/velocity-log.json` — 自動生成ファイル
 - `apps/api/prisma/migrations/**` — 自動生成マイグレーション
 - `infra/**` — Terraform（別途 infra チェックがある）
 - `*.md` — ドキュメント
@@ -998,5 +997,5 @@ Closes #123
 ### なぜ全 PR に Issue が必要か
 
 - 作業の背景・意図がトレースできる
-- `velocity-log.json` の自動更新（スプリント速度集計）に必要
+- スプリント実績の pull 型集計（`Closes #N` から完了 PBI と size ラベルを導出）に必要
 - Issue 駆動開発により「なんとなく作業」を防ぐ
