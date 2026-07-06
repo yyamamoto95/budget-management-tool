@@ -47,4 +47,11 @@ export type DashboardResponse = {
   }>;
   recentExpenses: import("@budget/api-client").ExpenseResponse[];
   streak: number;
+  /** 生活余力の算出入力（計算は @budget/common calculateLivingMargin） */
+  livingMargin: {
+    totalAssets: number | null;
+    avgDailyExpense: number;
+    monthlyIncome: number;
+    recordedDays: number;
+  };
 };

@@ -7,6 +7,7 @@ import { useState } from "react";
 import { NAV_ITEMS } from "./navItems";
 import type { NavItem } from "./navItems";
 import { QuickEntryDrawer } from "@/components/expense/QuickEntryDrawer";
+import { useLivingMargin } from "@/components/providers/LivingMarginProvider";
 import type { CategoryItem } from "@/lib/api/types";
 
 type Props = {
@@ -18,6 +19,8 @@ type Props = {
 export function BottomNav({ userId, expenseCategories, incomeCategories }: Props) {
   const pathname = usePathname();
   const [drawerOpen, setDrawerOpen] = useState(false);
+  // ホーム（HomeClient）が設定する実効日次支出 E。生活余力の即時フィードバックに使う（#418）
+  const { effectiveDailyExpense } = useLivingMargin();
 
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname.startsWith(href);
@@ -34,6 +37,7 @@ export function BottomNav({ userId, expenseCategories, incomeCategories }: Props
         onOpenChange={setDrawerOpen}
         expenseCategories={expenseCategories}
         incomeCategories={incomeCategories}
+        effectiveDailyExpense={effectiveDailyExpense}
       />
 
       {/* ボトムナビゲーションバー（モバイルのみ表示） */}

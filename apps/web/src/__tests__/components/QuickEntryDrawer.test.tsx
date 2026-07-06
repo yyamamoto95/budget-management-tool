@@ -99,4 +99,51 @@ describe("QuickEntryDrawer", () => {
     render(<QuickEntryDrawer {...defaultProps} />);
     expect(screen.getByText("登録しました")).toBeInTheDocument();
   });
+
+  it("支出登録に成功し実効日次支出があるとき、生活余力の変化がフィードバックされる", async () => {
+    const { useActionState } = await import("react");
+    vi.mocked(useActionState).mockReturnValue([
+      { error: null, success: true, registeredAmount: 4000, registeredBalanceType: 0 },
+      vi.fn(),
+      false,
+    ]);
+    render(<QuickEntryDrawer {...defaultProps} effectiveDailyExpense={8000} />);
+    // 4000円 / 8000円/日 = 0.5日分
+    expect(screen.getByText("生活余力 −0.5日分")).toBeInTheDocument();
+  });
+
+  it("支出の影響がごく小さいとき、「ほぼ変わりません」が表示される", async () => {
+    const { useActionState } = await import("react");
+    vi.mocked(useActionState).mockReturnValue([
+      { error: null, success: true, registeredAmount: 500, registeredBalanceType: 0 },
+      vi.fn(),
+      false,
+    ]);
+    render(<QuickEntryDrawer {...defaultProps} effectiveDailyExpense={8000} />);
+    expect(screen.getByText("生活余力はほぼ変わりません")).toBeInTheDocument();
+  });
+
+  it("収入登録のとき、生活余力フィードバックは表示されない", async () => {
+    const { useActionState } = await import("react");
+    vi.mocked(useActionState).mockReturnValue([
+      { error: null, success: true, registeredAmount: 200000, registeredBalanceType: 1 },
+      vi.fn(),
+      false,
+    ]);
+    render(<QuickEntryDrawer {...defaultProps} effectiveDailyExpense={8000} />);
+    expect(screen.getByText("登録しました")).toBeInTheDocument();
+    expect(screen.queryByText(/生活余力/)).not.toBeInTheDocument();
+  });
+
+  it("実効日次支出が不明（未指定）のとき、成功メッセージのみ表示される", async () => {
+    const { useActionState } = await import("react");
+    vi.mocked(useActionState).mockReturnValue([
+      { error: null, success: true, registeredAmount: 4000, registeredBalanceType: 0 },
+      vi.fn(),
+      false,
+    ]);
+    render(<QuickEntryDrawer {...defaultProps} />);
+    expect(screen.getByText("登録しました")).toBeInTheDocument();
+    expect(screen.queryByText(/生活余力/)).not.toBeInTheDocument();
+  });
 });

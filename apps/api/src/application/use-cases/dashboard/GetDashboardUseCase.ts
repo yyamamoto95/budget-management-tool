@@ -12,7 +12,17 @@ export type DashboardResult = {
     weeklyRecord: Array<{ date: string; dow: string; expense: number; recorded: boolean }>;
     recentExpenses: Expense[];
     streak: number;
+    /** 生活余力の算出入力（#418）。計算本体は共有ロジック calculateLivingMargin（@budget/common） */
+    livingMargin: {
+        totalAssets: number | null;
+        avgDailyExpense: number;
+        monthlyIncome: number;
+        recordedDays: number;
+    };
 };
+
+/** 生活余力の B（実績日次平均支出）を算出する対象期間（日） */
+const LIVING_MARGIN_WINDOW_DAYS = 30;
 
 const DOW_LABELS = ['日', '月', '火', '水', '木', '金', '土'];
 
@@ -105,6 +115,35 @@ export class GetDashboardUseCase {
             .sort((a, b) => b.createdDate.getTime() - a.createdDate.getTime())
             .slice(0, 5);
 
+        // 生活余力の算出入力（#418）
+        // B: 直近30日の実績日次平均支出。入力データが30日未満の場合は保有日数（最古記録日〜今日）で除算する
+        const cutoff = new Date(
+            today.getFullYear(),
+            today.getMonth(),
+            today.getDate() - (LIVING_MARGIN_WINDOW_DAYS - 1)
+        );
+        const cutoffStr = toDateString(cutoff);
+        const recentOutgoSum = outgoExpenses
+            .filter((e) => e.date >= cutoffStr && e.date <= todayStr)
+            .reduce((sum, e) => sum + e.amount, 0);
+
+        let avgDailyExpense = 0;
+        if (activeExpenses.length > 0) {
+            const oldestDate = activeExpenses.reduce((min, e) => (e.date < min ? e.date : min), todayStr);
+            // YYYY-MM-DD 同士を UTC 基準で比較し、保有日数（両端含む）を求める
+            const heldDays = Math.floor((Date.parse(todayStr) - Date.parse(oldestDate)) / 86_400_000) + 1;
+            const divisor = Math.min(Math.max(heldDays, 1), LIVING_MARGIN_WINDOW_DAYS);
+            avgDailyExpense = recentOutgoSum / divisor;
+        }
+
+        const livingMargin: DashboardResult['livingMargin'] = {
+            // 初回設定が未完了の間は「総資産未設定」として扱う（dailyBudget と同じガード）
+            totalAssets: settings?.initialSetupCompleted ? settings.totalAssets : null,
+            avgDailyExpense,
+            monthlyIncome: settings?.monthlyIncome ?? 0,
+            recordedDays: recordedDates.size,
+        };
+
         // 連続記録日数（今日から遡って記録がある日を数える）
         let streak = 0;
         for (let i = 0; i < 365; i++) {
@@ -125,6 +164,7 @@ export class GetDashboardUseCase {
             weeklyRecord,
             recentExpenses,
             streak,
+            livingMargin,
         };
     }
 }

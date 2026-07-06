@@ -518,5 +518,19 @@ export const DashboardResponseSchema = z
         weeklyRecord: z.array(WeeklyRecordItemSchema),
         recentExpenses: z.array(ExpenseResponseSchema),
         streak: z.number().int().openapi({ description: '連続記録日数', example: 5 }),
+        livingMargin: z
+            .object({
+                totalAssets: z
+                    .number()
+                    .int()
+                    .nullable()
+                    .openapi({ description: '総資産（円）。初回設定未完了の場合 null', example: 960000 }),
+                avgDailyExpense: z
+                    .number()
+                    .openapi({ description: '直近30日の実績日次平均支出（円/日）', example: 8000 }),
+                monthlyIncome: z.number().int().openapi({ description: '月収（円/月）', example: 250000 }),
+                recordedDays: z.number().int().openapi({ description: '記録済み日数（ユニーク日付数）', example: 30 }),
+            })
+            .openapi({ description: '生活余力の算出入力（計算は @budget/common calculateLivingMargin）' }),
     })
     .openapi('DashboardResponse');

@@ -1762,6 +1762,29 @@ export interface components {
              * @example 5
              */
             streak: number;
+            /** @description 生活余力の算出入力（計算は @budget/common calculateLivingMargin） */
+            livingMargin: {
+                /**
+                 * @description 総資産（円）。初回設定未完了の場合 null
+                 * @example 960000
+                 */
+                totalAssets: number | null;
+                /**
+                 * @description 直近30日の実績日次平均支出（円/日）
+                 * @example 8000
+                 */
+                avgDailyExpense: number;
+                /**
+                 * @description 月収（円/月）
+                 * @example 250000
+                 */
+                monthlyIncome: number;
+                /**
+                 * @description 記録済み日数（ユニーク日付数）
+                 * @example 30
+                 */
+                recordedDays: number;
+            };
         };
         ExpenseListResponse: {
             expense: components["schemas"]["ExpenseResponse"][];

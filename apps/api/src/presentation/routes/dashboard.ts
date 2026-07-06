@@ -52,6 +52,7 @@ export function createDashboardRoutes({ tokenService, getDashboardUseCase }: Rou
                     deletedDate: e.deletedDate?.toISOString() ?? null,
                 })),
                 streak: result.streak,
+                livingMargin: result.livingMargin,
             },
             200
         );

@@ -1,10 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import { calculateLivingMargin } from "@budget/common";
 import { PAGE_VARIANTS, PAGE_ITEM_VARIANTS } from "@/lib/motion";
 import type { DashboardResponse, CategoryItem } from "@/lib/api/types";
 import { DailyBudgetHero } from "./DailyBudgetHero";
+import { LivingMarginCard } from "./LivingMarginCard";
+import { useLivingMargin } from "@/components/providers/LivingMarginProvider";
 import { MonthlySummaryCard } from "./MonthlySummaryCard";
 import { WeeklyStreak } from "./WeeklyStreak";
 import { RecentExpenses } from "./RecentExpenses";
@@ -27,6 +30,18 @@ export function HomeClient({
 }: Props) {
   const [drawerOpen, setDrawerOpen] = useState(false);
 
+  // 生活余力（#418）。登録直後の即時フィードバック用に実効日次支出 E も導出する
+  const livingMarginResult = calculateLivingMargin(dashboard.livingMargin);
+  const effectiveDailyExpense =
+    livingMarginResult.status === "ok" ? livingMarginResult.effectiveDailyExpense : null;
+
+  // BottomNav（FAB）側の QuickEntryDrawer にも E を届ける（レイアウト横断のためコンテキスト経由）
+  const { setEffectiveDailyExpense } = useLivingMargin();
+  useEffect(() => {
+    setEffectiveDailyExpense(effectiveDailyExpense);
+    return () => setEffectiveDailyExpense(null);
+  }, [effectiveDailyExpense, setEffectiveDailyExpense]);
+
   return (
     <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-4 md:px-6 md:py-5">
       <motion.div
@@ -44,6 +59,11 @@ export function HomeClient({
 
         {/* PC: 2カラム / SP: 1カラム */}
         <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+          {/* LivingMarginCard — 生活余力（#418） */}
+          <motion.div variants={PAGE_ITEM_VARIANTS}>
+            <LivingMarginCard livingMargin={dashboard.livingMargin} />
+          </motion.div>
+
           {/* WeeklyStreak */}
           <motion.div variants={PAGE_ITEM_VARIANTS}>
             <WeeklyStreak
@@ -77,6 +97,7 @@ export function HomeClient({
         onOpenChange={setDrawerOpen}
         expenseCategories={expenseCategories}
         incomeCategories={incomeCategories}
+        effectiveDailyExpense={effectiveDailyExpense}
       />
     </main>
   );

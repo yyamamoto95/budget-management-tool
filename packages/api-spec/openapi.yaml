@@ -288,6 +288,32 @@ components:
           type: integer
           description: 連続記録日数
           example: 5
+        livingMargin:
+          type: object
+          properties:
+            totalAssets:
+              type: integer
+              nullable: true
+              description: 総資産（円）。初回設定未完了の場合 null
+              example: 960000
+            avgDailyExpense:
+              type: number
+              description: 直近30日の実績日次平均支出（円/日）
+              example: 8000
+            monthlyIncome:
+              type: integer
+              description: 月収（円/月）
+              example: 250000
+            recordedDays:
+              type: integer
+              description: 記録済み日数（ユニーク日付数）
+              example: 30
+          required:
+            - totalAssets
+            - avgDailyExpense
+            - monthlyIncome
+            - recordedDays
+          description: 生活余力の算出入力（計算は @budget/common calculateLivingMargin）
       required:
         - todayExpense
         - dailyBudget
@@ -296,6 +322,7 @@ components:
         - weeklyRecord
         - recentExpenses
         - streak
+        - livingMargin
     ExpenseListResponse:
       type: object
       properties:
