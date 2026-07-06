@@ -140,17 +140,17 @@ push 後にスレッドを解決してもチェック結果は変わらないた
 2. 対応済みスレッドを解決する：
 
    ```bash
-   # 未解決スレッド ID を取得する
+   # 未解決スレッドをすべて一括で解決する
    gh api graphql -f query='query($owner: String!, $repo: String!, $number: Int!) {
      repository(owner: $owner, name: $repo) {
        pullRequest(number: $number) {
          reviewThreads(first: 50) { nodes { id isResolved } } } } }' \
      -f owner={owner} -f repo={repo} -F number={PR_NUMBER} \
-     --jq '.data.repository.pullRequest.reviewThreads.nodes[] | select(.isResolved | not) | .id'
-
-   # 各スレッドを解決する
-   gh api graphql -f query='mutation($id: ID!) {
-     resolveReviewThread(input: {threadId: $id}) { thread { isResolved } } }' -f id={THREAD_ID}
+     --jq '.data.repository.pullRequest.reviewThreads.nodes[] | select(.isResolved | not) | .id' \
+   | while read -r THREAD_ID; do
+       gh api graphql -f query='mutation($id: ID!) {
+         resolveReviewThread(input: {threadId: $id}) { thread { isResolved } } }' -f id="$THREAD_ID"
+     done
    ```
 
 3. push する（チェックは解決済み状態を検査してパスする）
