@@ -1,6 +1,7 @@
 import { createRoute } from '@hono/zod-openapi';
 import { createOpenAPIApp } from '../../lib/openapi-app';
 import { createAuthMiddleware } from '../middleware/auth';
+import { createRateLimiter } from '../middleware/rateLimit';
 import type { RouteServices } from '../../app';
 import {
     ErrorResponseSchema,
@@ -39,6 +40,10 @@ const loginRoute = createRoute({
         401: {
             content: { 'application/json': { schema: ErrorResponseSchema } },
             description: '認証失敗（詳細は返さない）',
+        },
+        429: {
+            content: { 'application/json': { schema: ErrorResponseSchema } },
+            description: 'レート制限超過（Retry-After ヘッダーで再試行可能秒数を通知）',
         },
         500: {
             content: { 'application/json': { schema: ErrorResponseSchema } },
@@ -134,6 +139,17 @@ export function createAuthRoutes({ tokenService, userRepository }: RouteServices
 
     // ログアウトは認証済みユーザーのみ（OpenAPI の security 宣言と一致させる）
     app.use('/logout', auth);
+
+    // ブルートフォース対策（#315）: IP ごとに 5回/分 かつ 20回/時間
+    app.use(
+        '/login',
+        createRateLimiter({
+            rules: [
+                { windowMs: 60 * 1000, limit: 5 },
+                { windowMs: 60 * 60 * 1000, limit: 20 },
+            ],
+        })
+    );
 
     /** ログイン成功時にトークンペアをレスポンスする共通処理 */
     async function respondWithTokens(userId: string) {

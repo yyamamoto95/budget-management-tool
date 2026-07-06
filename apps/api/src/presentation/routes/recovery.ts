@@ -1,5 +1,6 @@
 import { createRoute, z } from '@hono/zod-openapi';
 import { createOpenAPIApp } from '../../lib/openapi-app';
+import { createRateLimiter } from '../middleware/rateLimit';
 import type { RouteServices } from '../../app';
 import {
     CheckUserNameQuerySchema,
@@ -128,6 +129,10 @@ const verifyRecoveryRoute = createRoute({
             content: { 'application/json': { schema: ErrorResponseSchema } },
             description: '回答が不正',
         },
+        429: {
+            content: { 'application/json': { schema: ErrorResponseSchema } },
+            description: 'レート制限超過（Retry-After ヘッダーで再試行可能秒数を通知）',
+        },
         404: {
             content: { 'application/json': { schema: ErrorResponseSchema } },
             description: 'ユーザーが存在しないか質問未設定',
@@ -155,6 +160,10 @@ const resetPasswordRoute = createRoute({
             content: { 'application/json': { schema: ErrorResponseSchema } },
             description: 'トークンが無効または期限切れ',
         },
+        429: {
+            content: { 'application/json': { schema: ErrorResponseSchema } },
+            description: 'レート制限超過（Retry-After ヘッダーで再試行可能秒数を通知）',
+        },
     },
 });
 
@@ -169,6 +178,10 @@ export function createRecoveryRoutes({
     resetPasswordUseCase,
 }: RouteServices) {
     const app = createOpenAPIApp();
+
+    // ブルートフォース対策（#315）: 回答照合は 5回/15分、パスワードリセットは 3回/時間
+    app.use('/recovery/verify', createRateLimiter({ rules: [{ windowMs: 15 * 60 * 1000, limit: 5 }] }));
+    app.use('/recovery/reset-password', createRateLimiter({ rules: [{ windowMs: 60 * 60 * 1000, limit: 3 }] }));
 
     app.openapi(registerRoute, async (c) => {
         const body = c.req.valid('json');
