@@ -41,7 +41,7 @@ gh pr list --repo "$REPO" --state merged --limit 300 \
   | ($pr.body | capture("(?i)Sprint:\\s*(?<sprint>[0-9]+)") // empty)
   | {sprint: (.sprint | tonumber),
      pr: $pr.number,
-     issues: [$pr.body | scan("(?i)closes\\s+#([0-9]+)") | .[0] | tonumber]}
+     issues: [$pr.body | scan("(?i)(?:closes|fixes|resolves)\\s+#([0-9]+)") | .[0] | tonumber]}
   | select((.issues | length) > 0)
   | [(.sprint | tostring), (.pr | tostring), (.issues | map(tostring) | join(","))]
   | @tsv
@@ -51,6 +51,11 @@ if [ ! -s "$workdir/sprint-prs.tsv" ]; then
   echo "Sprint: N を含むマージ済み PR が見つかりませんでした。"
   exit 0
 fi
+
+# 1.5. N+1 API コールを防ぐため、Issue 情報を一括取得してキャッシュする
+gh issue list --repo "$REPO" --state all --limit 500 \
+  --json number,title,labels > "$workdir/issues.json" 2>/dev/null \
+  || echo '[]' > "$workdir/issues.json"
 
 # 2. 新しい順に COUNT 件のスプリントを対象にする
 sprints=$(cut -f1 "$workdir/sprint-prs.tsv" | sort -run | head -n "$COUNT")
@@ -73,13 +78,17 @@ for s in $sprints; do
       case " $seen " in *" $i "*) continue ;; esac
       seen="$seen $i"
 
-      info=$(gh issue view "$i" --repo "$REPO" --json title,labels 2>/dev/null) || {
-        echo "- #${i} (取得失敗) — PR #${pr}"
-        continue
-      }
+      # キャッシュから Issue 情報を取得し、なければ個別取得（フォールバック）
+      info=$(jq -e -c ".[] | select(.number == $i)" "$workdir/issues.json" 2>/dev/null) || info=""
+      if [ -z "$info" ]; then
+        info=$(gh issue view "$i" --repo "$REPO" --json title,labels 2>/dev/null) || {
+          echo "- #${i} (取得失敗) — PR #${pr}"
+          continue
+        }
+      fi
       title=$(echo "$info" | jq -r '.title')
       size=$(echo "$info" | jq -r '[.labels[].name
-        | select(test("^size:\\s*"))][0] // "" | sub("^size:\\s*"; "")')
+        | select(test("(?i)^size:\\s*"))][0] // "" | sub("(?i)^size:\\s*"; "") | ascii_upcase')
       pts=$(points_for_size "$size")
 
       if [ -n "$pts" ]; then
@@ -96,12 +105,17 @@ for s in $sprints; do
 
   echo ""
   echo "**完了 PBI: ${pbi_count} 件 / 実績: ${total}pt**"
-  [ "$unsized" -gt 0 ] && echo "⚠️  size ラベル未設定の PBI が ${unsized} 件あります（ポイント集計から除外）"
+  [ "$unsized" -gt 0 ] && echo "[警告] size ラベル未設定の PBI が ${unsized} 件あります（ポイント集計から除外）"
   echo ""
   grand_total=$((grand_total + total))
 done
 
-sprint_count=$(echo "$sprints" | wc -l | tr -d ' ')
+# wc -w で単語数を数える（空文字でも 1 と誤カウントしない）。0 件ならゼロ除算を避けて終了する
+sprint_count=$(echo ${sprints} | wc -w | tr -d ' ')
+if [ "$sprint_count" -eq 0 ]; then
+  echo "対象スプリントがありません。"
+  exit 0
+fi
 echo "---"
 echo "対象 ${sprint_count} スプリント合計: ${grand_total}pt（平均 $((grand_total / sprint_count))pt/スプリント）"
 echo ""
