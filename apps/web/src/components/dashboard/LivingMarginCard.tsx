@@ -36,6 +36,25 @@ function CardShell({ children }: { children: React.ReactNode }) {
   );
 }
 
+/** 増減傾向の表示文言と色を決める（事実のみのトーン。spec: core-spec.md ②表示ルール） */
+function getTrendDisplay(
+  increasing: boolean,
+  monthlyDeltaMonths: number
+): { trendLabel: string; trendColor: string } {
+  if (increasing) {
+    return { trendLabel: "余力は増加中", trendColor: "var(--color-income)" };
+  }
+  // 減少幅が丸めて 0.0 になる場合は「ほぼ横ばい」として扱う（「0.0ヶ月分ずつ減少」を避ける）
+  const roundedDelta = Math.abs(monthlyDeltaMonths).toFixed(1);
+  if (roundedDelta === "0.0") {
+    return { trendLabel: "余力はほぼ横ばい", trendColor: "var(--foreground)" };
+  }
+  return {
+    trendLabel: `今のペースでは毎月約${roundedDelta}ヶ月分ずつ減少`,
+    trendColor: "var(--color-caution)",
+  };
+}
+
 /**
  * 生活余力カード（spec: core-spec.md ①②）
  * 「今の資産で生活費あと何ヶ月分か」を数字主役・事実のみのトーンで表示する。
@@ -79,10 +98,10 @@ export function LivingMarginCard({ livingMargin }: Props) {
     );
   }
 
-  const trendLabel = result.increasing
-    ? "余力は増加中"
-    : `今のペースでは毎月約${Math.abs(result.monthlyDeltaMonths).toFixed(1)}ヶ月分ずつ減少`;
-  const trendColor = result.increasing ? "var(--color-income)" : "var(--color-caution)";
+  const { trendLabel, trendColor } = getTrendDisplay(
+    result.increasing,
+    result.monthlyDeltaMonths
+  );
 
   return (
     <CardShell>

@@ -31,6 +31,13 @@ describe("LivingMarginCard", () => {
     ).toBeInTheDocument();
   });
 
+  it("減少幅が丸めて0.0になるとき、「余力はほぼ横ばい」と表示される", () => {
+    // net = 239000 - 240000 = -1000 → delta = -0.004ヶ月分/月 → 0.0 に丸まる
+    render(<LivingMarginCard livingMargin={{ ...okInputs, monthlyIncome: 239_000 }} />);
+    expect(screen.getByText("余力はほぼ横ばい")).toBeInTheDocument();
+    expect(screen.queryByText(/ずつ減少/)).not.toBeInTheDocument();
+  });
+
   it("総資産が未設定のとき、設定への導線が表示される", () => {
     render(<LivingMarginCard livingMargin={{ ...okInputs, totalAssets: null }} />);
     expect(screen.getByRole("link", { name: /総資産を設定する/ })).toHaveAttribute(
