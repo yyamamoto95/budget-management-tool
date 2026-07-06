@@ -937,6 +937,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          description: レート制限超過（Retry-After ヘッダーで再試行可能秒数を通知）
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "500":
           description: サーバーエラー
           content:
@@ -1767,6 +1773,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          description: レート制限超過（Retry-After ヘッダーで再試行可能秒数を通知）
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /api/recovery/reset-password:
     post:
       tags:
@@ -1787,6 +1799,12 @@ paths:
                 $ref: "#/components/schemas/SuccessResponse"
         "401":
           description: トークンが無効または期限切れ
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          description: レート制限超過（Retry-After ヘッダーで再試行可能秒数を通知）
           content:
             application/json:
               schema:

@@ -57,6 +57,15 @@ export interface paths {
                         "application/json": components["schemas"]["ErrorResponse"];
                     };
                 };
+                /** @description レート制限超過（Retry-After ヘッダーで再試行可能秒数を通知） */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
                 /** @description サーバーエラー */
                 500: {
                     headers: {
@@ -1330,6 +1339,15 @@ export interface paths {
                         "application/json": components["schemas"]["ErrorResponse"];
                     };
                 };
+                /** @description レート制限超過（Retry-After ヘッダーで再試行可能秒数を通知） */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
             };
         };
         delete?: never;
@@ -1372,6 +1390,15 @@ export interface paths {
                 };
                 /** @description トークンが無効または期限切れ */
                 401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description レート制限超過（Retry-After ヘッダーで再試行可能秒数を通知） */
+                429: {
                     headers: {
                         [name: string]: unknown;
                     };
