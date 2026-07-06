@@ -21,7 +21,7 @@ jobs:
       contents: read
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Sprint # を velocity-log.json から取得してプロジェクトフィールドに設定する
         env:
