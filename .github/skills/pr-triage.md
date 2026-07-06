@@ -131,6 +131,36 @@ gh pr edit {PR_NUMBER} \
 修正は開発者が行い、次のコミット・プッシュで Gemini が再レビューする。
 再レビュー後に GitHub Actions が再度 `needs-ai-triage` を付与する。
 
+#### 修正 push とレビュースレッド解決の順序（重要）
+
+`Unresolved Review Check` は **push（synchronize）時点**の未解決スレッドを検査する。
+push 後にスレッドを解決してもチェック結果は変わらないため、必ず以下の順序で行う：
+
+1. 指摘を修正してコミットする（push はまだしない）
+2. 対応済みスレッドを解決する：
+
+   ```bash
+   # 未解決スレッドをすべて一括で解決する
+   gh api graphql -f query='query($owner: String!, $repo: String!, $number: Int!) {
+     repository(owner: $owner, name: $repo) {
+       pullRequest(number: $number) {
+         reviewThreads(first: 50) { nodes { id isResolved } } } } }' \
+     -f owner={owner} -f repo={repo} -F number={PR_NUMBER} \
+     --jq '.data.repository.pullRequest.reviewThreads.nodes[] | select(.isResolved | not) | .id' \
+   | while read -r THREAD_ID; do
+       gh api graphql -f query='mutation($id: ID!) {
+         resolveReviewThread(input: {threadId: $id}) { thread { isResolved } } }' -f id="$THREAD_ID"
+     done
+   ```
+
+3. push する（チェックは解決済み状態を検査してパスする）
+
+**リカバリ**: 順序を誤って push 後に解決した場合は、ワークフロー完了を待ってから失敗ジョブのみ再実行する：
+
+```bash
+gh run rerun {RUN_ID} --failed
+```
+
 ---
 
 ### 6. 全 PR の処理完了を報告する
