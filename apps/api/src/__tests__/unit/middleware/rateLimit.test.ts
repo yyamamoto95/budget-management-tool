@@ -6,10 +6,10 @@ import { createRateLimiter, type RateLimitRule } from '../../../presentation/mid
 const MINUTE_MS = 60 * 1000;
 
 /** 制御可能な時計とテスト用アプリを生成する */
-function buildApp(rules: readonly RateLimitRule[]) {
+function buildApp(rules: readonly RateLimitRule[], maxTrackedKeys?: number) {
     const clock = { current: 1_000_000 };
     const app = new Hono<HonoEnv>();
-    app.use('/login', createRateLimiter({ rules, now: () => clock.current }));
+    app.use('/login', createRateLimiter({ rules, now: () => clock.current, maxTrackedKeys }));
     app.post('/login', (c) => c.json({ result: 'success' }, 200));
     return { app, clock };
 }
@@ -106,6 +106,27 @@ describe('createRateLimiter', () => {
         }
         clock.current += MINUTE_MS;
         expect((await post(app)).status).toBe(200);
+    });
+
+    it('x-forwarded-for に偽装値が含まれるとき、末尾（信頼プロキシ付与）の IP で制限される', async () => {
+        const { app } = buildApp([{ windowMs: MINUTE_MS, limit: 2 }]);
+        // 先頭の偽装 IP をリクエストごとに変えても、末尾の実 IP が同じなら同一キー扱い
+        await post(app, 'spoofed-a, 192.0.2.9');
+        await post(app, 'spoofed-b, 192.0.2.9');
+        const res = await post(app, 'spoofed-c, 192.0.2.9');
+        expect(res.status).toBe(429);
+    });
+
+    it('キー数が上限を超えたとき、最も古いキーから削除される（FIFO・全件走査なし）', async () => {
+        const { app } = buildApp([{ windowMs: MINUTE_MS, limit: 1 }], 2);
+        // ip1 を上限まで使い切る
+        await post(app, '192.0.2.1');
+        expect((await post(app, '192.0.2.1')).status).toBe(429);
+        // 新しいキーを2つ追加すると上限 2 を超え、最古の ip1 が追い出される
+        await post(app, '192.0.2.2');
+        await post(app, '192.0.2.3');
+        // ip1 の状態はリセットされ、再び受け付ける
+        expect((await post(app, '192.0.2.1')).status).toBe(200);
     });
 
     it('RATE_LIMIT_DISABLED=1 のとき、制限せずすべて通す', async () => {

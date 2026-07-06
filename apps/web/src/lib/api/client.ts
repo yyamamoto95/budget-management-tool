@@ -1,4 +1,4 @@
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 
 const API_BASE = process.env.INTERNAL_API_URL ?? "http://localhost:5000";
 
@@ -15,6 +15,8 @@ export class ApiError extends Error {
 /**
  * Server Component / Server Action から呼び出すサーバーサイド専用 fetch ラッパー。
  * Cookie に保存された JWT アクセストークンを Authorization ヘッダーで API に転送する。
+ * あわせて x-forwarded-for を API へ引き継ぎ、API 側のレート制限（#315）が
+ * Next サーバーの IP ではなく実クライアント単位で機能するようにする。
  */
 export async function serverFetch<T>(
   path: string,
@@ -26,6 +28,17 @@ export async function serverFetch<T>(
   const authHeaders: Record<string, string> = {};
   if (accessToken) {
     authHeaders.Authorization = `Bearer ${accessToken}`;
+  }
+
+  // 受信リクエストの x-forwarded-for（CloudFront が実 IP を末尾に追記済み）を転送する
+  try {
+    const incoming = await headers();
+    const forwardedFor = incoming.get("x-forwarded-for");
+    if (forwardedFor) {
+      authHeaders["x-forwarded-for"] = forwardedFor;
+    }
+  } catch {
+    // リクエストスコープ外（ビルド時のプリレンダリング等）ではヘッダーなしで続行する
   }
 
   const res = await fetch(`${API_BASE}${path}`, {
