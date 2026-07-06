@@ -59,10 +59,10 @@ jobs:
       contents: read
       security-events: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Run Trivy filesystem scan (SARIF)
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           scan-type: fs
           scan-ref: .
@@ -89,7 +89,7 @@ jobs:
       web: ${{ steps.filter.outputs.web }}
       api: ${{ steps.filter.outputs.api }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Filter changed paths
         uses: dorny/paths-filter@v3
@@ -115,7 +115,7 @@ jobs:
       web-built: ${{ steps.web-image.outputs.built }}
       api-built: ${{ steps.api-image.outputs.built }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
@@ -385,7 +385,7 @@ jobs:
       (needs.db-migrate.result == 'success' || needs.db-migrate.result == 'skipped') &&
       (needs.db-seed.result == 'success' || needs.db-seed.result == 'skipped')
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
@@ -466,7 +466,7 @@ jobs:
       needs.build-and-push.result == 'success' &&
       (needs.deploy-ecs.result == 'success' || needs.deploy-ecs.result == 'failure')
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
@@ -494,7 +494,7 @@ jobs:
        needs.db-seed.result == 'failure' ||
        needs.deploy-ecs.result == 'failure')
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Create deploy failure issue
         env:

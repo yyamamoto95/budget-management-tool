@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 開始タイムスタンプをコメント投稿
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const now = new Date();
@@ -46,7 +46,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: サイクルタイムを集計し Issue にコメント + Project フィールドを更新
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         env:
           PROJECT_ID: ${{ vars.PROJECT_ID || 'PVT_kwHOA-qlQM4BWtuo' }}
           CYCLE_TIME_FIELD_ID: ${{ vars.PROJECT_CYCLE_TIME_FIELD_ID || 'PVTF_lAHOA-qlQM4BWtuozhSdS2U' }}
