@@ -16,6 +16,7 @@ export default async function SettingsPage() {
     fixedExpenses: 0,
     totalAssets: 0,
     fixedExpensesDetail: null,
+    savingsGoal: 0,
     initialSetupCompleted: false,
   }));
 

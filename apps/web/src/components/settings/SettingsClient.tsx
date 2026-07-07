@@ -10,6 +10,7 @@ import {
   User, ChevronRight,
 } from "lucide-react";
 import { SPRING, PAGE_VARIANTS, PAGE_ITEM_VARIANTS } from "@/lib/motion";
+import { calcDailyBudget } from "@budget/common";
 import type { UserSettingsResponse, FixedExpensesDetail } from "@budget/api-client";
 import { AmountField } from "../common/AmountField";
 import { SalaryDayPicker } from "./SalaryDayPicker";
@@ -65,8 +66,8 @@ export function SettingsClient({ settings }: Props) {
   );
   const [currentBalance, setCurrentBalance] = useState(settings.totalAssets);
   const [savingsMode, setSavingsMode] = useState<SavingsMode>("monthly");
-  const [savingsMonthly, setSavingsMonthly] = useState(0);
-  const [savingsYearly, setSavingsYearly] = useState(0);
+  const [savingsMonthly, setSavingsMonthly] = useState(settings.savingsGoal);
+  const [savingsYearly, setSavingsYearly] = useState(settings.savingsGoal * 12);
 
   // 保存状態
   const [saving, setSaving] = useState(false);
@@ -77,7 +78,14 @@ export function SettingsClient({ settings }: Props) {
   const totalFixed = calcTotalFixed(fixedDetail);
   const monthlySavings = savingsMode === "monthly" ? savingsMonthly : Math.round(savingsYearly / 12);
   const disposable = monthlyIncome - totalFixed - monthlySavings;
-  const dailyBudget = Math.max(0, Math.floor(disposable / 30));
+  // 1日予算プレビューはホーム（dashboard）と同じ共有ロジックで算出し、表示を一致させる（#457）
+  const { dailyBudget } = calcDailyBudget({
+    totalAssets: currentBalance,
+    fixedExpenses: totalFixed,
+    paydayDay: salaryDay,
+    savingsGoal: monthlySavings,
+    today: new Date(),
+  });
   const budgetColor = getBudgetColor(dailyBudget);
 
   const inc = monthlyIncome || 1;
@@ -110,6 +118,7 @@ export function SettingsClient({ settings }: Props) {
         paydayDay: salaryDay,
         fixedExpenses: totalFixed,
         fixedExpensesDetail: fixedDetail,
+        savingsGoal: monthlySavings,
       });
       if (result.error) {
         throw new Error(result.error);

@@ -1,12 +1,13 @@
 import type { UserSettings } from '../models/UserSettings';
 
-/** upsert 時の入力型: initialSetupCompleted / fixedExpensesDetail は省略可 */
+/** upsert 時の入力型: initialSetupCompleted / fixedExpensesDetail / savingsGoal は省略可（省略時は既存値を維持） */
 export type UpsertSettingsInput = Omit<
     UserSettings,
-    'id' | 'createdAt' | 'updatedAt' | 'initialSetupCompleted' | 'fixedExpensesDetail'
+    'id' | 'createdAt' | 'updatedAt' | 'initialSetupCompleted' | 'fixedExpensesDetail' | 'savingsGoal'
 > & {
     initialSetupCompleted?: boolean;
     fixedExpensesDetail?: UserSettings['fixedExpensesDetail'];
+    savingsGoal?: number;
 };
 
 export interface IUserSettingsRepository {

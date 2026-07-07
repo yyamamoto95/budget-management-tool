@@ -59,6 +59,49 @@ describe('calcDailyBudget', () => {
         expect(result.dailyBudget).toBe(40000)
     })
 
+    it('貯蓄目標があるとき、可処分残高から控除して日割りする（#457）', () => {
+        const result = calcDailyBudget({
+            totalAssets: 300000,
+            fixedExpenses: 100000,
+            paydayDay: 25,
+            savingsGoal: 50000,
+            today,
+        })
+        // availableBalance = 300000 - 100000 - 50000 = 150000
+        // dailyBudget = floor(150000 / 5) = 30000
+        expect(result.availableBalance).toBe(150000)
+        expect(result.dailyBudget).toBe(30000)
+    })
+
+    it('貯蓄目標の控除で可処分残高が負になるとき、dailyBudget=0 を返す（#457）', () => {
+        const result = calcDailyBudget({
+            totalAssets: 120000,
+            fixedExpenses: 100000,
+            paydayDay: 25,
+            savingsGoal: 50000,
+            today,
+        })
+        expect(result.availableBalance).toBe(-30000)
+        expect(result.dailyBudget).toBe(0)
+    })
+
+    it('貯蓄目標を省略したとき、従来どおり控除なしで計算する（後方互換）', () => {
+        const withoutGoal = calcDailyBudget({
+            totalAssets: 300000,
+            fixedExpenses: 100000,
+            paydayDay: 25,
+            today,
+        })
+        const withZeroGoal = calcDailyBudget({
+            totalAssets: 300000,
+            fixedExpenses: 100000,
+            paydayDay: 25,
+            savingsGoal: 0,
+            today,
+        })
+        expect(withoutGoal).toEqual(withZeroGoal)
+    })
+
     it('可処分残高が0のとき、dailyBudget=0 を返す', () => {
         const result = calcDailyBudget({
             totalAssets: 100000,

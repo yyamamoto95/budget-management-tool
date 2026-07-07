@@ -13,6 +13,8 @@ export type UpsertUserSettingsInput = {
     fixedExpenses: number;
     /** 固定費内訳（省略時は既存値を維持） */
     fixedExpensesDetail?: FixedExpensesDetail | null;
+    /** 月間貯蓄目標（円）。省略時は既存値を維持 */
+    savingsGoal?: number;
     /** 初回設定完了フラグ（省略時は既存値を維持） */
     initialSetupCompleted?: boolean;
 };
@@ -57,6 +59,9 @@ export class UpsertUserSettingsUseCase {
         if (fixedExpenses < 0) {
             return err(new ValidationError('固定費は0以上の値を入力してください'));
         }
+        if (input.savingsGoal !== undefined && input.savingsGoal < 0) {
+            return err(new ValidationError('貯蓄目標は0以上の値を入力してください'));
+        }
 
         const settings = await this.userSettingsRepository.upsert({
             userId: input.userId,
@@ -65,6 +70,7 @@ export class UpsertUserSettingsUseCase {
             paydayDay: input.paydayDay,
             fixedExpenses,
             fixedExpensesDetail: input.fixedExpensesDetail,
+            savingsGoal: input.savingsGoal,
             initialSetupCompleted: input.initialSetupCompleted,
         });
         return ok(settings);
