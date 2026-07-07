@@ -4,6 +4,9 @@ import { useMemo, createElement } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { ChevronRight } from "lucide-react";
+
+// 行全体を明細（該当日）へのリンクにする（#463）。編集・削除は明細側で行う導線設計
+const MotionLink = motion.create(Link);
 import { SPRING } from "@/lib/motion";
 import { getCategoryIcon } from "@/lib/categoryTokens";
 import type { ExpenseResponse, CategoryItem } from "@/lib/api/types";
@@ -70,14 +73,18 @@ function RecordItem({
     : "";
 
   return (
-    <motion.div
-      className="flex w-full items-center gap-3 px-4 py-2.5"
+    <MotionLink
+      href={`/records?date=${item.date}`}
+      aria-label={`${item.content?.trim() || catName} の記録を明細で見る`}
+      className="flex w-full items-center gap-3 px-4 py-2.5 transition-colors hover:bg-[rgba(28,20,16,0.03)] active:bg-[rgba(28,20,16,0.05)]"
       style={{
+        textDecoration: "none",
         borderBottom: hasBorderBottom ? "1px solid var(--border-default)" : "none",
       }}
       initial={{ opacity: 0, y: 4 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.04, duration: 0.15, ease: "easeOut" }}
+      whileTap={{ scale: 0.99 }}
     >
       <div
         className="flex h-8 w-8 shrink-0 items-center justify-center"
@@ -116,7 +123,7 @@ function RecordItem({
       >
         {isIncome ? "+" : "−"}¥{item.amount.toLocaleString("ja-JP")}
       </div>
-    </motion.div>
+    </MotionLink>
   );
 }
 

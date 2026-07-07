@@ -3,6 +3,7 @@
 import { useState, useMemo, useCallback, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import { X } from "lucide-react";
 import { PAGE_VARIANTS, PAGE_ITEM_VARIANTS, SPRING } from "@/lib/motion";
 import type { ExpenseResponse, CategoryItem } from "@/lib/api/types";
 import { PeriodFilter, type Period } from "./PeriodFilter";
@@ -14,13 +15,22 @@ type Props = {
   allCategories: CategoryItem[];
   initialPeriod: Period;
   initialSearch: string;
+  /** YYYY-MM-DD。指定時はその日の記録に絞り込み表示（#463） */
+  initialDate?: string | null;
 };
+
+/** "2026-07-08" → "7月8日" */
+function formatDateLabel(dateStr: string): string {
+  const [, m, d] = dateStr.split("-");
+  return `${Number(m)}月${Number(d)}日`;
+}
 
 export function RecordsPage({
   initialExpenses,
   allCategories,
   initialPeriod,
   initialSearch,
+  initialDate = null,
 }: Props) {
   const router = useRouter();
   const [, startTransition] = useTransition();
@@ -85,6 +95,29 @@ export function RecordsPage({
               backdropFilter: "blur(10px)",
             }}
           >
+            {/* 日付絞り込みチップ（ホームの行タップ遷移 #463。期間・検索の操作で解除される） */}
+            {initialDate && (
+              <div className="flex items-center gap-2 pb-1.5 pt-1">
+                <span
+                  className="inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[11px] font-bold"
+                  style={{
+                    background: "var(--color-brand-light)",
+                    borderColor: "rgba(241,136,64,0.30)",
+                    color: "var(--color-brand-primary)",
+                  }}
+                >
+                  {formatDateLabel(initialDate)}の記録
+                  <button
+                    type="button"
+                    aria-label="日付の絞り込みを解除"
+                    className="ml-0.5 flex h-4 w-4 items-center justify-center rounded-full transition-colors hover:bg-[rgba(241,136,64,0.15)]"
+                    onClick={() => navigate(period, search)}
+                  >
+                    <X size={10} />
+                  </button>
+                </span>
+              </div>
+            )}
             {/* 期間フィルタ */}
             <div className="flex items-center gap-2 pb-1.5 pt-1">
               <PeriodFilter value={period} onChange={handlePeriodChange} />
@@ -146,7 +179,7 @@ export function RecordsPage({
         <motion.div variants={PAGE_ITEM_VARIANTS}>
           <AnimatePresence mode="wait">
             <motion.div
-              key={`${period}-${search}`}
+              key={`${period}-${search}-${initialDate ?? ""}`}
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -4 }}
