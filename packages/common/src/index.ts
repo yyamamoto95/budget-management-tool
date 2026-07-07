@@ -1,6 +1,7 @@
 export * from './constants/categories'
 export * from './constants/categoryTokens'
 export * from './utils/xday'
+export * from './utils/livingMargin'
 export * from './utils/parse'
 export * from './utils/statistics'
 export * from './utils/streak'

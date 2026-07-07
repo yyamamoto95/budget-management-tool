@@ -17,6 +17,10 @@ export type ExpenseActionState = {
   error: string | null;
   fieldErrors?: ExpenseFieldErrors;
   success: boolean;
+  /** 登録に成功した金額（生活余力の即時フィードバック表示に使用） */
+  registeredAmount?: number;
+  /** 登録に成功した収支区分（0: 支出 / 1: 収入） */
+  registeredBalanceType?: 0 | 1;
 };
 
 /** 支出を新規作成する Server Action */
@@ -55,7 +59,12 @@ export async function createExpenseAction(
 
   revalidatePath("/");
   revalidatePath("/expenses");
-  return { error: null, success: true };
+  return {
+    error: null,
+    success: true,
+    registeredAmount: result.data.amount,
+    registeredBalanceType: result.data.balanceType,
+  };
 }
 
 export type UpdateExpenseFieldErrors = {

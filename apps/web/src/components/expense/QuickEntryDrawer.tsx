@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer";
+import { formatLivingMarginImpact } from "@budget/common";
 import { createExpenseAction } from "@/lib/actions/expense";
 import type { ExpenseActionState } from "@/lib/actions/expense";
 import type { CategoryItem } from "@/lib/api/types";
@@ -18,6 +19,8 @@ type Props = {
   onOpenChange: (open: boolean) => void;
   expenseCategories: CategoryItem[];
   incomeCategories: CategoryItem[];
+  /** 実効日次支出 E（円/日）。生活余力の即時フィードバックに使用（算出不能時は null / 未指定） */
+  effectiveDailyExpense?: number | null;
 };
 
 const VISIBLE_COUNT = 4;
@@ -30,6 +33,7 @@ export function QuickEntryDrawer({
   onOpenChange,
   expenseCategories,
   incomeCategories,
+  effectiveDailyExpense = null,
 }: Props) {
   const [balanceType, setBalanceType] = useState<0 | 1>(0);
   const [categoryId, setCategoryId] = useState<number>(expenseCategories[0]?.id ?? 0);
@@ -346,6 +350,19 @@ export function QuickEntryDrawer({
           {state.success && (
             <p className="rounded-xl border border-[#4caf82]/40 bg-[#f0fdf6] px-3 py-2 text-sm font-bold text-[#4caf82]">
               登録しました
+              {/* 生活余力の即時フィードバック（#418）: 支出登録時のみ・事実の数字だけを示す */}
+              {state.registeredBalanceType === 0 &&
+                effectiveDailyExpense !== null &&
+                state.registeredAmount !== undefined && (
+                  (() => {
+                    const impact = formatLivingMarginImpact(state.registeredAmount, effectiveDailyExpense);
+                    return impact ? (
+                      <span className="mt-0.5 block text-xs font-semibold" style={{ color: "rgba(28,20,16,0.55)" }}>
+                        {impact}
+                      </span>
+                    ) : null;
+                  })()
+                )}
             </p>
           )}
 
