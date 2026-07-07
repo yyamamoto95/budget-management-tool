@@ -9,6 +9,7 @@ import { DailyBudgetHero } from "./DailyBudgetHero";
 import { LivingMarginCard } from "./LivingMarginCard";
 import { useLivingMargin } from "@/components/providers/LivingMarginProvider";
 import { MonthlySummaryCard } from "./MonthlySummaryCard";
+import { SavingsForecastCard } from "./SavingsForecastCard";
 import { WeeklyStreak } from "./WeeklyStreak";
 import { RecentExpenses } from "./RecentExpenses";
 import { QuickEntryDrawer } from "@/components/expense/QuickEntryDrawer";
@@ -88,6 +89,15 @@ export function HomeClient({
             <WeeklyStreak
               weeklyRecord={dashboard.weeklyRecord}
               dailyBudget={dashboard.dailyBudget?.amount ?? null}
+            />
+          </motion.div>
+
+          {/* SavingsForecastCard — 今月の貯蓄予測（#458） */}
+          <motion.div variants={PAGE_ITEM_VARIANTS}>
+            <SavingsForecastCard
+              monthSummary={dashboard.monthSummary}
+              todayExpense={dashboard.todayExpense}
+              savingsGoal={dashboard.savingsGoal}
             />
           </motion.div>
 

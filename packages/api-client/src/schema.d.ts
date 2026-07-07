@@ -1762,6 +1762,11 @@ export interface components {
              * @example 5
              */
             streak: number;
+            /**
+             * @description 月間貯蓄目標（円）。未設定は 0
+             * @example 30000
+             */
+            savingsGoal: number;
             /** @description 生活余力の算出入力（計算は @budget/common calculateLivingMargin） */
             livingMargin: {
                 /**

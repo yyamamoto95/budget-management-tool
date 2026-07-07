@@ -47,6 +47,8 @@ export type DashboardResponse = {
   }>;
   recentExpenses: import("@budget/api-client").ExpenseResponse[];
   streak: number;
+  /** 月間貯蓄目標（円）。未設定は 0（貯蓄予測カード #458 で使用） */
+  savingsGoal: number;
   /** 生活余力の算出入力（計算は @budget/common calculateLivingMargin） */
   livingMargin: {
     totalAssets: number | null;
