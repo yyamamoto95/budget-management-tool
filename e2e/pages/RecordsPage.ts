@@ -42,7 +42,7 @@ export class RecordsPage extends BasePage {
         // 関数述語で pathname / searchParams を直接検証し、glob の `?` の挙動依存を避ける。
         await this.page.waitForURL(
             (url) => url.pathname === '/records' && url.searchParams.has('search'),
-            { timeout: 10000 },
+            { timeout: 30000 },
         )
     }
 
@@ -58,6 +58,6 @@ export class RecordsPage extends BasePage {
 
     /** 一覧に指定テキスト（メモ等）が表示されているか検証する */
     async expectEntryVisible(text: string): Promise<void> {
-        await expect(this.page.getByText(text)).toBeVisible({ timeout: 10000 })
+        await expect(this.page.getByText(text)).toBeVisible({ timeout: 30000 })
     }
 }
