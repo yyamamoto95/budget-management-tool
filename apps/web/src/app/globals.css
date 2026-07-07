@@ -87,6 +87,32 @@
   --color-status-danger-badge: #f43f5e;
   --color-status-danger-glow: rgba(244, 63, 94, 0.18);
 
+  /* 貯蓄予測トーン（貯蓄達成率に応じた4状態。SavingsForecastPalettePrototype 準拠 / #458）
+   *  excellent : 超好調（達成率 ≥ 150%）→ ブランドオレンジ
+   *  safe      : 好調（100〜149%）→ グリーン
+   *  caution   : 注意（50〜99%）→ ピンク
+   *  danger    : 危険（< 50% / 赤字見込み）→ レッド
+   */
+  --color-forecast-excellent: #f18840;
+  --color-forecast-excellent-badge-bg: rgba(241, 136, 64, 0.12);
+  --color-forecast-excellent-bar: linear-gradient(90deg, #fbbf24, #f18840);
+  --color-forecast-excellent-bar-light: rgba(241, 136, 64, 0.18);
+
+  --color-forecast-safe: #35b5a2;
+  --color-forecast-safe-badge-bg: rgba(53, 181, 162, 0.10);
+  --color-forecast-safe-bar: linear-gradient(90deg, #34d399, #35b5a2);
+  --color-forecast-safe-bar-light: rgba(53, 181, 162, 0.22);
+
+  --color-forecast-caution: #e879a3;
+  --color-forecast-caution-badge-bg: rgba(232, 121, 163, 0.12);
+  --color-forecast-caution-bar: linear-gradient(90deg, #f9a8d4, #e879a3);
+  --color-forecast-caution-bar-light: rgba(232, 121, 163, 0.22);
+
+  --color-forecast-danger: #f43f5e;
+  --color-forecast-danger-badge-bg: rgba(244, 63, 94, 0.09);
+  --color-forecast-danger-bar: linear-gradient(90deg, #fb7185, #f43f5e);
+  --color-forecast-danger-bar-light: rgba(244, 63, 94, 0.22);
+
   /* ボーダー */
   --border-default: rgba(28, 20, 16, 0.08);
   --border-strong: #1c1410;

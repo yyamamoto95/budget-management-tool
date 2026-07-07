@@ -529,6 +529,7 @@ export const DashboardResponseSchema = z
         weeklyRecord: z.array(WeeklyRecordItemSchema),
         recentExpenses: z.array(ExpenseResponseSchema),
         streak: z.number().int().openapi({ description: '連続記録日数', example: 5 }),
+        savingsGoal: z.number().int().openapi({ description: '月間貯蓄目標（円）。未設定は 0', example: 30000 }),
         livingMargin: z
             .object({
                 totalAssets: z

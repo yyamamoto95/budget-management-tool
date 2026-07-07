@@ -288,6 +288,10 @@ components:
           type: integer
           description: 連続記録日数
           example: 5
+        savingsGoal:
+          type: integer
+          description: 月間貯蓄目標（円）。未設定は 0
+          example: 30000
         livingMargin:
           type: object
           properties:
@@ -322,6 +326,7 @@ components:
         - weeklyRecord
         - recentExpenses
         - streak
+        - savingsGoal
         - livingMargin
     ExpenseListResponse:
       type: object

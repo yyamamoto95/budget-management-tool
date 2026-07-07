@@ -12,6 +12,8 @@ export type DashboardResult = {
     weeklyRecord: Array<{ date: string; dow: string; expense: number; recorded: boolean }>;
     recentExpenses: Expense[];
     streak: number;
+    /** 月間貯蓄目標（円）。未設定は 0（貯蓄予測カード #458 で使用） */
+    savingsGoal: number;
     /** 生活余力の算出入力（#418）。計算本体は共有ロジック calculateLivingMargin（@budget/common） */
     livingMargin: {
         totalAssets: number | null;
@@ -165,6 +167,7 @@ export class GetDashboardUseCase {
             weeklyRecord,
             recentExpenses,
             streak,
+            savingsGoal: settings?.savingsGoal ?? 0,
             livingMargin,
         };
     }
