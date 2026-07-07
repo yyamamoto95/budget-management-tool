@@ -65,7 +65,7 @@ export class ExpensePage extends BasePage {
 
     /** 登録成功メッセージを検証する */
     async expectSaveSucceeded(): Promise<void> {
-        await expect(this.page.getByText('登録しました')).toBeVisible({ timeout: 10000 })
+        await expect(this.page.getByText('登録しました')).toBeVisible({ timeout: 30000 })
     }
 
     /** 金額フィールドがフォーカスされていることを検証（HTML5 required バリデーション） */

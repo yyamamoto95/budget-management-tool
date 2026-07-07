@@ -13,6 +13,13 @@ export default defineConfig({
     workers: 1,
     reporter: [['html', { open: 'never' }], ['list']],
 
+    // 遅い CI runner ではデフォルト 5 秒の expect がタイムアウトしフレーキーの一因になる（#474）。
+    // 同一コードはローカルで数秒で完走することを確認済みのため、緩和しても検知力は損なわれない。
+    // テスト全体のタイムアウトも既定 30s のままだと 30s の expect より先に発火し
+    // 不明瞭なエラーで終了するため、60s へ引き上げる。
+    timeout: 60000,
+    expect: { timeout: 15000 },
+
     use: {
         baseURL: process.env.BASE_URL ?? 'http://localhost:3000',
         trace: 'on-first-retry',

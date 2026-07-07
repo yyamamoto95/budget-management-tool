@@ -22,6 +22,6 @@ export class HomePage extends BasePage {
 
     /** ホーム画面の「最近の記録」セクションに指定テキストが表示されているか検証する */
     async expectRecentEntryVisible(text: string): Promise<void> {
-        await expect(this.page.getByText(text)).toBeVisible({ timeout: 10000 })
+        await expect(this.page.getByText(text)).toBeVisible({ timeout: 30000 })
     }
 }

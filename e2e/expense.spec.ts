@@ -63,6 +63,6 @@ test.describe('支出の新規登録と一覧反映', () => {
 
         await logoutButton.click()
 
-        await expect(page).toHaveURL('/login', { timeout: 10000 })
+        await expect(page).toHaveURL('/login', { timeout: 30000 })
     })
 })

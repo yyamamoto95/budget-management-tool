@@ -54,7 +54,7 @@ export class SettingsPage extends BasePage {
 
     /** 保存成功（トースト表示）を検証する */
     async expectSaveSucceeded(): Promise<void> {
-        await expect(this.successToast).toBeVisible({ timeout: 10000 })
+        await expect(this.successToast).toBeVisible({ timeout: 30000 })
     }
 
     /** フィールドが指定値であることを検証する */

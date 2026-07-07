@@ -56,6 +56,6 @@ export class QuickEntryPage {
 
     /** 登録成功メッセージを検証する */
     async expectSuccess(): Promise<void> {
-        await expect(this.dialog.getByText('登録しました')).toBeVisible({ timeout: 10000 })
+        await expect(this.dialog.getByText('登録しました')).toBeVisible({ timeout: 30000 })
     }
 }

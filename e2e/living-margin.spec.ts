@@ -102,7 +102,7 @@ test.describe('生活余力（US-402）', () => {
             await page.reload()
             const card = page.getByTestId('living-margin-card')
             await expect(card).toBeVisible()
-            await expect(card.getByText('ヶ月分', { exact: true })).toBeVisible({ timeout: 10000 })
+            await expect(card.getByText('ヶ月分', { exact: true })).toBeVisible({ timeout: 30000 })
 
             // FAB から支出を登録し、生活余力の変化がフィードバックされる
             await home.openQuickEntry()
@@ -113,7 +113,7 @@ test.describe('生活余力（US-402）', () => {
             await drawer.submit()
             await drawer.expectSuccess()
             await expect(page.getByRole('dialog').getByText(/生活余力/)).toBeVisible({
-                timeout: 10000,
+                timeout: 30000,
             })
         } finally {
             // 投入した支出を削除（メモで検索して取りこぼしも回収）
