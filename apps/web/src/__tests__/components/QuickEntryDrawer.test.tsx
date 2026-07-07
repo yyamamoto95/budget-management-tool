@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, act } from "@testing-library/react";
 import { QuickEntryDrawer } from "@/components/expense/QuickEntryDrawer";
 import type { CategoryItem } from "@/lib/api/types";
 
@@ -145,5 +145,143 @@ describe("QuickEntryDrawer", () => {
     render(<QuickEntryDrawer {...defaultProps} />);
     expect(screen.getByText("登録しました")).toBeInTheDocument();
     expect(screen.queryByText(/生活余力/)).not.toBeInTheDocument();
+  });
+
+  it("登録成功後、金額・メモがリセットされ二重登録できない（#461）", async () => {
+    const { useActionState } = await import("react");
+    vi.mocked(useActionState).mockReturnValue([
+      { error: null, success: false },
+      vi.fn(),
+      false,
+    ]);
+    const { rerender } = render(<QuickEntryDrawer {...defaultProps} />);
+
+    // テンキーで 800 円を入力し、メモも入れる
+    fireEvent.click(screen.getByRole("button", { name: "8" }));
+    fireEvent.click(screen.getByRole("button", { name: "0" }));
+    fireEvent.click(screen.getByRole("button", { name: "0" }));
+    fireEvent.change(screen.getByLabelText("メモ"), { target: { value: "コーヒー" } });
+    expect(screen.getByText("800")).toBeInTheDocument();
+
+    // 登録成功状態へ遷移させる
+    vi.mocked(useActionState).mockReturnValue([
+      { error: null, success: true, registeredAmount: 800, registeredBalanceType: 0 },
+      vi.fn(),
+      false,
+    ]);
+    rerender(<QuickEntryDrawer {...defaultProps} />);
+
+    // 金額・メモがリセットされている
+    expect(screen.queryByText("800")).not.toBeInTheDocument();
+    expect(screen.getByLabelText("メモ")).toHaveValue("");
+    // 記録ボタンは成功フィードバックに置き換わり、そのままの再送信ができない
+    expect(screen.getByText("記録しました！")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /記録する/ })).not.toBeInTheDocument();
+  });
+
+  it("成功フィードバックは一定時間後に記録ボタンへ戻る（#461）", async () => {
+    vi.useFakeTimers();
+    try {
+      const { useActionState } = await import("react");
+      vi.mocked(useActionState).mockReturnValue([
+        { error: null, success: true, registeredAmount: 800, registeredBalanceType: 0 },
+        vi.fn(),
+        false,
+      ]);
+      render(<QuickEntryDrawer {...defaultProps} />);
+      expect(screen.getByText("記録しました！")).toBeInTheDocument();
+
+      act(() => {
+        vi.advanceTimersByTime(2000);
+      });
+      expect(screen.queryByText("記録しました！")).not.toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /記録する/ })).toBeInTheDocument();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("金額入力中、「記録後の残り」プレビューが表示される（#461）", async () => {
+    const { useActionState } = await import("react");
+    vi.mocked(useActionState).mockReturnValue([
+      { error: null, success: false },
+      vi.fn(),
+      false,
+    ]);
+    render(
+      <QuickEntryDrawer
+        {...defaultProps}
+        dailyBudget={{ amount: 2400, remaining: 2000 }}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "5" }));
+    fireEvent.click(screen.getByRole("button", { name: "0" }));
+    fireEvent.click(screen.getByRole("button", { name: "0" }));
+    expect(screen.getByText("記録後の残り：")).toBeInTheDocument();
+    expect(screen.getByText("¥1,500")).toBeInTheDocument();
+  });
+
+  it("記録後の残りが1日予算の20%未満のとき、警告色で表示される（#461）", async () => {
+    const { useActionState } = await import("react");
+    vi.mocked(useActionState).mockReturnValue([
+      { error: null, success: false },
+      vi.fn(),
+      false,
+    ]);
+    render(
+      <QuickEntryDrawer
+        {...defaultProps}
+        dailyBudget={{ amount: 2400, remaining: 2000 }}
+      />,
+    );
+    // 1,800円入力 → 残り200円（2400×20%=480円 未満）
+    fireEvent.click(screen.getByRole("button", { name: "1" }));
+    fireEvent.click(screen.getByRole("button", { name: "8" }));
+    fireEvent.click(screen.getByRole("button", { name: "0" }));
+    fireEvent.click(screen.getByRole("button", { name: "0" }));
+    const value = screen.getByText("¥200");
+    expect(value).toHaveStyle({ color: "#f43f5e" });
+  });
+
+  it("ドロワーを閉じて再オープンすると、前回の成功メッセージ・フィードバックがクリアされる（#461）", async () => {
+    const { useActionState } = await import("react");
+    vi.mocked(useActionState).mockReturnValue([
+      { error: null, success: true, registeredAmount: 4000, registeredBalanceType: 0 },
+      vi.fn(),
+      false,
+    ]);
+    const { rerender } = render(
+      <QuickEntryDrawer {...defaultProps} effectiveDailyExpense={8000} />,
+    );
+    expect(screen.getByText("登録しました")).toBeInTheDocument();
+    expect(screen.getByText(/生活余力/)).toBeInTheDocument();
+
+    // 閉じて再オープン
+    rerender(
+      <QuickEntryDrawer {...defaultProps} open={false} effectiveDailyExpense={8000} />,
+    );
+    rerender(
+      <QuickEntryDrawer {...defaultProps} open={true} effectiveDailyExpense={8000} />,
+    );
+    expect(screen.queryByText("登録しました")).not.toBeInTheDocument();
+    expect(screen.queryByText(/生活余力/)).not.toBeInTheDocument();
+  });
+
+  it("収入タブでは「記録後の残り」プレビューを表示しない（#461）", async () => {
+    const { useActionState } = await import("react");
+    vi.mocked(useActionState).mockReturnValue([
+      { error: null, success: false },
+      vi.fn(),
+      false,
+    ]);
+    render(
+      <QuickEntryDrawer
+        {...defaultProps}
+        dailyBudget={{ amount: 2400, remaining: 2000 }}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "収入" }));
+    fireEvent.click(screen.getByRole("button", { name: "5" }));
+    expect(screen.queryByText("記録後の残り：")).not.toBeInTheDocument();
   });
 });

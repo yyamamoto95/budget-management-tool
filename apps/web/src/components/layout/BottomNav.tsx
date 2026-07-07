@@ -19,8 +19,9 @@ type Props = {
 export function BottomNav({ userId, expenseCategories, incomeCategories }: Props) {
   const pathname = usePathname();
   const [drawerOpen, setDrawerOpen] = useState(false);
-  // ホーム（HomeClient）が設定する実効日次支出 E。生活余力の即時フィードバックに使う（#418）
-  const { effectiveDailyExpense } = useLivingMargin();
+  // ホーム（HomeClient）が設定する実効日次支出 E と1日予算。
+  // 生活余力の即時フィードバック（#418）と「記録後の残り」プレビュー（#461）に使う
+  const { effectiveDailyExpense, dailyBudget } = useLivingMargin();
 
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname.startsWith(href);
@@ -38,6 +39,7 @@ export function BottomNav({ userId, expenseCategories, incomeCategories }: Props
         expenseCategories={expenseCategories}
         incomeCategories={incomeCategories}
         effectiveDailyExpense={effectiveDailyExpense}
+        dailyBudget={dailyBudget}
       />
 
       {/* ボトムナビゲーションバー（モバイルのみ表示） */}
