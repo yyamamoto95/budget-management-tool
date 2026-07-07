@@ -35,12 +35,28 @@ export function HomeClient({
   const effectiveDailyExpense =
     livingMarginResult.status === "ok" ? livingMarginResult.effectiveDailyExpense : null;
 
-  // BottomNav（FAB）側の QuickEntryDrawer にも E を届ける（レイアウト横断のためコンテキスト経由）
-  const { setEffectiveDailyExpense } = useLivingMargin();
+  // BottomNav（FAB）側の QuickEntryDrawer にも E と1日予算を届ける（レイアウト横断のためコンテキスト経由）
+  const { setEffectiveDailyExpense, setDailyBudget } = useLivingMargin();
+  const dailyBudgetAmount = dashboard.dailyBudget?.amount;
+  const dailyBudgetRemaining = dashboard.dailyBudget?.remaining;
   useEffect(() => {
     setEffectiveDailyExpense(effectiveDailyExpense);
-    return () => setEffectiveDailyExpense(null);
-  }, [effectiveDailyExpense, setEffectiveDailyExpense]);
+    setDailyBudget(
+      dailyBudgetAmount !== undefined && dailyBudgetRemaining !== undefined
+        ? { amount: dailyBudgetAmount, remaining: dailyBudgetRemaining }
+        : null,
+    );
+    return () => {
+      setEffectiveDailyExpense(null);
+      setDailyBudget(null);
+    };
+  }, [
+    effectiveDailyExpense,
+    setEffectiveDailyExpense,
+    dailyBudgetAmount,
+    dailyBudgetRemaining,
+    setDailyBudget,
+  ]);
 
   return (
     <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-4 md:px-6 md:py-5">
@@ -98,6 +114,7 @@ export function HomeClient({
         expenseCategories={expenseCategories}
         incomeCategories={incomeCategories}
         effectiveDailyExpense={effectiveDailyExpense}
+        dailyBudget={dashboard.dailyBudget}
       />
     </main>
   );

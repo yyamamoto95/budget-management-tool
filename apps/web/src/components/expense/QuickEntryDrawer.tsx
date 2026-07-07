@@ -2,13 +2,14 @@
 
 import { useActionState, useState, useEffect, useCallback } from "react";
 import {
-  Delete, PenLine, ChevronDown, Receipt,
+  Delete, PenLine, ChevronDown, Receipt, Check,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer";
 import { formatLivingMarginImpact } from "@budget/common";
 import { createExpenseAction } from "@/lib/actions/expense";
 import type { ExpenseActionState } from "@/lib/actions/expense";
+import type { DailyBudgetSnapshot } from "@/components/providers/LivingMarginProvider";
 import type { CategoryItem } from "@/lib/api/types";
 import { getCategoryIcon } from "@/lib/categoryTokens";
 import { SPRING } from "@/lib/motion";
@@ -21,10 +22,16 @@ type Props = {
   incomeCategories: CategoryItem[];
   /** 実効日次支出 E（円/日）。生活余力の即時フィードバックに使用（算出不能時は null / 未指定） */
   effectiveDailyExpense?: number | null;
+  /** 1日予算と今日の残額。「記録後の残り」プレビューに使用（未取得時は null / 未指定） */
+  dailyBudget?: DailyBudgetSnapshot | null;
 };
 
 const VISIBLE_COUNT = 4;
 const MAX_AMOUNT = 9_999_999;
+/** 成功フィードバック（✓ 記録しました！）の表示時間（ms） */
+const SUCCESS_FEEDBACK_MS = 1600;
+/** 「記録後の残り」を警告色にする閾値（1日予算に対する残額の比率） */
+const REMAINING_WARN_RATIO = 0.2;
 const initialState: ExpenseActionState = { error: null, success: false };
 
 export function QuickEntryDrawer({
@@ -34,6 +41,7 @@ export function QuickEntryDrawer({
   expenseCategories,
   incomeCategories,
   effectiveDailyExpense = null,
+  dailyBudget = null,
 }: Props) {
   const [balanceType, setBalanceType] = useState<0 | 1>(0);
   const [categoryId, setCategoryId] = useState<number>(expenseCategories[0]?.id ?? 0);
@@ -43,10 +51,43 @@ export function QuickEntryDrawer({
   const [date] = useState<string>(() => new Date().toISOString().slice(0, 10));
   const [state, formAction, isPending] = useActionState(createExpenseAction, initialState);
 
+  // 登録成功後の一時的な成功フィードバック（✓ 記録しました！）表示中フラグ
+  const [justSubmitted, setJustSubmitted] = useState(false);
+
+  // 登録成功のたびに入力をリセットし、ドロワーは開いたまま連続記録できるようにする（#461）。
+  // state は action 実行ごとに新しいオブジェクトが返るため、成功1回につき1回だけ調整する
+  //（レンダー中の状態調整パターン。effect 内の同期 setState を避ける）。
+  const [handledState, setHandledState] = useState<ExpenseActionState>(initialState);
+  if (state !== handledState) {
+    setHandledState(state);
+    if (state.success) {
+      setAmountStr("");
+      setMemo("");
+      setJustSubmitted(true);
+    }
+  }
+
+  // 成功フィードバックを一定時間で通常の記録ボタンへ戻す
+  useEffect(() => {
+    if (!justSubmitted) return;
+    const timer = setTimeout(() => setJustSubmitted(false), SUCCESS_FEEDBACK_MS);
+    return () => clearTimeout(timer);
+  }, [justSubmitted]);
+
   const categories = balanceType === 0 ? expenseCategories : incomeCategories;
   const visible = showAll ? categories : categories.slice(0, VISIBLE_COUNT);
   const rest = categories.slice(VISIBLE_COUNT);
   const brandColor = balanceType === 0 ? "#e07236" : "#27a08f";
+
+  // 「記録後の残り」プレビュー（支出のみ・金額入力中のみ）。サンドボックス AmountPanel 準拠（#461）
+  const previewRemaining =
+    balanceType === 0 && dailyBudget !== null && amountStr !== "" && Number(amountStr) > 0
+      ? Math.max(0, dailyBudget.remaining - Number(amountStr))
+      : null;
+  const previewWarn =
+    previewRemaining !== null &&
+    dailyBudget !== null &&
+    previewRemaining < dailyBudget.amount * REMAINING_WARN_RATIO;
 
   function handleTypeChange(type: 0 | 1) {
     setBalanceType(type);
@@ -182,6 +223,28 @@ export function QuickEntryDrawer({
                 {amountStr === "" ? "0" : Number(amountStr).toLocaleString("ja-JP")}
               </span>
             </div>
+
+            {/* 記録後の残り — 常時レンダリングし opacity 制御で高さを固定（レイアウトシフト防止） */}
+            {dailyBudget !== null && balanceType === 0 && (
+              <div
+                className="mt-1 text-[11px] transition-opacity duration-150"
+                style={{
+                  color: "rgba(28,20,16,0.45)",
+                  opacity: previewRemaining !== null ? 1 : 0,
+                }}
+                aria-hidden={previewRemaining === null}
+              >
+                記録後の残り：
+                <span
+                  className="ml-0.5 font-bold tabular-nums"
+                  style={{ color: previewWarn ? "#f43f5e" : "#1c1410" }}
+                >
+                  {previewRemaining !== null
+                    ? `¥${previewRemaining.toLocaleString("ja-JP")}`
+                    : ""}
+                </span>
+              </div>
+            )}
           </div>
 
           {/* カテゴリグリッド */}
@@ -366,22 +429,44 @@ export function QuickEntryDrawer({
             </p>
           )}
 
-          {/* 記録する */}
-          <button
-            type="submit"
-            disabled={isPending || !amountStr}
-            className="flex w-full items-center justify-center gap-2 rounded-2xl py-3 text-base font-extrabold text-white transition-all active:scale-95 disabled:opacity-40"
-            style={{ background: "var(--color-brand-primary)" }}
-          >
-            {isPending ? (
-              "登録中..."
+          {/* 記録する（成功直後は一時的に ✓ 記録しました！ へ変化。サンドボックス SubmitButton 準拠） */}
+          <AnimatePresence mode="wait" initial={false}>
+            {justSubmitted ? (
+              <motion.div
+                key="submitted"
+                initial={{ scale: 0.85, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                transition={SPRING.quick}
+                className="flex w-full items-center justify-center gap-2 rounded-2xl py-3 text-base font-extrabold text-white"
+                style={{ background: "linear-gradient(135deg, #35b5a2, #27a08f)" }}
+                role="status"
+              >
+                <Check size={18} strokeWidth={2.5} />
+                記録しました！
+              </motion.div>
             ) : (
-              <>
-                <Receipt size={16} />
-                記録する
-              </>
+              <motion.button
+                key="submit"
+                type="submit"
+                disabled={isPending || !amountStr}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={SPRING.quick}
+                className="flex w-full items-center justify-center gap-2 rounded-2xl py-3 text-base font-extrabold text-white transition-all active:scale-95 disabled:opacity-40"
+                style={{ background: "var(--color-brand-primary)" }}
+              >
+                {isPending ? (
+                  "登録中..."
+                ) : (
+                  <>
+                    <Receipt size={16} />
+                    記録する
+                  </>
+                )}
+              </motion.button>
             )}
-          </button>
+          </AnimatePresence>
         </form>
       </DrawerContent>
     </Drawer>
