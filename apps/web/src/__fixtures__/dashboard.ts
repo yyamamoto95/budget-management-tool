@@ -21,8 +21,10 @@ export function localDateStr(daysAgo: number): string {
 
 const DOW_LABELS = ["日", "月", "火", "水", "木", "金", "土"] as const;
 
-function dowOf(dateStr: string): string {
-    return DOW_LABELS[new Date(`${dateStr}T00:00:00`).getDay()];
+function dowOf(daysAgo: number): string {
+    const d = new Date();
+    d.setDate(d.getDate() - daysAgo);
+    return DOW_LABELS[d.getDay()];
 }
 
 // ── カテゴリ ──────────────────────────────────────────────
@@ -99,8 +101,10 @@ export function fixtureExpense(
         categoryId: 1,
         content: "昼食",
         date,
-        createdDate: `${date}T12:00:00.000Z`,
-        updatedDate: `${date}T12:00:00.000Z`,
+        // タイムゾーンサフィックスを付けずローカル時間としてパースさせる
+        // （UTC 指定だと実行環境の TZ で表示時刻が変わり VRT が不安定になる）
+        createdDate: `${date}T12:00:00.000`,
+        updatedDate: `${date}T12:00:00.000`,
         deletedDate: null,
         ...overrides,
     };
@@ -161,10 +165,10 @@ export function fixtureWeeklyRecord(
         future: 0,
     };
     return states.map((state, i) => {
-        const date = localDateStr(6 - i);
+        const daysAgo = 6 - i;
         return {
-            date,
-            dow: dowOf(date),
+            date: localDateStr(daysAgo),
+            dow: dowOf(daysAgo),
             expense: STATE_EXPENSES[state],
             recorded: state === "achieved" || state === "over",
         };
