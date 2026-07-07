@@ -74,6 +74,8 @@ export function HomeClient({
           <DailyBudgetHero
             dailyBudget={dashboard.dailyBudget}
             todayExpense={dashboard.todayExpense}
+            monthSummary={dashboard.monthSummary}
+            savingsGoal={dashboard.savingsGoal}
           />
         </motion.div>
 
