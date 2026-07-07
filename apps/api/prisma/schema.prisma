@@ -125,7 +125,7 @@ model UserSecurityAnswer {
   @@map("user_security_answers")
 }
 
-// ユーザー設定（総資産・月次収入・給料日・固定費・初回設定完了フラグ）
+// ユーザー設定（総資産・月次収入・給料日・固定費・貯蓄目標・初回設定完了フラグ）
 model UserSettings {
   id                    String   @id @db.VarChar(26)
   userId                String   @unique @db.VarChar(255) @map("user_id")
@@ -134,6 +134,7 @@ model UserSettings {
   paydayDay             Int      @default(25) @map("payday_day")
   fixedExpenses         Int      @default(0) @map("fixed_expenses")
   fixedExpensesDetail   Json?    @map("fixed_expenses_detail")
+  savingsGoal           Int      @default(0) @map("savings_goal")
   initialSetupCompleted Boolean  @default(false) @map("initial_setup_completed")
   createdAt             DateTime @default(now()) @db.DateTime(6) @map("created_at")
   updatedAt             DateTime @updatedAt @db.DateTime(6) @map("updated_at")

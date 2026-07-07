@@ -38,6 +38,7 @@ const settings: UserSettings = {
     paydayDay: 25,
     fixedExpenses: 100_000,
     fixedExpensesDetail: null,
+    savingsGoal: 0,
     initialSetupCompleted: true,
     createdAt: new Date('2026-05-08T00:00:00.000Z'),
     updatedAt: new Date('2026-05-08T00:00:00.000Z'),
@@ -55,6 +56,34 @@ const settingsRepo: IUserSettingsRepository = {
     findByUserId: vi.fn(),
     upsert: vi.fn(),
 };
+
+describe('GetDashboardUseCase — dailyBudget の貯蓄目標控除（#457）', () => {
+    let useCase: GetDashboardUseCase;
+
+    beforeEach(() => {
+        vi.clearAllMocks();
+        useCase = new GetDashboardUseCase(expenseRepo, settingsRepo);
+    });
+
+    it('savingsGoal が設定されているとき、可処分残高から控除して1日予算を算出する', async () => {
+        vi.mocked(expenseRepo.findByUserId).mockResolvedValue([]);
+        vi.mocked(settingsRepo.findByUserId).mockResolvedValue({ ...settings, savingsGoal: 60_000 });
+
+        const withGoal = await useCase.execute('user-001');
+
+        vi.mocked(settingsRepo.findByUserId).mockResolvedValue(settings);
+        const withoutGoal = await useCase.execute('user-001');
+
+        expect(withGoal.dailyBudget).not.toBeNull();
+        expect(withoutGoal.dailyBudget).not.toBeNull();
+        // 同一日数で割るため、控除分だけ1日予算が小さくなる
+        const days = withGoal.dailyBudget?.daysUntilPayday ?? 1;
+        expect(withGoal.dailyBudget?.amount).toBe(
+            Math.floor((settings.totalAssets - settings.fixedExpenses - 60_000) / days)
+        );
+        expect((withoutGoal.dailyBudget?.amount ?? 0) > (withGoal.dailyBudget?.amount ?? 0)).toBe(true);
+    });
+});
 
 describe('GetDashboardUseCase — livingMargin 入力の導出', () => {
     let useCase: GetDashboardUseCase;

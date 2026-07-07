@@ -52,6 +52,7 @@ export class PrismaUserSettingsRepository implements IUserSettingsRepository {
             paydayDay: record.paydayDay,
             fixedExpenses: record.fixedExpenses,
             fixedExpensesDetail: parseFixedExpensesDetail(record.fixedExpensesDetail),
+            savingsGoal: record.savingsGoal,
             initialSetupCompleted: record.initialSetupCompleted,
             createdAt: record.createdAt,
             updatedAt: record.updatedAt,
@@ -69,6 +70,7 @@ export class PrismaUserSettingsRepository implements IUserSettingsRepository {
                 paydayDay: settings.paydayDay,
                 fixedExpenses: settings.fixedExpenses,
                 fixedExpensesDetail: toPrismaJson(settings.fixedExpensesDetail),
+                savingsGoal: settings.savingsGoal ?? 0,
                 initialSetupCompleted: settings.initialSetupCompleted ?? false,
             },
             update: {
@@ -78,6 +80,9 @@ export class PrismaUserSettingsRepository implements IUserSettingsRepository {
                 fixedExpenses: settings.fixedExpenses,
                 ...(settings.fixedExpensesDetail !== undefined && {
                     fixedExpensesDetail: toPrismaJson(settings.fixedExpensesDetail),
+                }),
+                ...(settings.savingsGoal !== undefined && {
+                    savingsGoal: settings.savingsGoal,
                 }),
                 ...(settings.initialSetupCompleted !== undefined && {
                     initialSetupCompleted: settings.initialSetupCompleted,
@@ -92,6 +97,7 @@ export class PrismaUserSettingsRepository implements IUserSettingsRepository {
             paydayDay: record.paydayDay,
             fixedExpenses: record.fixedExpenses,
             fixedExpensesDetail: parseFixedExpensesDetail(record.fixedExpensesDetail),
+            savingsGoal: record.savingsGoal,
             initialSetupCompleted: record.initialSetupCompleted,
             createdAt: record.createdAt,
             updatedAt: record.updatedAt,

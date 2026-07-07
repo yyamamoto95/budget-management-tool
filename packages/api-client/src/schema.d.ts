@@ -2183,6 +2183,11 @@ export interface components {
             fixedExpenses: number;
             fixedExpensesDetail: components["schemas"]["FixedExpensesDetail"];
             /**
+             * @description 月間貯蓄目標（円）。1日予算の算出時に控除する
+             * @example 30000
+             */
+            savingsGoal: number;
+            /**
              * @description 初回設定完了フラグ
              * @example false
              */
@@ -2210,6 +2215,11 @@ export interface components {
              */
             fixedExpenses: number;
             fixedExpensesDetail?: components["schemas"]["FixedExpensesDetail"] & unknown;
+            /**
+             * @description 月間貯蓄目標（円）。省略時は既存値を維持
+             * @example 30000
+             */
+            savingsGoal?: number;
             /**
              * @description 初回設定完了フラグ
              * @example true

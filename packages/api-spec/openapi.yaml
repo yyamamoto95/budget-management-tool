@@ -883,6 +883,11 @@ components:
           example: 80000
         fixedExpensesDetail:
           $ref: "#/components/schemas/FixedExpensesDetail"
+        savingsGoal:
+          type: integer
+          minimum: 0
+          description: 月間貯蓄目標（円）。1日予算の算出時に控除する
+          example: 30000
         initialSetupCompleted:
           type: boolean
           description: 初回設定完了フラグ
@@ -893,6 +898,7 @@ components:
         - paydayDay
         - fixedExpenses
         - fixedExpensesDetail
+        - savingsGoal
         - initialSetupCompleted
     UpsertUserSettingsBody:
       type: object
@@ -922,6 +928,11 @@ components:
           allOf:
             - $ref: "#/components/schemas/FixedExpensesDetail"
             - description: 固定費内訳（省略時は既存値を維持）
+        savingsGoal:
+          type: integer
+          minimum: 0
+          description: 月間貯蓄目標（円）。省略時は既存値を維持
+          example: 30000
         initialSetupCompleted:
           type: boolean
           description: 初回設定完了フラグ

@@ -4,7 +4,7 @@ export type DailyBudgetResult = {
     dailyBudget: number;
     /** 次の給料日まで何日あるか */
     daysUntilPayday: number;
-    /** 固定費を差し引いた可処分残高（円） */
+    /** 固定費・貯蓄目標を差し引いた可処分残高（円） */
     availableBalance: number;
 };
 
@@ -45,23 +45,25 @@ export function calcDaysUntilPayday(today: Date, paydayDay: number): number {
 
 /**
  * 1日あたりの使える金額（1日予算）を算出する。
- * 「給料日まで固定費を引いた残高でどれだけ使えるか」の計算。
+ * 「給料日まで固定費・貯蓄目標を引いた残高でどれだけ使えるか」の計算。
  *
  * @param params.totalAssets - 現在の総資産（円）
  * @param params.fixedExpenses - 今月残りの固定費合計（円）
  * @param params.paydayDay - 給料日（1〜31）
  * @param params.today - 基準日
+ * @param params.savingsGoal - 月間貯蓄目標（円）。給料日まで確保する額として控除する（省略時 0）
  */
 export function calcDailyBudget(params: {
     totalAssets: number;
     fixedExpenses: number;
     paydayDay: number;
     today: Date;
+    savingsGoal?: number;
 }): DailyBudgetResult {
-    const { totalAssets, fixedExpenses, paydayDay, today } = params;
+    const { totalAssets, fixedExpenses, paydayDay, today, savingsGoal = 0 } = params;
 
     const daysUntilPayday = calcDaysUntilPayday(today, paydayDay);
-    const availableBalance = totalAssets - fixedExpenses;
+    const availableBalance = totalAssets - fixedExpenses - savingsGoal;
 
     const dailyBudget = availableBalance > 0
         ? Math.floor(availableBalance / daysUntilPayday)

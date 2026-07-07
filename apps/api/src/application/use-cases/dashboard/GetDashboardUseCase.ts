@@ -81,6 +81,7 @@ export class GetDashboardUseCase {
                 totalAssets: settings.totalAssets,
                 fixedExpenses: settings.fixedExpenses,
                 paydayDay: settings.paydayDay,
+                savingsGoal: settings.savingsGoal,
                 today,
             });
             const remaining = result.dailyBudget - todayExpense;

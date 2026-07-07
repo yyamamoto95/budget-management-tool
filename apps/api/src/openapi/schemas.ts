@@ -433,6 +433,11 @@ export const UserSettingsResponseSchema = z
         fixedExpensesDetail: FixedExpensesDetailSchema.nullable().openapi({
             description: '固定費内訳（null = 未設定）',
         }),
+        savingsGoal: z
+            .number()
+            .int()
+            .min(0)
+            .openapi({ description: '月間貯蓄目標（円）。1日予算の算出時に控除する', example: 30000 }),
         initialSetupCompleted: z.boolean().openapi({ description: '初回設定完了フラグ', example: false }),
     })
     .openapi('UserSettingsResponse');
@@ -463,6 +468,12 @@ export const UpsertUserSettingsBodySchema = z
         fixedExpensesDetail: FixedExpensesDetailSchema.nullable()
             .optional()
             .openapi({ description: '固定費内訳（省略時は既存値を維持）' }),
+        savingsGoal: z
+            .number({ invalid_type_error: '貯蓄目標は数値で入力してください' })
+            .int()
+            .min(0, '貯蓄目標は0以上の値を入力してください')
+            .optional()
+            .openapi({ description: '月間貯蓄目標（円）。省略時は既存値を維持', example: 30000 }),
         initialSetupCompleted: z
             .boolean({
                 invalid_type_error: '初回設定完了フラグは真偽値で入力してください',

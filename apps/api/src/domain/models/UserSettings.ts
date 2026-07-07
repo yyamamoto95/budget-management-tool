@@ -14,7 +14,7 @@ export type FixedExpensesDetail = {
     other: number;
 };
 
-/** ユーザー設定ドメインモデル（総資産・月次収入・給料日・固定費・初回設定完了フラグ） */
+/** ユーザー設定ドメインモデル（総資産・月次収入・給料日・固定費・貯蓄目標・初回設定完了フラグ） */
 export type UserSettings = {
     id: string;
     userId: string;
@@ -26,6 +26,8 @@ export type UserSettings = {
     fixedExpenses: number;
     /** 固定費内訳（null = 旧データ / 未設定） */
     fixedExpensesDetail: FixedExpensesDetail | null;
+    /** 月間貯蓄目標（円）。1日予算の算出時に控除する */
+    savingsGoal: number;
     /** 初回設定完了フラグ */
     initialSetupCompleted: boolean;
     createdAt: Date;
