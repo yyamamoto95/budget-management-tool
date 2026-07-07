@@ -2,10 +2,9 @@ import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { SavingsForecastCard } from "@/components/dashboard/SavingsForecastCard";
 
-/**
- * 予測計算は new Date()（今日）に依存するため、状態を確実に固定できる
- * 入力（今日の支出0 = 予測支出は現在の支出額のまま）を使って検証する。
- */
+// 基準日を固定して決定論的に検証する（7月15日 / 31日月 → 残り16日）
+const TODAY = new Date("2026-07-15T00:00:00");
+
 describe("SavingsForecastCard", () => {
   it("目標を大幅に上回る見込みのとき、超好調バッジと予測残高（+表示）が出る", () => {
     render(
@@ -13,6 +12,7 @@ describe("SavingsForecastCard", () => {
         monthSummary={{ expense: 50_000, income: 300_000 }}
         todayExpense={0}
         savingsGoal={30_000}
+        today={TODAY}
       />,
     );
     // projectedSavings = 300000 - 50000 = 250000 → rate 8.3 → excellent
@@ -28,6 +28,7 @@ describe("SavingsForecastCard", () => {
         monthSummary={{ expense: 350_000, income: 300_000 }}
         todayExpense={0}
         savingsGoal={30_000}
+        today={TODAY}
       />,
     );
     expect(screen.getByText("赤字見込み")).toBeInTheDocument();
@@ -42,6 +43,7 @@ describe("SavingsForecastCard", () => {
         monthSummary={{ expense: 50_000, income: 300_000 }}
         todayExpense={0}
         savingsGoal={0}
+        today={TODAY}
       />,
     );
     expect(screen.getByText("目標未設定")).toBeInTheDocument();
@@ -54,12 +56,16 @@ describe("SavingsForecastCard", () => {
         monthSummary={{ expense: 50_000, income: 300_000 }}
         todayExpense={0}
         savingsGoal={30_000}
+        today={TODAY}
       />,
     );
     expect(screen.getByText("残り予算")).toBeInTheDocument();
     expect(screen.getByText("¥250,000")).toBeInTheDocument();
     expect(screen.getByText("残り日数")).toBeInTheDocument();
-    expect(screen.getByText(/^あと\d+日$/)).toBeInTheDocument();
+    // 7/15 基準・31日月 → 残り16日、1日の目安 = 250,000 / 16 = ¥15,625
+    expect(screen.getByText("あと16日")).toBeInTheDocument();
     expect(screen.getByText("1日の目安")).toBeInTheDocument();
+    expect(screen.getByText("¥15,625")).toBeInTheDocument();
+    expect(screen.getByText("15日経過 / 31日")).toBeInTheDocument();
   });
 });

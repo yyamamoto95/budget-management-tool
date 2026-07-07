@@ -5,13 +5,16 @@ import { SavingsForecastCard } from './SavingsForecastCard'
  * ホームの「今月の貯蓄予測」（サンドボックス Block 3 準拠 / #458）。
  * 今日のペースで残り日数を延長した月末予測残高を、貯蓄達成率に応じた
  * 4状態（超好調/好調/注意/危険）のトーンで表示する。
- * 予測は「今日」基準のため、ストーリーは今日の支出0で状態を固定している。
+ * 基準日を固定（2026-07-15）し、今日の支出0とすることで表示を決定論化している。
  */
 const meta: Meta<typeof SavingsForecastCard> = {
   title: 'Dashboard/SavingsForecastCard',
   component: SavingsForecastCard,
   parameters: { layout: 'padded' },
   tags: ['autodocs'],
+  args: {
+    today: new Date('2026-07-15T00:00:00'),
+  },
 }
 
 export default meta

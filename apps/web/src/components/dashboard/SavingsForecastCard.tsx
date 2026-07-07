@@ -9,6 +9,8 @@ type Props = {
   todayExpense: number;
   /** 月間貯蓄目標（円）。未設定は 0 */
   savingsGoal: number;
+  /** 基準日。Storybook / VRT / テストで決定論的にレンダリングするための注入口（既定: 現在日時） */
+  today?: Date;
 };
 
 function formatYen(n: number): string {
@@ -74,8 +76,13 @@ function badgeLabel(params: {
  * 今日のペースで残り日数を延長した月末予測残高・目標到達バッジ・
  * 実支出+予測支出の二層バー・3指標フッターを表示する。
  */
-export function SavingsForecastCard({ monthSummary, todayExpense, savingsGoal }: Props) {
-  const now = new Date();
+export function SavingsForecastCard({
+  monthSummary,
+  todayExpense,
+  savingsGoal,
+  today,
+}: Props) {
+  const now = today ?? new Date();
   const dayOfMonth = now.getDate();
   const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
 
