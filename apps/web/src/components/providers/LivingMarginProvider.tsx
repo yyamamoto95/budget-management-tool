@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState } from "react";
-import type { ReactNode } from "react";
+import type { Dispatch, ReactNode, SetStateAction } from "react";
 
 /** 1日予算のスナップショット（「記録後の残り」プレビューに使用） */
 export type DailyBudgetSnapshot = {
@@ -17,7 +17,7 @@ type LivingMarginContextValue = {
   setEffectiveDailyExpense: (value: number | null) => void;
   /** 1日予算と今日の残額。設定未完了・ダッシュボード未取得時は null */
   dailyBudget: DailyBudgetSnapshot | null;
-  setDailyBudget: (value: DailyBudgetSnapshot | null) => void;
+  setDailyBudget: Dispatch<SetStateAction<DailyBudgetSnapshot | null>>;
 };
 
 /**

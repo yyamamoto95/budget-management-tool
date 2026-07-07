@@ -41,11 +41,14 @@ export function HomeClient({
   const dailyBudgetRemaining = dashboard.dailyBudget?.remaining;
   useEffect(() => {
     setEffectiveDailyExpense(effectiveDailyExpense);
-    setDailyBudget(
-      dailyBudgetAmount !== undefined && dailyBudgetRemaining !== undefined
-        ? { amount: dailyBudgetAmount, remaining: dailyBudgetRemaining }
-        : null,
-    );
+    // 値が変わらない限り参照を維持し、コンテキスト経由の不要な再レンダリングを避ける
+    setDailyBudget((prev) => {
+      if (dailyBudgetAmount === undefined || dailyBudgetRemaining === undefined) return null;
+      if (prev && prev.amount === dailyBudgetAmount && prev.remaining === dailyBudgetRemaining) {
+        return prev;
+      }
+      return { amount: dailyBudgetAmount, remaining: dailyBudgetRemaining };
+    });
     return () => {
       setEffectiveDailyExpense(null);
       setDailyBudget(null);

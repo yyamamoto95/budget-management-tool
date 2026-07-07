@@ -243,6 +243,30 @@ describe("QuickEntryDrawer", () => {
     expect(value).toHaveStyle({ color: "#f43f5e" });
   });
 
+  it("ドロワーを閉じて再オープンすると、前回の成功メッセージ・フィードバックがクリアされる（#461）", async () => {
+    const { useActionState } = await import("react");
+    vi.mocked(useActionState).mockReturnValue([
+      { error: null, success: true, registeredAmount: 4000, registeredBalanceType: 0 },
+      vi.fn(),
+      false,
+    ]);
+    const { rerender } = render(
+      <QuickEntryDrawer {...defaultProps} effectiveDailyExpense={8000} />,
+    );
+    expect(screen.getByText("登録しました")).toBeInTheDocument();
+    expect(screen.getByText(/生活余力/)).toBeInTheDocument();
+
+    // 閉じて再オープン
+    rerender(
+      <QuickEntryDrawer {...defaultProps} open={false} effectiveDailyExpense={8000} />,
+    );
+    rerender(
+      <QuickEntryDrawer {...defaultProps} open={true} effectiveDailyExpense={8000} />,
+    );
+    expect(screen.queryByText("登録しました")).not.toBeInTheDocument();
+    expect(screen.queryByText(/生活余力/)).not.toBeInTheDocument();
+  });
+
   it("収入タブでは「記録後の残り」プレビューを表示しない（#461）", async () => {
     const { useActionState } = await import("react");
     vi.mocked(useActionState).mockReturnValue([

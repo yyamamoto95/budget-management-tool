@@ -53,6 +53,8 @@ export function QuickEntryDrawer({
 
   // 登録成功後の一時的な成功フィードバック（✓ 記録しました！）表示中フラグ
   const [justSubmitted, setJustSubmitted] = useState(false);
+  // 画面に表示するフィードバック（エラー / 成功）。ドロワーを閉じたらクリアする
+  const [feedback, setFeedback] = useState<ExpenseActionState>(initialState);
 
   // 登録成功のたびに入力をリセットし、ドロワーは開いたまま連続記録できるようにする（#461）。
   // state は action 実行ごとに新しいオブジェクトが返るため、成功1回につき1回だけ調整する
@@ -60,10 +62,21 @@ export function QuickEntryDrawer({
   const [handledState, setHandledState] = useState<ExpenseActionState>(initialState);
   if (state !== handledState) {
     setHandledState(state);
+    setFeedback(state);
     if (state.success) {
       setAmountStr("");
       setMemo("");
       setJustSubmitted(true);
+    }
+  }
+
+  // ドロワーを閉じたら前回のフィードバックをクリアする（再オープン時に残さない）
+  const [prevOpen, setPrevOpen] = useState(open);
+  if (open !== prevOpen) {
+    setPrevOpen(open);
+    if (!open) {
+      setFeedback(initialState);
+      setJustSubmitted(false);
     }
   }
 
@@ -405,20 +418,20 @@ export function QuickEntryDrawer({
           </div>
 
           {/* エラー / 成功 */}
-          {state.error && (
+          {feedback.error && (
             <p className="rounded-xl border border-[#f87171]/40 bg-[#fee2e2] px-3 py-2 text-sm font-medium text-[#1c1410]">
-              {state.error}
+              {feedback.error}
             </p>
           )}
-          {state.success && (
+          {feedback.success && (
             <p className="rounded-xl border border-[#4caf82]/40 bg-[#f0fdf6] px-3 py-2 text-sm font-bold text-[#4caf82]">
               登録しました
               {/* 生活余力の即時フィードバック（#418）: 支出登録時のみ・事実の数字だけを示す */}
-              {state.registeredBalanceType === 0 &&
+              {feedback.registeredBalanceType === 0 &&
                 effectiveDailyExpense !== null &&
-                state.registeredAmount !== undefined && (
+                feedback.registeredAmount !== undefined && (
                   (() => {
-                    const impact = formatLivingMarginImpact(state.registeredAmount, effectiveDailyExpense);
+                    const impact = formatLivingMarginImpact(feedback.registeredAmount, effectiveDailyExpense);
                     return impact ? (
                       <span className="mt-0.5 block text-xs font-semibold" style={{ color: "rgba(28,20,16,0.55)" }}>
                         {impact}
