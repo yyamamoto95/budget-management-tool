@@ -28,7 +28,7 @@ async function RecordsContent({
 }) {
   const [expensesResult, expenseCatsResult, incomeCatsResult] =
     await Promise.allSettled([
-      getExpenses({ period, search: search || undefined }),
+      getExpenses({ period, search: search || undefined, date: date || undefined }),
       getCategories(0),
       getCategories(1),
     ]);
@@ -47,8 +47,8 @@ async function RecordsContent({
 
   if (expensesResult.status === "rejected") throw expensesResult.reason;
 
-  const fetched = expensesResult.value.expense ?? [];
-  const expenses = date ? fetched.filter((e) => e.date === date) : fetched;
+  // date は API 側でサーバーサイドフィルタされる（GET /expense?date=YYYY-MM-DD）
+  const expenses = expensesResult.value.expense ?? [];
   const expenseCategories =
     expenseCatsResult.status === "fulfilled" ? expenseCatsResult.value : [];
   const incomeCategories =
