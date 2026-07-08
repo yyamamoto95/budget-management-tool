@@ -40,15 +40,21 @@ export default function RecordsScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    // 下部セーフエリアはタブバーが処理するため除外（二重パディング防止）
+    <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
       <View style={styles.header}>
         <Text style={styles.title}>明細</Text>
         <TextInput
           style={styles.search}
           value={searchInput}
-          onChangeText={setSearchInput}
+          onChangeText={(t) => {
+            setSearchInput(t);
+            // 全消去（クリアボタン含む）で検索フィルターも解除する
+            if (t === '') setSearch('');
+          }}
           onSubmitEditing={() => setSearch(searchInput.trim())}
           returnKeyType="search"
+          clearButtonMode="while-editing"
           placeholder="メモで検索"
           placeholderTextColor="rgba(28,20,16,0.35)"
           maxLength={100}
@@ -88,6 +94,7 @@ export default function RecordsScreen() {
               style={styles.row}
               onLongPress={() => confirmDelete(item)}
               delayLongPress={400}
+              disabled={deleteExpense.isPending}
               accessibilityHint="長押しで削除"
             >
               <View style={styles.rowLeft}>
