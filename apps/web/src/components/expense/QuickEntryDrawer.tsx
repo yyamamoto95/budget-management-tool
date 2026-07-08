@@ -1,13 +1,15 @@
 "use client";
 
-import { useActionState, useState, useEffect, useCallback } from "react";
+import { useActionState, useState, useEffect, useCallback, useRef, useTransition } from "react";
 import {
-  Delete, PenLine, ChevronDown, Receipt, Check,
+  Delete, PenLine, ChevronDown, Receipt, Check, Camera, Loader2,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer";
 import { formatLivingMarginImpact } from "@budget/common";
+import { toast } from "sonner";
 import { createExpenseAction } from "@/lib/actions/expense";
+import { scanReceiptAction } from "@/lib/actions/receipt";
 import type { ExpenseActionState } from "@/lib/actions/expense";
 import type { DailyBudgetSnapshot } from "@/components/providers/LivingMarginProvider";
 import type { CategoryItem } from "@/lib/api/types";
@@ -50,6 +52,40 @@ export function QuickEntryDrawer({
   const [memo, setMemo] = useState("");
   const [date] = useState<string>(() => new Date().toISOString().slice(0, 10));
   const [state, formAction, isPending] = useActionState(createExpenseAction, initialState);
+
+  // レシート読取（#521）: 解析結果はプリフィルのみ。登録は必ずユーザーが確認する
+  const receiptInputRef = useRef<HTMLInputElement>(null);
+  const [isScanning, startScanTransition] = useTransition();
+
+  const handleReceiptFile = (file: File) => {
+    startScanTransition(async () => {
+      const formData = new FormData();
+      formData.append("receipt", file);
+      const result = await scanReceiptAction(formData);
+
+      if (result.status === "error") {
+        // 失敗しても手入力はそのまま継続できる
+        toast.error("レシートを解析できませんでした", { description: result.message });
+        return;
+      }
+
+      if (result.amount != null) {
+        setAmountStr(String(Math.min(result.amount, MAX_AMOUNT)));
+      }
+      if (result.content != null) {
+        setMemo(result.content);
+      }
+      const dateNote =
+        result.date != null && result.date !== date ? `（日付 ${result.date} は本日扱いになります）` : "";
+      const summary = [
+        result.amount != null ? `金額: ¥${result.amount.toLocaleString()}` : "金額: 読み取れず",
+        result.content != null ? `店名: ${result.content}` : "店名: 読み取れず",
+      ].join(" / ");
+      toast.success("レシートを読み取りました", {
+        description: `${summary}${dateNote} — 内容を確認して登録してください`,
+      });
+    });
+  };
 
   // 登録成功後の一時的な成功フィードバック（✓ 記録しました！）表示中フラグ
   const [justSubmitted, setJustSubmitted] = useState(false);
@@ -204,6 +240,46 @@ export function QuickEntryDrawer({
               </motion.button>
             ))}
           </div>
+
+          {/* レシート読取（#521） */}
+          <button
+            type="button"
+            onClick={() => receiptInputRef.current?.click()}
+            disabled={isScanning || isPending}
+            className="flex shrink-0 items-center justify-center gap-2 py-2.5 text-[13px] font-bold"
+            style={{
+              borderRadius: "12px",
+              border: "1px solid var(--color-brand-primary)",
+              background: "var(--color-brand-light)",
+              color: "var(--color-brand-primary)",
+              opacity: isScanning ? 0.7 : 1,
+            }}
+          >
+            {isScanning ? (
+              <>
+                <Loader2 size={15} className="animate-spin" />
+                レシートを解析中…（最大2分ほどかかります）
+              </>
+            ) : (
+              <>
+                <Camera size={15} />
+                レシートを読み取って自動入力
+              </>
+            )}
+          </button>
+          <input
+            ref={receiptInputRef}
+            type="file"
+            accept="image/jpeg,image/png"
+            capture="environment"
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              // 同じファイルを再選択できるよう毎回リセットする
+              e.target.value = "";
+              if (file) handleReceiptFile(file);
+            }}
+          />
 
           {/* 金額表示パネル */}
           <div

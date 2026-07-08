@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { ArrowRight, LayoutDashboard, PieChart, Settings, CircleUser, Wand2, BarChart2, Receipt, Layers, PiggyBank, SunMedium, Shapes } from 'lucide-react'
+import { ArrowRight, LayoutDashboard, PieChart, Settings, CircleUser, Wand2, BarChart2, Receipt, Layers, PiggyBank, SunMedium, Shapes, Camera } from 'lucide-react'
 
 type PrototypeCard = {
   path: string
@@ -81,6 +81,14 @@ const prototypes: PrototypeCard[] = [
     description: '超好調/好調/注意/危険の4状態。バー・バッジ・インサイトのカラー設計を横並び比較。',
     icon: PiggyBank,
     issue: 'sandbox',
+    status: 'wip' as const,
+  },
+  {
+    path: '/receipt-scan',
+    title: 'レシート読取 — クイック記録組み込み',
+    description: 'QuickEntryDrawer へのレシート読取導線。解析中表示・成功/失敗トースト・プリフィルの挙動デモ（モバイル #515 検証済みパターンの Web 移植）。',
+    icon: Camera,
+    issue: '#521',
     status: 'wip' as const,
   },
   {
