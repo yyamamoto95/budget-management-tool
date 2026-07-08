@@ -145,29 +145,37 @@ function updateGlobalsCss(tokens: FigmaTokenSet): void {
 
 const MOBILE_TOKENS_PATH = path.join(ROOT, 'apps/mobile/src/theme/tokens.generated.ts');
 
+/** /* ... *\/ コメントを取り除く（変数抽出への混入防止） */
+function stripComments(css: string): string {
+    return css.replace(/\/\*[\s\S]*?\*\//g, '');
+}
+
 /**
- * ライトモードの実値以外の at-rule ブロックを波括弧の対応を数えて取り除く。
- * 対象: @media（ダークモード）/ @theme（Tailwind v4 の自己参照マッピング）/ @layer
+ * すべての at-rule（@media / @theme / @layer / @supports / @keyframes 等）を取り除く。
+ * ブロックを伴うもの（{ ... }）は波括弧の対応を数えて除外し、
+ * 文形式のもの（@import ... ; 等）は ; まで読み飛ばす。
+ * 残るのはトップレベルのセレクタ（:root 等）のみ = ライトモードの実値。
  */
 function stripAtRuleBlocks(css: string): string {
-    const atRules = ['@media', '@theme', '@layer'];
     let result = '';
     let i = 0;
     while (i < css.length) {
-        const indices = atRules
-            .map((rule) => css.indexOf(rule, i))
-            .filter((idx) => idx !== -1);
-        if (indices.length === 0) {
+        const atIdx = css.indexOf('@', i);
+        if (atIdx === -1) {
             result += css.slice(i);
             break;
         }
-        const atIdx = Math.min(...indices);
         result += css.slice(i, atIdx);
-        // ブロック開始の { を探し、対応する } まで読み飛ばす
-        let j = css.indexOf('{', atIdx);
-        if (j === -1) break;
+        const braceIdx = css.indexOf('{', atIdx);
+        const semiIdx = css.indexOf(';', atIdx);
+        // ; が先に来る（または { が無い）なら文形式の at-rule
+        if (braceIdx === -1 || (semiIdx !== -1 && semiIdx < braceIdx)) {
+            i = semiIdx === -1 ? css.length : semiIdx + 1;
+            continue;
+        }
+        // ブロック形式: 対応する } まで読み飛ばす
         let depth = 1;
-        j += 1;
+        let j = braceIdx + 1;
         while (j < css.length && depth > 0) {
             if (css[j] === '{') depth += 1;
             if (css[j] === '}') depth -= 1;
@@ -178,18 +186,30 @@ function stripAtRuleBlocks(css: string): string {
     return result;
 }
 
-/** ライトモードの CSS 変数一覧を抽出する（後勝ち・var() は一段解決） */
+/** ライトモードの CSS 変数一覧を抽出する（後勝ち・var() は収束するまで多段解決） */
 function extractLightCssVars(css: string): Record<string, string> {
-    const light = stripAtRuleBlocks(css);
+    const light = stripAtRuleBlocks(stripComments(css));
     const vars: Record<string, string> = {};
     const re = /(--[\w-]+)\s*:\s*([^;]+);/g;
     let m: RegExpExecArray | null;
     while ((m = re.exec(light)) !== null) {
         vars[m[1]] = m[2].trim();
     }
-    // var(--x) 参照を一段だけ解決する（RN では CSS 変数参照が使えないため）
-    for (const [key, value] of Object.entries(vars)) {
-        vars[key] = value.replace(/var\((--[\w-]+)\)/g, (_, name: string) => vars[name] ?? `var(${name})`);
+    // var(--x) 参照を解決する（RN では CSS 変数参照が使えないため）。
+    // ネスト参照に備えて変化がなくなるまで繰り返す（循環参照ガードとして最大 10 回）
+    for (let pass = 0; pass < 10; pass += 1) {
+        let changed = false;
+        for (const [key, value] of Object.entries(vars)) {
+            const resolved = value.replace(
+                /var\((--[\w-]+)\)/g,
+                (_, name: string) => vars[name] ?? `var(${name})`,
+            );
+            if (resolved !== value) {
+                vars[key] = resolved;
+                changed = true;
+            }
+        }
+        if (!changed) break;
     }
     return vars;
 }
