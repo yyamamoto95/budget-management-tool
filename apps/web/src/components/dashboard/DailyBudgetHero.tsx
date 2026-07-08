@@ -5,35 +5,16 @@ import {
   Wallet, Sparkles, TrendingUp, AlertTriangle, AlertCircle,
   type LucideIcon,
 } from "lucide-react";
-import { calcSavingsForecast } from "@budget/common";
+import {
+  budgetTone,
+  buildSavingsInsight,
+  calcSavingsForecast,
+  spendStatusOf,
+  SPEND_STATUS_LABEL,
+  type SavingsInsightKind,
+  type SpendStatus,
+} from "@budget/common";
 import { SPRING } from "@/lib/motion";
-
-type Tone = "safe" | "caution" | "danger";
-
-function budgetTone(ratio: number): Tone {
-  if (ratio >= 0.8) return "safe";
-  if (ratio >= 0.2) return "caution";
-  return "danger";
-}
-
-/** 日予算消化率による4状態バッジ（TodayStatusPalettePrototype 準拠 / #459） */
-type SpendStatus = "great" | "steady" | "caution" | "over";
-
-const SPEND_STATUS = {
-  /** 好調: 消化率 ≤ 50% */
-  great: 0.5,
-  /** 順調: 消化率 ≤ 80% */
-  steady: 0.8,
-  /** 注意: 消化率 ≤ 100%（超えると超過） */
-  caution: 1.0,
-} as const;
-
-function spendStatusOf(spendPct: number): SpendStatus {
-  if (spendPct <= SPEND_STATUS.great) return "great";
-  if (spendPct <= SPEND_STATUS.steady) return "steady";
-  if (spendPct <= SPEND_STATUS.caution) return "caution";
-  return "over";
-}
 
 /** バッジ・進捗バーのカラー（great/steady=緑・caution=ピンク・over=赤。forecast トークンを共用） */
 const SPEND_STATUS_UI: Record<
@@ -41,100 +22,69 @@ const SPEND_STATUS_UI: Record<
   { label: string; color: string; badgeBg: string; bar: string }
 > = {
   great: {
-    label: "好調",
+    label: SPEND_STATUS_LABEL.great,
     color: "var(--color-forecast-safe)",
     badgeBg: "var(--color-forecast-safe-badge-bg)",
     bar: "var(--color-forecast-safe-bar)",
   },
   steady: {
-    label: "順調",
+    label: SPEND_STATUS_LABEL.steady,
     color: "var(--color-forecast-safe)",
     badgeBg: "var(--color-forecast-safe-badge-bg)",
     bar: "var(--color-forecast-safe-bar)",
   },
   caution: {
-    label: "注意",
+    label: SPEND_STATUS_LABEL.caution,
     color: "var(--color-forecast-caution)",
     badgeBg: "var(--color-forecast-caution-badge-bg)",
     bar: "var(--color-forecast-caution-bar)",
   },
   over: {
-    label: "超過",
+    label: SPEND_STATUS_LABEL.over,
     color: "var(--color-forecast-danger)",
     badgeBg: "var(--color-forecast-danger-badge-bg)",
     bar: "var(--color-forecast-danger-bar)",
   },
 };
 
-type Insight = { Icon: LucideIcon; color: string; bg: string; message: string };
-
-/**
- * 貯蓄インサイト1行メッセージ（サンドボックス savingsInsight 準拠）。
- * 目標未設定時は消化率ベースの文言に縮退する。
- */
-function buildInsight(params: {
-  spendStatus: SpendStatus;
-  savingsGoal: number;
-  achievementRate: number | null;
-  projectedSavings: number;
-}): Insight {
-  const { spendStatus, savingsGoal, achievementRate, projectedSavings } = params;
-
-  if (savingsGoal <= 0) {
-    return spendStatus === "over"
-      ? {
-          Icon: AlertCircle,
-          color: "var(--color-forecast-danger)",
-          bg: "var(--color-forecast-danger-badge-bg)",
-          message: "今日は日予算を超えています",
-        }
-      : {
-          Icon: TrendingUp,
-          color: "var(--color-forecast-safe)",
-          bg: "var(--color-forecast-safe-badge-bg)",
-          message: "今日は予算内に収まっています",
-        };
-  }
-
-  if (achievementRate !== null && achievementRate >= 1.5) {
-    return {
-      Icon: Sparkles,
-      color: "var(--color-brand-primary)",
-      bg: "var(--color-brand-light)",
-      message: `今日この調子なら目標 +${Math.round((achievementRate - 1) * 100)}% 達成見込み！`,
-    };
-  }
-  if (achievementRate !== null && achievementRate >= 1.0) {
-    return {
-      Icon: TrendingUp,
-      color: "var(--color-forecast-safe)",
-      bg: "var(--color-forecast-safe-badge-bg)",
-      message: "このペースなら今月の貯蓄目標達成見込み",
-    };
-  }
-  if (achievementRate !== null && achievementRate >= 0.5) {
-    return {
-      Icon: AlertTriangle,
-      color: "var(--color-forecast-caution)",
-      bg: "var(--color-forecast-caution-badge-bg)",
-      message: "あと少し節約すると目標達成できそう",
-    };
-  }
-  if (projectedSavings < 0) {
-    return {
-      Icon: AlertCircle,
-      color: "var(--color-forecast-danger)",
-      bg: "var(--color-forecast-danger-badge-bg)",
-      message: "このペースだと今月赤字になりそう",
-    };
-  }
-  return {
+/** インサイト種別ごとの表示（アイコン・配色）。文言と判定は common 側の単一実装 */
+const INSIGHT_UI: Record<SavingsInsightKind, { Icon: LucideIcon; color: string; bg: string }> = {
+  "over-no-goal": {
+    Icon: AlertCircle,
+    color: "var(--color-forecast-danger)",
+    bg: "var(--color-forecast-danger-badge-bg)",
+  },
+  "within-no-goal": {
+    Icon: TrendingUp,
+    color: "var(--color-forecast-safe)",
+    bg: "var(--color-forecast-safe-badge-bg)",
+  },
+  excellent: {
+    Icon: Sparkles,
+    color: "var(--color-brand-primary)",
+    bg: "var(--color-brand-light)",
+  },
+  "on-track": {
+    Icon: TrendingUp,
+    color: "var(--color-forecast-safe)",
+    bg: "var(--color-forecast-safe-badge-bg)",
+  },
+  almost: {
+    Icon: AlertTriangle,
+    color: "var(--color-forecast-caution)",
+    bg: "var(--color-forecast-caution-badge-bg)",
+  },
+  deficit: {
+    Icon: AlertCircle,
+    color: "var(--color-forecast-danger)",
+    bg: "var(--color-forecast-danger-badge-bg)",
+  },
+  behind: {
     Icon: AlertCircle,
     color: "var(--color-brand-primary)",
     bg: "var(--color-brand-light)",
-    message: "支出を抑えると目標に近づきます",
-  };
-}
+  },
+};
 
 type Props = {
   dailyBudget: {
@@ -188,12 +138,13 @@ export function DailyBudgetHero({
     dayOfMonth: now.getDate(),
     daysInMonth: new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate(),
   });
-  const insight = buildInsight({
+  const insight = buildSavingsInsight({
     spendStatus,
     savingsGoal,
     achievementRate: forecast.achievementRate,
     projectedSavings: forecast.projectedSavings,
   });
+  const insightUi = INSIGHT_UI[insight.kind];
 
   return (
     <motion.div
@@ -254,12 +205,12 @@ export function DailyBudgetHero({
       {/* 貯蓄インサイト（#459） */}
       <div
         className="mt-3 flex items-center gap-2 rounded-xl px-3 py-2.5"
-        style={{ background: insight.bg }}
+        style={{ background: insightUi.bg }}
       >
-        <insight.Icon size={13} style={{ color: insight.color, flexShrink: 0 }} aria-hidden />
+        <insightUi.Icon size={13} style={{ color: insightUi.color, flexShrink: 0 }} aria-hidden />
         <span
           className="text-[11px] font-semibold leading-tight"
-          style={{ color: insight.color }}
+          style={{ color: insightUi.color }}
         >
           {insight.message}
         </span>
