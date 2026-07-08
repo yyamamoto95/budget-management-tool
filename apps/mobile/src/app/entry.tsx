@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
-import { Camera } from 'lucide-react-native';
+import { Camera, ChevronDown, Delete } from 'lucide-react-native';
+import { applyKeypadKey, KEYPAD_KEYS, MAX_AMOUNT, type KeypadKey } from '@budget/common';
 import {
   ActivityIndicator,
   Alert,
@@ -23,6 +24,9 @@ import { colors } from '@/theme/tokens';
 
 /** 収支区分（API スキーマ準拠: 0=支出, 1=収入） */
 const BALANCE_TYPE = { expense: 0, income: 1 } as const;
+
+/** カテゴリの初期表示件数（Web QuickEntryDrawer と同一） */
+const VISIBLE_COUNT = 4;
 
 function toDateString(date: Date): string {
   const y = date.getFullYear();
@@ -46,6 +50,7 @@ export default function EntryScreen() {
   const [categoryId, setCategoryId] = useState<number | null>(null);
   const [dayOffset, setDayOffset] = useState<0 | 1>(0); // 0=今日, 1=昨日
   const [content, setContent] = useState('');
+  const [showAll, setShowAll] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const amount = Number(amountText);
@@ -56,6 +61,12 @@ export default function EntryScreen() {
     setBalanceType(next);
     // 収支タイプが変わるとカテゴリ体系も変わるため選択をリセットする
     setCategoryId(null);
+    setShowAll(false);
+  };
+
+  // テンキーの入力規則は @budget/common に共通化（Web QuickEntryDrawer と単一実装）
+  const handleNumKey = (k: KeypadKey) => {
+    setAmountText((prev) => applyKeypadKey(prev, k));
   };
 
   const receiptScan = useReceiptScan();
@@ -70,7 +81,9 @@ export default function EntryScreen() {
     content: string | null;
   }): string => {
     // != null で null と undefined の両方を防ぐ（防衛的チェック）
-    if (result.amount != null) setAmountText(String(result.amount));
+    if (result.amount != null && Number.isInteger(result.amount) && result.amount > 0) {
+      setAmountText(String(Math.min(result.amount, MAX_AMOUNT)));
+    }
     if (result.content != null) setContent(result.content);
 
     let dateNote = '';
@@ -169,6 +182,12 @@ export default function EntryScreen() {
     }
   };
 
+  const isExpense = balanceType === BALANCE_TYPE.expense;
+  const brandColor = isExpense ? colors.brandPrimary : colors.income;
+  const allCategories = categories ?? [];
+  const visibleCategories = showAll ? allCategories : allCategories.slice(0, VISIBLE_COUNT);
+  const restCount = Math.max(0, allCategories.length - VISIBLE_COUNT);
+
   return (
     <SafeAreaView
       style={styles.safeArea}
@@ -185,7 +204,7 @@ export default function EntryScreen() {
           keyboardShouldPersistTaps="handled"
         >
           <View style={styles.headerRow}>
-            <Text style={styles.title}>記録する</Text>
+            <Text style={styles.title}>クイック記録</Text>
             <Pressable onPress={() => router.back()} accessibilityRole="button" hitSlop={8}>
               <Text style={styles.close}>閉じる</Text>
             </Pressable>
@@ -211,103 +230,140 @@ export default function EntryScreen() {
             )}
           </Pressable>
 
-          {/* 支出 / 収入 切り替え */}
+          {/* 支出 / 収入 セグメント（Web QuickEntryDrawer と同一トーン） */}
           <View style={styles.segment}>
             {(
               [
-                { type: BALANCE_TYPE.expense, label: '支出' },
-                { type: BALANCE_TYPE.income, label: '収入' },
+                { type: BALANCE_TYPE.expense, label: '支出', active: colors.brandPrimary },
+                { type: BALANCE_TYPE.income, label: '収入', active: colors.income },
               ] as const
-            ).map(({ type, label }) => (
-              <Pressable
-                key={type}
-                style={[styles.segmentItem, balanceType === type && styles.segmentItemActive]}
-                onPress={() => handleSelectBalanceType(type)}
-                accessibilityRole="button"
-              >
-                <Text
-                  style={[styles.segmentLabel, balanceType === type && styles.segmentLabelActive]}
+            ).map(({ type, label, active }) => {
+              const selected = balanceType === type;
+              return (
+                <Pressable
+                  key={type}
+                  style={[styles.segmentItem, selected && { backgroundColor: active }]}
+                  onPress={() => handleSelectBalanceType(type)}
+                  accessibilityRole="button"
                 >
-                  {label}
-                </Text>
+                  <Text style={[styles.segmentLabel, selected && styles.segmentLabelActive]}>
+                    {label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+
+          {/* 金額パネル（Web と同一: ラベル + 右寄せ大表示） */}
+          <View style={styles.amountPanel}>
+            <Text style={styles.amountCaption}>{isExpense ? '支出金額' : '収入金額'}</Text>
+            <Text style={[styles.amountValue, { color: brandColor }]}>
+              ¥{amountText === '' ? '0' : Number(amountText).toLocaleString()}
+            </Text>
+          </View>
+
+          {/* カテゴリ（表示順 4 件 + もっと見る — Web と同一） */}
+          <View style={styles.categoryHeader}>
+            <Text style={styles.label}>カテゴリ</Text>
+            <Text style={styles.labelNote}>よく使う順</Text>
+          </View>
+          {categoriesLoading ? (
+            <ActivityIndicator color={colors.brandPrimary} />
+          ) : isCategoriesError ? (
+            <Text style={styles.error}>カテゴリの取得に失敗しました。通信環境を確認してください</Text>
+          ) : (
+            <>
+              <View style={styles.chips}>
+                {visibleCategories.map((category) => {
+                  const selected = categoryId === category.id;
+                  return (
+                    <Pressable
+                      key={category.id}
+                      style={[
+                        styles.chip,
+                        { backgroundColor: category.bg },
+                        selected && { borderColor: category.color, borderWidth: 2 },
+                      ]}
+                      onPress={() => setCategoryId(selected ? null : category.id)}
+                      accessibilityRole="button"
+                    >
+                      <Text style={[styles.chipLabel, { color: category.color }]}>
+                        {category.name}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+              {restCount > 0 && (
+                <Pressable
+                  style={styles.moreButton}
+                  onPress={() => setShowAll((prev) => !prev)}
+                  accessibilityRole="button"
+                >
+                  <ChevronDown
+                    size={14}
+                    color={colors.foreground}
+                    style={showAll ? { transform: [{ rotate: '180deg' }] } : undefined}
+                  />
+                  <Text style={styles.moreLabel}>
+                    {showAll ? '閉じる' : `もっと見る（${restCount}件）`}
+                  </Text>
+                </Pressable>
+              )}
+            </>
+          )}
+
+          {/* テンキー（入力規則は @budget/common で Web と共有） */}
+          <View style={styles.keypad}>
+            {KEYPAD_KEYS.map((k) => (
+              <Pressable
+                key={k}
+                style={[styles.key, k === '⌫' && styles.keyDelete]}
+                onPress={() => handleNumKey(k)}
+                disabled={createExpense.isPending}
+                accessibilityRole="button"
+                accessibilityLabel={k === '⌫' ? '1文字削除' : k}
+              >
+                {k === '⌫' ? (
+                  <Delete size={20} color={brandColor} />
+                ) : (
+                  <Text style={styles.keyLabel}>{k}</Text>
+                )}
               </Pressable>
             ))}
           </View>
 
-          {/* 金額 */}
-          <Text style={styles.label}>金額</Text>
-          <TextInput
-            style={styles.amountInput}
-            value={amountText}
-            onChangeText={(t) => setAmountText(t.replace(/[^0-9]/g, ''))}
-            placeholder="0"
-            placeholderTextColor="rgba(28,20,16,0.3)"
-            keyboardType="number-pad"
-            maxLength={9}
-            editable={!createExpense.isPending}
-          />
-
-          {/* カテゴリ */}
-          <Text style={styles.label}>カテゴリ</Text>
-          {categoriesLoading ? (
-            <ActivityIndicator color="#2e7d32" />
-          ) : isCategoriesError ? (
-            <Text style={styles.error}>カテゴリの取得に失敗しました。通信環境を確認してください</Text>
-          ) : (
-            <View style={styles.chips}>
-              {(categories ?? []).map((category) => {
-                const selected = categoryId === category.id;
-                return (
-                  <Pressable
-                    key={category.id}
-                    style={[
-                      styles.chip,
-                      { backgroundColor: category.bg },
-                      selected && { borderColor: category.color, borderWidth: 2 },
-                    ]}
-                    onPress={() => setCategoryId(selected ? null : category.id)}
-                    accessibilityRole="button"
-                  >
-                    <Text style={[styles.chipLabel, { color: category.color }]}>
-                      {category.name}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </View>
-          )}
-
-          {/* 日付（今日 / 昨日） */}
-          <Text style={styles.label}>日付</Text>
-          <View style={styles.segment}>
+          {/* 日付（今日 / 昨日 — モバイル固有の簡易切替） */}
+          <View style={styles.dateRow}>
             {(
               [
                 { offset: 0, label: '今日' },
                 { offset: 1, label: '昨日' },
               ] as const
-            ).map(({ offset, label }) => (
-              <Pressable
-                key={offset}
-                style={[styles.segmentItem, dayOffset === offset && styles.segmentItemActive]}
-                onPress={() => setDayOffset(offset)}
-                accessibilityRole="button"
-              >
-                <Text
-                  style={[styles.segmentLabel, dayOffset === offset && styles.segmentLabelActive]}
+            ).map(({ offset, label }) => {
+              const selected = dayOffset === offset;
+              return (
+                <Pressable
+                  key={offset}
+                  style={[styles.dateChip, selected && styles.dateChipActive]}
+                  onPress={() => setDayOffset(offset)}
+                  accessibilityRole="button"
                 >
-                  {label}
-                </Text>
-              </Pressable>
-            ))}
+                  <Text style={[styles.dateChipLabel, selected && styles.dateChipLabelActive]}>
+                    {label}
+                  </Text>
+                </Pressable>
+              );
+            })}
           </View>
 
-          {/* メモ */}
+          {/* メモ（Web と同一ラベル・プレースホルダー） */}
           <Text style={styles.label}>メモ（任意）</Text>
           <TextInput
             style={styles.input}
             value={content}
             onChangeText={setContent}
-            placeholder="昼食代など"
+            placeholder="店名・用途など"
             placeholderTextColor="rgba(28,20,16,0.3)"
             maxLength={255}
             editable={!createExpense.isPending}
@@ -316,7 +372,7 @@ export default function EntryScreen() {
           {errorMessage && <Text style={styles.error}>{errorMessage}</Text>}
 
           <Pressable
-            style={[styles.submit, !canSubmit && styles.submitDisabled]}
+            style={[styles.submit, { backgroundColor: brandColor }, !canSubmit && styles.submitDisabled]}
             onPress={handleSubmit}
             disabled={!canSubmit}
             accessibilityRole="button"
@@ -324,9 +380,7 @@ export default function EntryScreen() {
             {createExpense.isPending ? (
               <ActivityIndicator color="#ffffff" />
             ) : (
-              <Text style={styles.submitLabel}>
-                {balanceType === BALANCE_TYPE.expense ? '支出を記録' : '収入を記録'}
-              </Text>
+              <Text style={styles.submitLabel}>記録する</Text>
             )}
           </Pressable>
         </ScrollView>
@@ -338,31 +392,30 @@ export default function EntryScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#faf6f2',
+    backgroundColor: colors.background,
   },
   flex: {
     flex: 1,
   },
   container: {
     padding: 20,
-    gap: 8,
+    gap: 10,
   },
   headerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 4,
   },
   title: {
-    fontSize: 20,
+    fontSize: 16,
     fontWeight: '800',
-    color: '#1c1410',
+    color: colors.foreground,
   },
   close: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#1c1410',
-    opacity: 0.6,
+    color: colors.brandPrimary,
   },
   scanButton: {
     flexDirection: 'row',
@@ -373,8 +426,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.brandPrimary,
     backgroundColor: colors.brandLight,
-    paddingVertical: 12,
-    marginBottom: 4,
+    paddingVertical: 10,
   },
   scanButtonDisabled: {
     opacity: 0.7,
@@ -394,48 +446,51 @@ const styles = StyleSheet.create({
   segmentItem: {
     flex: 1,
     borderRadius: 9,
-    paddingVertical: 10,
+    paddingVertical: 9,
     alignItems: 'center',
-  },
-  segmentItemActive: {
-    backgroundColor: '#ffffff',
   },
   segmentLabel: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#1c1410',
-    opacity: 0.5,
+    color: 'rgba(28,20,16,0.45)',
   },
   segmentLabelActive: {
-    opacity: 1,
+    color: '#ffffff',
+  },
+  amountPanel: {
+    borderRadius: 12,
+    backgroundColor: colors.brandLight,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+  },
+  amountCaption: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: colors.foreground,
+    opacity: 0.5,
+  },
+  amountValue: {
+    fontSize: 34,
+    fontWeight: '800',
+    textAlign: 'right',
+    fontVariant: ['tabular-nums'],
+  },
+  categoryHeader: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 6,
   },
   label: {
-    marginTop: 12,
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '700',
-    color: '#1c1410',
+    color: colors.foreground,
+    opacity: 0.6,
+    marginTop: 2,
   },
-  amountInput: {
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(28,20,16,0.15)',
-    backgroundColor: '#ffffff',
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 28,
-    fontWeight: '800',
-    color: '#1c1410',
-    textAlign: 'right',
-  },
-  input: {
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(28,20,16,0.15)',
-    backgroundColor: '#ffffff',
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 16,
-    color: '#1c1410',
+  labelNote: {
+    fontSize: 10,
+    color: colors.foreground,
+    opacity: 0.4,
   },
   chips: {
     flexDirection: 'row',
@@ -443,7 +498,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   chip: {
-    borderRadius: 999,
+    borderRadius: 10,
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderWidth: 2,
@@ -453,24 +508,94 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '700',
   },
+  moreButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+    paddingVertical: 4,
+  },
+  moreLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: colors.foreground,
+    opacity: 0.6,
+  },
+  keypad: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  key: {
+    // 3 列グリッド: (100% - gap 2 つ) / 3
+    flexBasis: '31%',
+    flexGrow: 1,
+    borderRadius: 12,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.borderDefault,
+    paddingVertical: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  keyDelete: {
+    backgroundColor: colors.brandLight,
+    borderColor: 'transparent',
+  },
+  keyLabel: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.foreground,
+  },
+  dateRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  dateChip: {
+    borderRadius: 999,
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+    backgroundColor: 'rgba(28,20,16,0.06)',
+  },
+  dateChipActive: {
+    backgroundColor: colors.foreground,
+  },
+  dateChipLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: colors.foreground,
+    opacity: 0.6,
+  },
+  dateChipLabelActive: {
+    color: '#ffffff',
+    opacity: 1,
+  },
+  input: {
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: colors.borderDefault,
+    backgroundColor: colors.surface,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 14,
+    color: colors.foreground,
+  },
   error: {
-    marginTop: 8,
-    fontSize: 13,
+    fontSize: 12,
     color: '#c62828',
   },
   submit: {
-    marginTop: 20,
     borderRadius: 12,
-    backgroundColor: '#2e7d32',
     paddingVertical: 14,
     alignItems: 'center',
+    marginTop: 4,
   },
   submitDisabled: {
     opacity: 0.4,
   },
   submitLabel: {
-    fontSize: 16,
-    fontWeight: '700',
+    fontSize: 15,
+    fontWeight: '800',
     color: '#ffffff',
   },
 });

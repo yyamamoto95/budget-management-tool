@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer";
-import { formatLivingMarginImpact } from "@budget/common";
+import { formatLivingMarginImpact, applyKeypadKey, MAX_AMOUNT, KEYPAD_KEYS, type KeypadKey } from "@budget/common";
 import { toast } from "sonner";
 import { createExpenseAction } from "@/lib/actions/expense";
 import { scanReceiptAction } from "@/lib/actions/receipt";
@@ -30,7 +30,6 @@ type Props = {
 };
 
 const VISIBLE_COUNT = 4;
-const MAX_AMOUNT = 9_999_999;
 /** 成功フィードバック（✓ 記録しました！）の表示時間（ms） */
 const SUCCESS_FEEDBACK_MS = 1600;
 /** 「記録後の残り」を警告色にする閾値（1日予算に対する残額の比率） */
@@ -158,17 +157,9 @@ export function QuickEntryDrawer({
     setShowAll(false);
   }
 
-  const handleNumKey = useCallback((k: string) => {
-    if (k === "⌫") {
-      setAmountStr((prev) => prev.slice(0, -1));
-      return;
-    }
-    setAmountStr((prev) => {
-      if (prev === "" && (k === "0" || k === "000")) return prev;
-      const next = prev + k;
-      if (Number(next) > MAX_AMOUNT) return prev;
-      return next;
-    });
+  // テンキーの入力規則は @budget/common に共通化（モバイル記録画面と単一実装）
+  const handleNumKey = useCallback((k: KeypadKey) => {
+    setAmountStr((prev) => applyKeypadKey(prev, k));
   }, []);
 
   // キーボードで数字入力・削除を可能にする
@@ -181,7 +172,8 @@ export function QuickEntryDrawer({
 
       if (e.key >= "0" && e.key <= "9") {
         e.preventDefault();
-        handleNumKey(e.key);
+        // 範囲チェック済みのため単一数字キーとして安全に絞り込める
+        handleNumKey(e.key as KeypadKey);
       } else if (e.key === "Backspace") {
         e.preventDefault();
         handleNumKey("⌫");
@@ -459,7 +451,7 @@ export function QuickEntryDrawer({
 
           {/* テンキー */}
           <div className="grid grid-cols-3 gap-1.5">
-            {["1", "2", "3", "4", "5", "6", "7", "8", "9", "000", "0", "⌫"].map((k) => (
+            {KEYPAD_KEYS.map((k) => (
               <motion.button
                 key={k}
                 type="button"
