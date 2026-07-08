@@ -1,4 +1,5 @@
 import { calcSavingsForecast } from '@budget/common';
+import { Link } from 'expo-router';
 import {
   ActivityIndicator,
   Pressable,
@@ -48,6 +49,13 @@ export default function HomeScreen() {
 
         {data && <Dashboard data={data} />}
       </ScrollView>
+
+      {/* クイック記録への導線（#496） */}
+      <Link href="/entry" asChild>
+        <Pressable style={styles.fab} accessibilityRole="button" accessibilityLabel="記録する">
+          <Text style={styles.fabLabel}>＋ 記録</Text>
+        </Pressable>
+      </Link>
     </SafeAreaView>
   );
 }
@@ -270,5 +278,24 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#1c1410',
     opacity: 0.5,
+  },
+  fab: {
+    position: 'absolute',
+    right: 20,
+    bottom: 28,
+    borderRadius: 999,
+    backgroundColor: '#2e7d32',
+    paddingHorizontal: 22,
+    paddingVertical: 14,
+    shadowColor: '#000000',
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 6,
+  },
+  fabLabel: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#ffffff',
   },
 });
