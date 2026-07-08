@@ -47,7 +47,7 @@ export default function HomeScreen() {
           </View>
         )}
 
-        {data && <Dashboard data={data} />}
+        {data && <Dashboard data={data} today={new Date()} />}
       </ScrollView>
 
       {/* クイック記録への導線（#496） */}
@@ -60,8 +60,9 @@ export default function HomeScreen() {
   );
 }
 
-function Dashboard({ data }: { data: DashboardData }) {
-  const now = new Date();
+/** today はテスト・VRT で決定論的にレンダリングするための注入口（Web の DailyBudgetHero と同パターン） */
+function Dashboard({ data, today }: { data: DashboardData; today?: Date }) {
+  const now = today ?? new Date();
   const forecast = calcSavingsForecast({
     monthIncome: data.monthSummary.income,
     monthExpense: data.monthSummary.expense,
