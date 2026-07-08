@@ -44,7 +44,7 @@ export function MonthlySummaryCard({ monthSummary, lastMonthExpense, today }: Pr
 
       {momPct !== null && (
         <Text style={styles.mom}>
-          先月比（日割り平均） {momPct >= 0 ? `+${momPct}` : momPct}%
+          先月比（日割り平均） {momPct === 0 ? '±0' : momPct > 0 ? `+${momPct}` : momPct}%
         </Text>
       )}
     </View>

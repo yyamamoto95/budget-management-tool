@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View } from 'react-native';
-import { colors } from '@/theme/tokens';
+import { colors, spendStatusUi } from '@/theme/tokens';
 
 type DayRecord = { date: string; dow: string; expense: number; recorded: boolean };
 
@@ -14,7 +14,7 @@ function stateOf(day: DayRecord, dailyBudget: number | null): StreakState {
 
 const DOT_COLOR: Record<StreakState, { bg: string; border: string }> = {
   achieved: { bg: colors.income, border: colors.income },
-  over: { bg: '#e879a3', border: '#e879a3' },
+  over: { bg: spendStatusUi.caution.color, border: spendStatusUi.caution.color },
   unrecorded: { bg: 'transparent', border: colors.borderDefault },
 };
 
