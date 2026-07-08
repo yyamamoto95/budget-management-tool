@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { ReceiptAnalyzer, ReceiptScanResult } from '../../../../application/services/receipt/ReceiptAnalyzer';
 import { ReceiptScanService } from '../../../../application/services/receipt/ReceiptScanService';
 import { parseClaudeReceiptJson } from '../../../../application/services/receipt/receiptPrompt';
-import { UsageLimitError } from '../../../../shared/errors/DomainException';
+import { UsageLimitError, ValidationError } from '../../../../shared/errors/DomainException';
 
 const INPUT = { imageBase64: 'aGVsbG8=', mimeType: 'image/jpeg', userId: 'user-001' };
 
@@ -54,10 +54,11 @@ describe('ReceiptScanService', () => {
         expect(ocr.analyze).not.toHaveBeenCalled();
     });
 
-    it('全手段が失敗したらエラー', async () => {
+    it('全手段が失敗したら ValidationError（400・手入力を促すメッセージ）', async () => {
         const cli = analyzer('claude-cli', { error: new Error('a') });
         const ocr = analyzer('ocr', { error: new Error('b') });
-        await expect(new ReceiptScanService([cli, ocr]).scan(INPUT)).rejects.toThrow('レシート解析に失敗しました');
+        await expect(new ReceiptScanService([cli, ocr]).scan(INPUT)).rejects.toBeInstanceOf(ValidationError);
+        await expect(new ReceiptScanService([cli, ocr]).scan(INPUT)).rejects.toThrow('レシートを解析できませんでした');
     });
 
     it('RECEIPT_ANALYZER=ocr で単一手段に固定できる', async () => {
@@ -84,8 +85,16 @@ describe('parseClaudeReceiptJson', () => {
         expect(parseClaudeReceiptJson(text)).toEqual({ amount: 1500, date: null, content: 'スーパー' });
     });
 
-    it('不正な値は null に落とす（負の金額・不正な日付形式）', () => {
-        expect(parseClaudeReceiptJson('{"amount": -5, "date": "2026/07/09", "content": ""}')).toEqual({
+    it('LLM の表記揺れを正規化する（文字列金額・カンマ・スラッシュ日付）', () => {
+        expect(parseClaudeReceiptJson('{"amount": "1,234円", "date": "2026/07/09", "content": "スーパー"}')).toEqual({
+            amount: 1234,
+            date: '2026-07-09',
+            content: 'スーパー',
+        });
+    });
+
+    it('不正な値は null に落とす（負の金額・実在しない日付）', () => {
+        expect(parseClaudeReceiptJson('{"amount": -5, "date": "2026-02-30", "content": ""}')).toEqual({
             amount: null,
             date: null,
             content: null,

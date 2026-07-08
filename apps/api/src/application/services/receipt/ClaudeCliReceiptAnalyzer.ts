@@ -42,7 +42,8 @@ export class ClaudeCliReceiptAnalyzer implements ReceiptAnalyzer {
         const ext = MIME_EXTENSION[input.mimeType] ?? 'jpg';
         // パスはサーバー側で生成するためプロンプトインジェクションの余地はない
         const imagePath = join(tmpdir(), `receipt-${randomBytes(8).toString('hex')}.${ext}`);
-        await writeFile(imagePath, Buffer.from(input.imageBase64, 'base64'));
+        // レシートは個人情報を含むため所有者のみ読める権限で書き込む
+        await writeFile(imagePath, Buffer.from(input.imageBase64, 'base64'), { mode: 0o600 });
 
         try {
             const prompt = `レシート画像 ${imagePath} を読み取ってください。${RECEIPT_SYSTEM_PROMPT}`;
@@ -53,7 +54,12 @@ export class ClaudeCliReceiptAnalyzer implements ReceiptAnalyzer {
                 { timeout: CLI_TIMEOUT_MS, maxBuffer: 1024 * 1024 }
             );
 
-            const envelope: unknown = JSON.parse(stdout);
+            // npm 通知や Node の警告が stdout に混入しても JSON 部分だけを取り出す
+            const envelopeMatch = stdout.match(/\{[\s\S]*\}/);
+            if (!envelopeMatch) {
+                throw new Error('claude CLI の応答に JSON が含まれていません');
+            }
+            const envelope: unknown = JSON.parse(envelopeMatch[0]);
             const result =
                 typeof envelope === 'object' && envelope !== null && 'result' in envelope
                     ? (envelope as { result: unknown }).result

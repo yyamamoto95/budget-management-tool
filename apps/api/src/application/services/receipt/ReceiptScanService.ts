@@ -1,4 +1,4 @@
-import { UsageLimitError } from '../../../shared/errors/DomainException';
+import { UsageLimitError, ValidationError } from '../../../shared/errors/DomainException';
 import type { ReceiptAnalyzeInput, ReceiptAnalyzer, ReceiptScanResult } from './ReceiptAnalyzer';
 
 /**
@@ -34,7 +34,11 @@ export class ReceiptScanService {
             }
         }
 
-        throw new Error(`レシート解析に失敗しました${lastError instanceof Error ? `: ${lastError.message}` : ''}`);
+        // 画像が不鮮明などで解析できないのは運用上想定されるケースのため、
+        // 500（unhandled）ではなく 400 + 明確なメッセージで返し手入力を促す
+        throw new ValidationError(
+            `レシートを解析できませんでした。手入力するか、明るい場所で撮り直してください${lastError instanceof Error ? `（詳細: ${lastError.message}）` : ''}`
+        );
     }
 }
 

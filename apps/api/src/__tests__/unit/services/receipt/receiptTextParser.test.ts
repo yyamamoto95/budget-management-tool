@@ -33,6 +33,10 @@ describe('extractTotalAmount', () => {
     it('合計ポイントの行は対象外', () => {
         expect(extractTotalAmount('合計ポイント 25')).toBeNull();
     });
+
+    it('括弧書きの内消費税ではなくキーワード直後の合計金額を抽出する', () => {
+        expect(extractTotalAmount('合計 12,000円 (内消費税 1,090円)')).toBe(12000);
+    });
 });
 
 describe('extractReceiptDate', () => {
@@ -48,6 +52,10 @@ describe('extractReceiptDate', () => {
         expect(extractReceiptDate('2026/13/45')).toBeNull();
     });
 
+    it('カレンダー上に実在しない日付（2/30）は null', () => {
+        expect(extractReceiptDate('2026/02/30')).toBeNull();
+    });
+
     it('日付がなければ null', () => {
         expect(extractReceiptDate('合計 702')).toBeNull();
     });
@@ -60,6 +68,12 @@ describe('extractStoreName', () => {
 
     it('記号ノイズ行はスキップする', () => {
         expect(extractStoreName('****\n--- \nセブンイレブン')).toBe('セブンイレブン');
+    });
+
+    it('「領収書」「挨拶文」「TEL」等の定型ヘッダー行はスキップする', () => {
+        expect(extractStoreName('領収書\n毎度ありがとうございます\nTEL 03-1234-5678\nファミリーマート 大崎店')).toBe(
+            'ファミリーマート 大崎店'
+        );
     });
 
     it('意味のある行がなければ null', () => {

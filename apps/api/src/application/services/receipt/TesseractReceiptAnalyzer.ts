@@ -1,4 +1,4 @@
-import { recognize } from 'tesseract.js';
+import { createWorker } from 'tesseract.js';
 import type { ReceiptAnalyzeInput, ReceiptAnalyzer, ReceiptScanResult } from './ReceiptAnalyzer';
 import { extractReceiptDate, extractStoreName, extractTotalAmount } from './receiptTextParser';
 
@@ -16,9 +16,15 @@ export class TesseractReceiptAnalyzer implements ReceiptAnalyzer {
 
     async analyze(input: ReceiptAnalyzeInput): Promise<ReceiptScanResult> {
         const buffer = Buffer.from(input.imageBase64, 'base64');
-        const {
-            data: { text },
-        } = await recognize(buffer, 'jpn');
+        // recognize() ショートハンドは非推奨のため createWorker を使い、確実に解放する
+        const worker = await createWorker('jpn');
+        let text: string;
+        try {
+            const result = await worker.recognize(buffer);
+            text = result.data.text;
+        } finally {
+            await worker.terminate();
+        }
 
         return {
             amount: extractTotalAmount(text),
