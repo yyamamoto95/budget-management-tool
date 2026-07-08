@@ -22,7 +22,8 @@ export default function HomeScreen() {
   const { data, isPending, isError, error, refetch, isRefetching } = useDashboard();
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    // 下部セーフエリアはタブバーが処理するため除外（二重パディング防止）
+    <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
       <ScrollView
         contentContainerStyle={styles.container}
         refreshControl={
