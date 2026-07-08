@@ -947,6 +947,53 @@ components:
         - monthlyIncome
         - paydayDay
         - fixedExpenses
+    ReceiptScanResponse:
+      type: object
+      properties:
+        amount:
+          type: integer
+          nullable: true
+          description: 合計金額（円）。読み取れなければ null
+          example: 702
+        date:
+          type: string
+          nullable: true
+          description: 日付 (YYYY-MM-DD)。読み取れなければ null
+          example: 2026-07-09
+        content:
+          type: string
+          nullable: true
+          description: 店名など。読み取れなければ null
+          example: ローソン 品川店
+        source:
+          type: string
+          enum:
+            - claude-cli
+            - claude-api
+            - ocr
+          description: 使用された解析手段
+      required:
+        - amount
+        - date
+        - content
+        - source
+    ReceiptScanBody:
+      type: object
+      properties:
+        image:
+          type: string
+          minLength: 1
+          maxLength: 10000000
+          description: "base64 エンコード済み画像（data: プレフィックスなし・最大約7MB）"
+        mimeType:
+          type: string
+          enum:
+            - image/jpeg
+            - image/png
+          description: 画像の MIME タイプ
+      required:
+        - image
+        - mimeType
   parameters: {}
 paths:
   /api/login:
@@ -1935,6 +1982,52 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
         "401":
           description: 未認証
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/receipt-scan:
+    post:
+      tags:
+        - Receipt
+      summary: レシート画像の解析
+      description: レシート画像から合計金額・日付・店名を抽出する。解析手段は環境に応じて claude CLI / Claude API / OCR
+        へフォールバックする。
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReceiptScanBody"
+      responses:
+        "200":
+          description: 解析結果（読み取れなかった項目は null）
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReceiptScanResponse"
+        "400":
+          description: バリデーションエラー
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: 未認証
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          description: AI 使用制限の超過（Claude API 経路のみ）
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: 全手段で解析に失敗
           content:
             application/json:
               schema:

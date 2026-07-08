@@ -28,6 +28,13 @@ import { PrismaSecurityAnswerRepository } from './infrastructure/persistence/Pri
 import { PrismaUserRepository } from './infrastructure/persistence/PrismaUserRepository';
 import { prisma } from './infrastructure/persistence/prisma-client';
 import { BcryptPasswordHasher } from './infrastructure/security/BcryptPasswordHasher';
+import { LlmClient } from './application/services/LlmClient';
+import { LlmUsageGuard } from './application/services/LlmUsageGuard';
+import { ClaudeApiReceiptAnalyzer } from './application/services/receipt/ClaudeApiReceiptAnalyzer';
+import { ClaudeCliReceiptAnalyzer } from './application/services/receipt/ClaudeCliReceiptAnalyzer';
+import { ReceiptScanService } from './application/services/receipt/ReceiptScanService';
+import { TesseractReceiptAnalyzer } from './application/services/receipt/TesseractReceiptAnalyzer';
+import { PrismaLlmUsageRepository } from './infrastructure/persistence/PrismaLlmUsageRepository';
 
 /**
  * 本番用依存関係コンテナ。
@@ -85,5 +92,11 @@ export function buildServices(deps: AppDeps, tokenService: TokenService): RouteS
         upsertUserSettingsUseCase: new UpsertUserSettingsUseCase(deps.userSettingsRepository),
         // Dashboard
         getDashboardUseCase: new GetDashboardUseCase(deps.expenseRepository, deps.userSettingsRepository),
+        // Receipt（#514）: claude CLI（ローカル・課金ゼロ）→ Claude API（キー設定時）→ OCR の順にフォールバック
+        receiptScanService: new ReceiptScanService([
+            new ClaudeCliReceiptAnalyzer(),
+            new ClaudeApiReceiptAnalyzer(new LlmClient(), new LlmUsageGuard(new PrismaLlmUsageRepository(prisma))),
+            new TesseractReceiptAnalyzer(),
+        ]),
     };
 }

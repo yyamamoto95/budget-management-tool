@@ -546,3 +546,35 @@ export const DashboardResponseSchema = z
             .openapi({ description: '生活余力の算出入力（計算は @budget/common calculateLivingMargin）' }),
     })
     .openapi('DashboardResponse');
+
+// ── レシート読取（#514） ─────────────────────────────────────────
+
+export const ReceiptScanBodySchema = z
+    .object({
+        image: z
+            .string()
+            .min(1)
+            .max(10_000_000)
+            .openapi({ description: 'base64 エンコード済み画像（data: プレフィックスなし・最大約7MB）' }),
+        mimeType: z.enum(['image/jpeg', 'image/png']).openapi({ description: '画像の MIME タイプ' }),
+    })
+    .openapi('ReceiptScanBody');
+
+export const ReceiptScanResponseSchema = z
+    .object({
+        amount: z
+            .number()
+            .int()
+            .nullable()
+            .openapi({ description: '合計金額（円）。読み取れなければ null', example: 702 }),
+        date: z
+            .string()
+            .nullable()
+            .openapi({ description: '日付 (YYYY-MM-DD)。読み取れなければ null', example: '2026-07-09' }),
+        content: z
+            .string()
+            .nullable()
+            .openapi({ description: '店名など。読み取れなければ null', example: 'ローソン 品川店' }),
+        source: z.enum(['claude-cli', 'claude-api', 'ocr']).openapi({ description: '使用された解析手段' }),
+    })
+    .openapi('ReceiptScanResponse');
