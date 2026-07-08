@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import './index.css'
 import { Gallery } from './pages/Gallery'
+import { ReceiptScanPrototype } from './pages/ReceiptScanPrototype'
 import { SandboxNav } from './components/SandboxNav'
 import { HomePrototype } from './pages/HomePrototype'
 import { CategoryTopABPrototype } from './pages/CategoryTopABPrototype'
@@ -33,6 +34,7 @@ createRoot(document.getElementById('root')!).render(
         <Route path="/savings-forecast-palette" element={<SavingsForecastPalettePrototype />} />
         <Route path="/today-status-palette" element={<TodayStatusPalettePrototype />} />
         <Route path="/category-color-palette" element={<CategoryColorPalettePrototype />} />
+        <Route path="/receipt-scan" element={<ReceiptScanPrototype />} />
       </Routes>
     </BrowserRouter>
   </StrictMode>,

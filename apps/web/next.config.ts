@@ -4,6 +4,13 @@ const nextConfig: NextConfig = {
   // コンテナデプロイ用: standalone モードで最小ランタイムを出力
   output: "standalone",
 
+  experimental: {
+    serverActions: {
+      // レシート画像（最大約7MB）を Server Action で受けるため既定の 1MB から拡大（#521）
+      bodySizeLimit: "8mb",
+    },
+  },
+
   // ─── Layer 3: セキュリティヘッダー ─────────────────────────────────────────
   async headers() {
     return [
