@@ -62,19 +62,27 @@ export default function SettingsScreen() {
   const [fixedExpenses, setFixedExpenses] = useState('');
   const [savingsGoal, setSavingsGoal] = useState('');
   const [paydayDay, setPaydayDay] = useState<number>(25);
+  const [customPayday, setCustomPayday] = useState('');
+  const [initialized, setInitialized] = useState(false);
 
-  // 取得済みの設定値でフォームを初期化する
+  // 取得済みの設定値でフォームを初期化する（初回のみ。
+  // バックグラウンド再フェッチで入力中の値を上書きしないようガードする）
   useEffect(() => {
-    if (!settings) return;
+    if (!settings || initialized) return;
     setTotalAssets(String(settings.totalAssets ?? 0));
     setMonthlyIncome(String(settings.monthlyIncome ?? 0));
     setFixedExpenses(String(settings.fixedExpenses ?? 0));
     setSavingsGoal(String(settings.savingsGoal ?? 0));
     setPaydayDay(settings.paydayDay ?? 25);
-  }, [settings]);
+    setInitialized(true);
+  }, [settings, initialized]);
 
+  // 総資産・月収は1日予算算出の前提のため 0 のままの初回設定完了を防ぐ
   const canSave =
-    totalAssets !== '' && monthlyIncome !== '' && fixedExpenses !== '' && !saveSettings.isPending;
+    Number(totalAssets) > 0 &&
+    Number(monthlyIncome) > 0 &&
+    fixedExpenses !== '' &&
+    !saveSettings.isPending;
 
   const handleSave = async () => {
     if (!canSave) return;
@@ -100,7 +108,11 @@ export default function SettingsScreen() {
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
+        <ScrollView
+          style={styles.flex}
+          contentContainerStyle={styles.container}
+          keyboardShouldPersistTaps="handled"
+        >
           <Text style={styles.title}>設定</Text>
 
           {isPending ? (
@@ -124,12 +136,15 @@ export default function SettingsScreen() {
                 <Text style={styles.label}>給料日</Text>
                 <View style={styles.paydayChips}>
                   {PAYDAY_PRESETS.map((day) => {
-                    const selected = paydayDay === day;
+                    const selected = paydayDay === day && customPayday === '';
                     return (
                       <Pressable
                         key={day}
                         style={[styles.chip, selected && styles.chipSelected]}
-                        onPress={() => setPaydayDay(day)}
+                        onPress={() => {
+                          setPaydayDay(day);
+                          setCustomPayday('');
+                        }}
                         accessibilityRole="button"
                       >
                         <Text style={[styles.chipLabel, selected && styles.chipLabelSelected]}>
@@ -138,10 +153,24 @@ export default function SettingsScreen() {
                       </Pressable>
                     );
                   })}
+                  <TextInput
+                    style={[styles.chip, styles.customPaydayInput]}
+                    value={customPayday}
+                    onChangeText={(t) => {
+                      const digits = t.replace(/[^0-9]/g, '');
+                      setCustomPayday(digits);
+                      const day = Number(digits);
+                      if (day >= 1 && day <= 31) setPaydayDay(day);
+                    }}
+                    placeholder="他"
+                    placeholderTextColor="rgba(28,20,16,0.35)"
+                    keyboardType="number-pad"
+                    maxLength={2}
+                    editable={!saveSettings.isPending}
+                    accessibilityLabel="給料日を直接入力（1〜31）"
+                  />
                 </View>
-                {!PAYDAY_PRESETS.includes(paydayDay as (typeof PAYDAY_PRESETS)[number]) && (
-                  <Text style={styles.paydayNote}>現在の設定: 毎月 {paydayDay} 日</Text>
-                )}
+                <Text style={styles.paydayNote}>現在の設定: 毎月 {paydayDay} 日</Text>
               </View>
 
               <MoneyField
@@ -262,6 +291,14 @@ const styles = StyleSheet.create({
   },
   chipLabelSelected: {
     color: colors.surface,
+  },
+  customPaydayInput: {
+    minWidth: 52,
+    paddingVertical: 8,
+    fontSize: 14,
+    fontWeight: '700',
+    color: colors.foreground,
+    textAlign: 'center',
   },
   paydayNote: {
     fontSize: 12,

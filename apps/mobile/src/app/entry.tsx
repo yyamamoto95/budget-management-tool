@@ -87,7 +87,11 @@ export default function EntryScreen() {
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
+        <ScrollView
+          style={styles.flex}
+          contentContainerStyle={styles.container}
+          keyboardShouldPersistTaps="handled"
+        >
           <View style={styles.headerRow}>
             <Text style={styles.title}>記録する</Text>
             <Pressable onPress={() => router.back()} accessibilityRole="button" hitSlop={8}>
