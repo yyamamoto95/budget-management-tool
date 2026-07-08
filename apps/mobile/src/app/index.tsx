@@ -1,4 +1,3 @@
-import { calcSavingsForecast } from '@budget/common';
 import { Link } from 'expo-router';
 import {
   ActivityIndicator,
@@ -12,6 +11,11 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '@/lib/auth/auth-context';
 import { useDashboard, type DashboardData } from '@/lib/api/use-dashboard';
+import { LivingMarginCard } from '@/components/dashboard/LivingMarginCard';
+import { MonthlySummaryCard } from '@/components/dashboard/MonthlySummaryCard';
+import { TodayStatusCard } from '@/components/dashboard/TodayStatusCard';
+import { WeeklyStreak } from '@/components/dashboard/WeeklyStreak';
+import { colors } from '@/theme/tokens';
 
 export default function HomeScreen() {
   const { userId, logout } = useAuth();
@@ -34,7 +38,7 @@ export default function HomeScreen() {
 
         {isPending && (
           <View style={styles.center}>
-            <ActivityIndicator size="large" color="#2e7d32" />
+            <ActivityIndicator size="large" color={colors.income} />
           </View>
         )}
 
@@ -62,48 +66,26 @@ export default function HomeScreen() {
 
 /** today はテスト・VRT で決定論的にレンダリングするための注入口（Web の DailyBudgetHero と同パターン） */
 function Dashboard({ data, today }: { data: DashboardData; today?: Date }) {
-  const now = today ?? new Date();
-  const forecast = calcSavingsForecast({
-    monthIncome: data.monthSummary.income,
-    monthExpense: data.monthSummary.expense,
-    todayExpense: data.todayExpense,
-    savingsGoal: data.savingsGoal,
-    dayOfMonth: now.getDate(),
-    daysInMonth: new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate(),
-  });
-
   return (
     <View style={styles.dashboard}>
-      <Text style={styles.caption}>今日使えるお金</Text>
-      {data.dailyBudget ? (
-        <>
-          <Text style={styles.hero}>¥{data.dailyBudget.remaining.toLocaleString()}</Text>
-          <Text style={styles.subInfo}>
-            今日の支出 ¥{data.todayExpense.toLocaleString()} / 日予算 ¥
-            {data.dailyBudget.amount.toLocaleString()}・給料日まで{data.dailyBudget.daysUntilPayday}日
-          </Text>
-        </>
-      ) : (
-        <Text style={styles.emptyBudget}>初回設定を完了すると1日予算が表示されます</Text>
-      )}
-
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>今月の貯蓄予測</Text>
-        <Row label="月末の予測残高" value={`¥${forecast.projectedSavings.toLocaleString()}`} />
-        <Row
-          label="目標達成率"
-          value={
-            forecast.achievementRate === null
-              ? '目標未設定'
-              : `${Math.round(forecast.achievementRate * 100)}%`
-          }
-        />
-        <Row label="残り日数" value={`${forecast.remainingDays}日`} />
-        <Row
-          label="今月の収支"
-          value={`収入 ¥${data.monthSummary.income.toLocaleString()} / 支出 ¥${data.monthSummary.expense.toLocaleString()}`}
-        />
-      </View>
+      <TodayStatusCard
+        dailyBudget={data.dailyBudget}
+        todayExpense={data.todayExpense}
+        monthSummary={data.monthSummary}
+        savingsGoal={data.savingsGoal}
+        today={today}
+      />
+      <LivingMarginCard livingMargin={data.livingMargin} />
+      <WeeklyStreak
+        weeklyRecord={data.weeklyRecord}
+        dailyBudget={data.dailyBudget?.amount ?? null}
+        streak={data.streak}
+      />
+      <MonthlySummaryCard
+        monthSummary={data.monthSummary}
+        lastMonthExpense={data.lastMonthExpense}
+        today={today}
+      />
 
       <View style={styles.card}>
         <Text style={styles.cardTitle}>最近の記録</Text>
@@ -133,19 +115,10 @@ function Dashboard({ data, today }: { data: DashboardData; today?: Date }) {
   );
 }
 
-function Row({ label, value }: { label: string; value: string }) {
-  return (
-    <View style={styles.row}>
-      <Text style={styles.rowLabel}>{label}</Text>
-      <Text style={styles.rowValue}>{value}</Text>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#faf6f2',
+    backgroundColor: colors.background,
   },
   container: {
     padding: 20,
@@ -162,7 +135,7 @@ const styles = StyleSheet.create({
   userId: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#1c1410',
+    color: colors.foreground,
     opacity: 0.7,
   },
   logout: {
@@ -183,73 +156,36 @@ const styles = StyleSheet.create({
   },
   retryButton: {
     borderRadius: 10,
-    backgroundColor: '#2e7d32',
+    backgroundColor: colors.income,
     paddingHorizontal: 20,
     paddingVertical: 10,
   },
   retryLabel: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#ffffff',
+    color: colors.surface,
   },
   dashboard: {
     gap: 12,
   },
-  caption: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#1c1410',
-    opacity: 0.5,
-  },
-  hero: {
-    fontSize: 40,
-    fontWeight: '800',
-    color: '#2e7d32',
-  },
-  subInfo: {
-    fontSize: 12,
-    color: '#1c1410',
-    opacity: 0.55,
-  },
-  emptyBudget: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#1c1410',
-    opacity: 0.6,
-    paddingVertical: 12,
-  },
   card: {
-    marginTop: 8,
     borderRadius: 16,
-    backgroundColor: '#ffffff',
+    backgroundColor: colors.surface,
     padding: 16,
     gap: 10,
     borderWidth: 1,
-    borderColor: 'rgba(28,20,16,0.08)',
+    borderColor: colors.borderDefault,
   },
   cardTitle: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#1c1410',
+    color: colors.foreground,
   },
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     gap: 12,
-  },
-  rowLabel: {
-    fontSize: 13,
-    color: '#1c1410',
-    opacity: 0.6,
-  },
-  rowValue: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#1c1410',
-    fontVariant: ['tabular-nums'],
-    flexShrink: 1,
-    textAlign: 'right',
   },
   expenseLeft: {
     flexDirection: 'row',
@@ -259,27 +195,27 @@ const styles = StyleSheet.create({
   },
   expenseDate: {
     fontSize: 12,
-    color: '#1c1410',
+    color: colors.foreground,
     opacity: 0.5,
     fontVariant: ['tabular-nums'],
   },
   expenseContent: {
     fontSize: 13,
-    color: '#1c1410',
+    color: colors.foreground,
     flexShrink: 1,
   },
   expenseAmount: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#1c1410',
+    color: colors.foreground,
     fontVariant: ['tabular-nums'],
   },
   incomeAmount: {
-    color: '#2e7d32',
+    color: colors.income,
   },
   emptyList: {
     fontSize: 13,
-    color: '#1c1410',
+    color: colors.foreground,
     opacity: 0.5,
   },
   fab: {
@@ -287,7 +223,7 @@ const styles = StyleSheet.create({
     right: 20,
     bottom: 28,
     borderRadius: 999,
-    backgroundColor: '#2e7d32',
+    backgroundColor: colors.income,
     paddingHorizontal: 22,
     paddingVertical: 14,
     shadowColor: '#000000',
@@ -299,6 +235,6 @@ const styles = StyleSheet.create({
   fabLabel: {
     fontSize: 15,
     fontWeight: '800',
-    color: '#ffffff',
+    color: colors.surface,
   },
 });
