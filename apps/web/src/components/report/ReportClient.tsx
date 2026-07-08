@@ -8,6 +8,7 @@ import { ArrowRight } from "lucide-react";
 import { PAGE_VARIANTS, PAGE_ITEM_VARIANTS, SPRING } from "@/lib/motion";
 import type { ExpenseResponse, CategoryItem } from "@/lib/api/types";
 import type { Period } from "@/components/records/PeriodFilter";
+import { summarizeReportTotals, calcVsLastMonthPct, aggregateExpensesByCategory } from "@budget/common";
 import { CategoryBreakdown } from "./CategoryBreakdown";
 
 const PERIOD_LABELS: Record<Period, string> = {
@@ -59,44 +60,17 @@ export function ReportClient({
     [router, startTransition],
   );
 
-  // 集計
-  const totalExpense = initialExpenses
-    .filter((e) => e.balanceType === 0)
-    .reduce((sum, e) => sum + e.amount, 0);
-  const totalIncome = initialExpenses
-    .filter((e) => e.balanceType === 1)
-    .reduce((sum, e) => sum + e.amount, 0);
-  const balance = totalIncome - totalExpense;
+  // 集計（ロジックは @budget/common に共通化 — モバイルのレポート画面と単一実装）
+  const { totalExpense, totalIncome, balance } = summarizeReportTotals(initialExpenses);
 
   // 先月比（今月のみ）
-  const vsLastPct =
-    period === "month" && lastMonthExpense !== null && lastMonthExpense > 0
-      ? Math.round((totalExpense / lastMonthExpense) * 100)
-      : null;
+  const vsLastPct = period === "month" ? calcVsLastMonthPct(totalExpense, lastMonthExpense) : null;
 
   // カテゴリ別集計
-  const categoryData = useMemo(() => {
-    const outgos = initialExpenses.filter((e) => e.balanceType === 0);
-    if (outgos.length === 0) return [];
-
-    const map = new Map<number, number>();
-    for (const e of outgos) {
-      map.set(e.categoryId, (map.get(e.categoryId) ?? 0) + e.amount);
-    }
-
-    return [...map.entries()]
-      .map(([id, amount]) => {
-        const cat = allCategories.find(
-          (c) => c.balanceType === 0 && c.id === id,
-        );
-        return {
-          label: cat?.name ?? "未分類",
-          amount,
-          color: cat?.color ?? "#999",
-        };
-      })
-      .sort((a, b) => b.amount - a.amount);
-  }, [initialExpenses, allCategories]);
+  const categoryData = useMemo(
+    () => aggregateExpensesByCategory(initialExpenses, allCategories),
+    [initialExpenses, allCategories],
+  );
 
   // レポートでは all を除外
   const reportPeriods: Period[] = ["week", "month", "lastMonth"];
