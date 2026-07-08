@@ -21,21 +21,28 @@ async function refreshAccessToken(): Promise<string | null> {
       if (!session) {
         return null;
       }
-      const { data } = await publicClient.POST('/api/refresh', {
-        body: { refreshToken: session.refreshToken },
-      });
-      if (!data) {
-        // リフレッシュ失敗 = セッション失効。サインアウト状態へ落とす
-        await setSession(null);
+      try {
+        const { data, response } = await publicClient.POST('/api/refresh', {
+          body: { refreshToken: session.refreshToken },
+        });
+        if (data) {
+          const pair: TokenPairResponse = data;
+          await setSession({
+            accessToken: pair.accessToken,
+            refreshToken: pair.refreshToken,
+            userId: pair.userId,
+          });
+          return pair.accessToken;
+        }
+        // 401/403 = トークン失効・再利用検知の確定的な認証エラーのときだけサインアウトする
+        if (response.status === 401 || response.status === 403) {
+          await setSession(null);
+        }
+        return null;
+      } catch {
+        // ネットワーク断や一時的なサーバーエラーではセッションを維持する（次回リクエストで再試行）
         return null;
       }
-      const pair: TokenPairResponse = data;
-      await setSession({
-        accessToken: pair.accessToken,
-        refreshToken: pair.refreshToken,
-        userId: pair.userId,
-      });
-      return pair.accessToken;
     })().finally(() => {
       refreshing = null;
     });

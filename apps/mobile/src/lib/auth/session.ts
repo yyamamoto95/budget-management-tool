@@ -22,15 +22,19 @@ export function subscribeSession(listener: Listener): () => void {
   };
 }
 
-/** メモリと SecureStore の両方を更新する */
+/**
+ * メモリと SecureStore の両方を更新する。
+ * UI の即時更新のため、リスナー通知を先行させ SecureStore への永続化を後続で行う
+ * （Keychain/Keystore 書き込みは数十〜数百 ms かかることがあり、画面遷移をブロックさせない）
+ */
 export async function setSession(session: StoredSession | null): Promise<void> {
   current = session;
+  listeners.forEach((listener) => listener(session));
   if (session) {
     await saveSession(session);
   } else {
     await clearSession();
   }
-  listeners.forEach((listener) => listener(session));
 }
 
 /** 起動時の復元用（SecureStore からの読み出し結果をメモリへ反映するだけ） */
