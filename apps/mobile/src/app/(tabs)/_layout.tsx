@@ -1,32 +1,98 @@
-import { Tabs } from 'expo-router';
-import { Home, ReceiptText } from 'lucide-react-native';
+import { Link, Tabs } from 'expo-router';
+import { BarChart2, Home, Plus, Receipt, Settings } from 'lucide-react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors } from '@/theme/tokens';
 
-/** ホーム / 明細 のタブナビゲーション（Web の BottomNav 相当） */
+/**
+ * ナビゲーション（Web navItems.ts と同一構成: ホーム / 明細 / [+] / レポート / 設定）
+ * 中央の + はタブバーからはみ出すため、親（タブバー）にクリップされないよう
+ * 画面ルートに絶対配置でオーバーレイする（はみ出し部分のタップ不能を防ぐ）。
+ */
 export default function TabsLayout() {
+  const insets = useSafeAreaInsets();
+
   return (
-    <Tabs
-      screenOptions={{
-        headerShown: false,
-        tabBarActiveTintColor: colors.brandPrimary,
-        tabBarInactiveTintColor: 'rgba(28,20,16,0.4)',
-        tabBarStyle: { backgroundColor: colors.surface },
-      }}
-    >
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'ホーム',
-          tabBarIcon: ({ color, size }) => <Home color={color} size={size} />,
+    <View style={styles.root}>
+      <Tabs
+        screenOptions={{
+          headerShown: false,
+          tabBarActiveTintColor: colors.brandPrimary,
+          tabBarInactiveTintColor: 'rgba(28,20,16,0.4)',
+          tabBarStyle: { backgroundColor: colors.surface },
         }}
-      />
-      <Tabs.Screen
-        name="records"
-        options={{
-          title: '明細',
-          tabBarIcon: ({ color, size }) => <ReceiptText color={color} size={size} />,
-        }}
-      />
-    </Tabs>
+      >
+        <Tabs.Screen
+          name="index"
+          options={{
+            title: 'ホーム',
+            tabBarIcon: ({ color, size }) => <Home color={color} size={size} />,
+          }}
+        />
+        <Tabs.Screen
+          name="records"
+          options={{
+            title: '明細',
+            tabBarIcon: ({ color, size }) => <Receipt color={color} size={size} />,
+          }}
+        />
+        <Tabs.Screen
+          name="record-action"
+          options={{
+            title: '',
+            // 中央スロットの場所取り（実ボタンは下のオーバーレイ）
+            tabBarButton: () => <View style={styles.centerSpacer} />,
+          }}
+        />
+        <Tabs.Screen
+          name="report"
+          options={{
+            title: 'レポート',
+            tabBarIcon: ({ color, size }) => <BarChart2 color={color} size={size} />,
+          }}
+        />
+        <Tabs.Screen
+          name="settings"
+          options={{
+            title: '設定',
+            tabBarIcon: ({ color, size }) => <Settings color={color} size={size} />,
+          }}
+        />
+      </Tabs>
+
+      <Link href="/entry" asChild>
+        <Pressable
+          style={[styles.centerButton, { bottom: insets.bottom + 22 }]}
+          accessibilityRole="button"
+          accessibilityLabel="記録する"
+        >
+          <Plus size={26} color={colors.surface} strokeWidth={3} />
+        </Pressable>
+      </Link>
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
+  centerSpacer: {
+    flex: 1,
+  },
+  centerButton: {
+    position: 'absolute',
+    alignSelf: 'center',
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: colors.brandPrimary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000000',
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 6,
+  },
+});
