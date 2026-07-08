@@ -607,11 +607,21 @@ jobs:
           DATABASE_URL: "mysql://Admin:password@127.0.0.1:3307/budgetdb_test"
         run: pnpm --filter web run build
 
-      - name: Start Next.js (production)
+      # output: standalone 構成では `next start` が非対応（Next 16 が明示警告）で、
+      # Server Action 応答の不安定化 = E2E フレーキー（#437）の温床になるため、
+      # 本番と同じ standalone server.js で起動する。
+      # standalone は .env.local を読まないため gen:keys の出力を明示的に環境へ載せる。
+      - name: Start Next.js (production, standalone)
         env:
           DATABASE_URL: "mysql://Admin:password@127.0.0.1:3307/budgetdb_test"
           INTERNAL_API_URL: "http://localhost:5000"
-        run: pnpm --filter web run start &
+          PORT: "3000"
+        run: |
+          cp -r apps/web/public apps/web/.next/standalone/apps/web/
+          mkdir -p apps/web/.next/standalone/apps/web/.next
+          cp -r apps/web/.next/static apps/web/.next/standalone/apps/web/.next/
+          set -a; source apps/web/.env.local; set +a
+          node apps/web/.next/standalone/apps/web/server.js &
 
       - name: Wait for Next.js
         run: npx wait-on tcp:3000 --timeout 60000

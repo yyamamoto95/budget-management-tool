@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { calcExpenseImpact } from "@budget/common";
+import { useRouter } from "next/navigation";
 import { createExpenseAction } from "@/lib/actions/expense";
 import type { ExpenseActionState } from "@/lib/actions/expense";
 import { SPRING } from "@/lib/motion";
@@ -47,6 +48,7 @@ interface Props {
 }
 
 export function ExpenseInputModal({ userId, minutesPerYen, onClose }: Props) {
+  const router = useRouter();
   const [balanceType, setBalanceType] = useState<0 | 1>(0);
   const [amountStr, setAmountStr] = useState("");
   const [categoryId, setCategoryId] = useState(EXPENSE_CATS[0].id);
@@ -100,6 +102,8 @@ export function ExpenseInputModal({ userId, minutesPerYen, onClose }: Props) {
     startTransition(async () => {
       const result = await createExpenseAction(INITIAL_STATE, fd);
       if (result.success) {
+        // action 内 revalidatePath は #437 のため禁止。ここでサーバーデータを更新する
+        router.refresh();
         setSubmitted(true);
         setTimeout(() => {
           setSubmitted(false);

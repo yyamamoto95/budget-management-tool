@@ -1,6 +1,7 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { ChevronDown } from "lucide-react";
 import { createExpenseAction } from "@/lib/actions/expense";
 import type { ExpenseActionState } from "@/lib/actions/expense";
@@ -36,6 +37,15 @@ export function ExpenseCreateForm({ userId, defaultDate, defaultBalanceType = 0,
     createExpenseAction,
     initialState,
   );
+  const router = useRouter();
+
+  // 登録成功後に一覧・ホームのサーバーデータを更新する（action 内 revalidatePath は #437 のため禁止）
+  useEffect(() => {
+    if (state.success) router.refresh();
+    // 依存は state（オブジェクト identity）であることが重要:
+    // 連続登録では success が true のまま新しい state が返るため、
+    // state.success を依存にすると 2 回目以降の登録で refresh されない
+  }, [state, router]);
   const categories = balanceType === 0 ? expenseCategories : incomeCategories;
 
   // 種別に応じたアクセントカラー
