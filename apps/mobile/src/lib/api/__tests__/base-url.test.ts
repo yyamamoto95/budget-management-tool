@@ -10,7 +10,12 @@ describe('resolveApiBaseUrl', () => {
   const originalEnv = process.env.EXPO_PUBLIC_API_URL;
 
   afterEach(() => {
-    process.env.EXPO_PUBLIC_API_URL = originalEnv;
+    // undefined を代入すると文字列 "undefined" になるため delete で復元する
+    if (originalEnv === undefined) {
+      delete process.env.EXPO_PUBLIC_API_URL;
+    } else {
+      process.env.EXPO_PUBLIC_API_URL = originalEnv;
+    }
     (Constants.expoConfig as { hostUri?: string }).hostUri = undefined;
   });
 
