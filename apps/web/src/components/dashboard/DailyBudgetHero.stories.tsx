@@ -3,41 +3,66 @@ import { DailyBudgetHero } from './DailyBudgetHero'
 import { fixtureDailyBudget } from '@/__fixtures__/dashboard'
 
 /**
- * ホーム最上部の「今日使えるお金」ヒーロー。
- * 残額比率に応じて safe（余裕）/ caution（注意）/ danger（ピンチ）の
- * 3トーンでカラーとバッジが切り替わる。
+ * ホーム最上部の「今日使えるお金」ヒーロー（#459 で「今日の状況」相当へ強化）。
+ * - カード背景: 残額比率による3トーン（safe/caution/danger）
+ * - バッジ・進捗バー: 日予算消化率による4状態（好調 ≤50% / 順調 ≤80% / 注意 ≤100% / 超過）
+ * - 貯蓄インサイト: 月末予測（calcSavingsForecast）による1行メッセージ
+ * 基準日を固定（2026-07-15）して表示を決定論化している。
  */
 const meta: Meta<typeof DailyBudgetHero> = {
   title: 'Dashboard/DailyBudgetHero',
   component: DailyBudgetHero,
   parameters: { layout: 'padded' },
   tags: ['autodocs'],
+  args: {
+    monthSummary: { expense: 120_000, income: 300_000 },
+    savingsGoal: 30_000,
+    today: new Date('2026-07-15T00:00:00'),
+  },
 }
 
 export default meta
 type Story = StoryObj<typeof DailyBudgetHero>
 
-/** 残額 80% 以上: 「余裕」バッジ（グリーン系トーン） */
-export const Safe: Story = {
+/** 好調（消化率 ≤ 50%・緑）+ 目標大幅達成見込みのインサイト */
+export const Great: Story = {
   args: {
     dailyBudget: fixtureDailyBudget('safe'),
     todayExpense: 360,
   },
 }
 
-/** 残額 20〜80%: 「注意」バッジ（アンバー系トーン） */
-export const Caution: Story = {
+/** 順調（消化率 51〜80%・緑） */
+export const Steady: Story = {
   args: {
     dailyBudget: fixtureDailyBudget('caution'),
-    todayExpense: 1320,
+    todayExpense: 1_680,
   },
 }
 
-/** 残額 20% 未満: 「ピンチ」バッジ（レッド系トーン） */
-export const Danger: Story = {
+/** 注意（消化率 81〜100%・ピンク） */
+export const Caution: Story = {
+  args: {
+    dailyBudget: fixtureDailyBudget('caution'),
+    todayExpense: 2_160,
+  },
+}
+
+/** 超過（消化率 > 100%・赤）+ 赤字見込みインサイト */
+export const Over: Story = {
   args: {
     dailyBudget: fixtureDailyBudget('danger'),
-    todayExpense: 2160,
+    todayExpense: 3_000,
+    monthSummary: { expense: 290_000, income: 300_000 },
+  },
+}
+
+/** 貯蓄目標未設定: インサイトが消化率ベースの文言に縮退する */
+export const NoGoal: Story = {
+  args: {
+    dailyBudget: fixtureDailyBudget('safe'),
+    todayExpense: 360,
+    savingsGoal: 0,
   },
 }
 
