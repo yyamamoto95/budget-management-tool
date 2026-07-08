@@ -131,6 +131,9 @@ export function QuickEntryDrawer({
   // 成功フィードバック表示とは独立にここで refresh する
   useEffect(() => {
     if (state.success) router.refresh();
+    // 依存は state（オブジェクト identity）であることが重要:
+    // 連続登録では success が true のまま新しい state が返るため、
+    // state.success を依存にすると 2 回目以降の登録で refresh されない
   }, [state, router]);
 
   const categories = balanceType === 0 ? expenseCategories : incomeCategories;

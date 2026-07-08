@@ -2,7 +2,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { ExpenseInputModal } from '../../components/input/ExpenseInputModal'
 
-const routerRefresh = vi.fn();
+// vi.mock はホイストされるため、参照する変数は vi.hoisted で先に初期化する
+const { routerRefresh } = vi.hoisted(() => ({ routerRefresh: vi.fn() }));
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn(), refresh: routerRefresh }),
 }));
