@@ -1,14 +1,71 @@
 import { Link, Tabs } from 'expo-router';
 import { BarChart2, Home, Plus, Receipt, Settings } from 'lucide-react-native';
 import { Pressable, StyleSheet, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors } from '@/theme/tokens';
 
-/** タブバー中央のオレンジ「+」ボタン（Web BottomNav の中央 FAB 相当） */
-function CenterRecordButton() {
+/**
+ * ナビゲーション（Web navItems.ts と同一構成: ホーム / 明細 / [+] / レポート / 設定）
+ * 中央の + はタブバーからはみ出すため、親（タブバー）にクリップされないよう
+ * 画面ルートに絶対配置でオーバーレイする（はみ出し部分のタップ不能を防ぐ）。
+ */
+export default function TabsLayout() {
+  const insets = useSafeAreaInsets();
+
   return (
-    <View style={styles.centerSlot} pointerEvents="box-none">
+    <View style={styles.root}>
+      <Tabs
+        screenOptions={{
+          headerShown: false,
+          tabBarActiveTintColor: colors.brandPrimary,
+          tabBarInactiveTintColor: 'rgba(28,20,16,0.4)',
+          tabBarStyle: { backgroundColor: colors.surface },
+        }}
+      >
+        <Tabs.Screen
+          name="index"
+          options={{
+            title: 'ホーム',
+            tabBarIcon: ({ color, size }) => <Home color={color} size={size} />,
+          }}
+        />
+        <Tabs.Screen
+          name="records"
+          options={{
+            title: '明細',
+            tabBarIcon: ({ color, size }) => <Receipt color={color} size={size} />,
+          }}
+        />
+        <Tabs.Screen
+          name="record-action"
+          options={{
+            title: '',
+            // 中央スロットの場所取り（実ボタンは下のオーバーレイ）
+            tabBarButton: () => <View style={styles.centerSpacer} />,
+          }}
+        />
+        <Tabs.Screen
+          name="report"
+          options={{
+            title: 'レポート',
+            tabBarIcon: ({ color, size }) => <BarChart2 color={color} size={size} />,
+          }}
+        />
+        <Tabs.Screen
+          name="settings"
+          options={{
+            title: '設定',
+            tabBarIcon: ({ color, size }) => <Settings color={color} size={size} />,
+          }}
+        />
+      </Tabs>
+
       <Link href="/entry" asChild>
-        <Pressable style={styles.centerButton} accessibilityRole="button" accessibilityLabel="記録する">
+        <Pressable
+          style={[styles.centerButton, { bottom: insets.bottom + 22 }]}
+          accessibilityRole="button"
+          accessibilityLabel="記録する"
+        >
           <Plus size={26} color={colors.surface} strokeWidth={3} />
         </Pressable>
       </Link>
@@ -16,65 +73,16 @@ function CenterRecordButton() {
   );
 }
 
-/**
- * ナビゲーション（Web navItems.ts と同一構成: ホーム / 明細 / [+] / レポート / 設定）
- */
-export default function TabsLayout() {
-  return (
-    <Tabs
-      screenOptions={{
-        headerShown: false,
-        tabBarActiveTintColor: colors.brandPrimary,
-        tabBarInactiveTintColor: 'rgba(28,20,16,0.4)',
-        tabBarStyle: { backgroundColor: colors.surface },
-      }}
-    >
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'ホーム',
-          tabBarIcon: ({ color, size }) => <Home color={color} size={size} />,
-        }}
-      />
-      <Tabs.Screen
-        name="records"
-        options={{
-          title: '明細',
-          tabBarIcon: ({ color, size }) => <Receipt color={color} size={size} />,
-        }}
-      />
-      <Tabs.Screen
-        name="record-action"
-        options={{
-          title: '',
-          tabBarButton: () => <CenterRecordButton />,
-        }}
-      />
-      <Tabs.Screen
-        name="report"
-        options={{
-          title: 'レポート',
-          tabBarIcon: ({ color, size }) => <BarChart2 color={color} size={size} />,
-        }}
-      />
-      <Tabs.Screen
-        name="settings"
-        options={{
-          title: '設定',
-          tabBarIcon: ({ color, size }) => <Settings color={color} size={size} />,
-        }}
-      />
-    </Tabs>
-  );
-}
-
 const styles = StyleSheet.create({
-  centerSlot: {
+  root: {
     flex: 1,
-    alignItems: 'center',
+  },
+  centerSpacer: {
+    flex: 1,
   },
   centerButton: {
-    marginTop: -18,
+    position: 'absolute',
+    alignSelf: 'center',
     width: 56,
     height: 56,
     borderRadius: 28,

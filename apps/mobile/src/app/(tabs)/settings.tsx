@@ -17,7 +17,7 @@ export default function SettingsScreen() {
         <Text style={styles.note}>給与・給料日・固定費・貯蓄目標の設定を追加します。</Text>
       </View>
       <View style={styles.account}>
-        <Text style={styles.accountLabel}>ログイン中: {userId}</Text>
+        <Text style={styles.accountLabel}>ログイン中: {userId ?? '未ログイン'}</Text>
         <Pressable onPress={logout} accessibilityRole="button" hitSlop={8}>
           <Text style={styles.logout}>ログアウト</Text>
         </Pressable>
