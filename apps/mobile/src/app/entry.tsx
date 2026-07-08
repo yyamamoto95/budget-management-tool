@@ -201,7 +201,7 @@ export default function EntryScreen() {
             {receiptScan.isPending ? (
               <>
                 <ActivityIndicator size="small" color={colors.brandPrimary} />
-                <Text style={styles.scanLabel}>レシートを解析中…（最大1分ほどかかります）</Text>
+                <Text style={styles.scanLabel}>レシートを解析中…（最大2分ほどかかります）</Text>
               </>
             ) : (
               <>
