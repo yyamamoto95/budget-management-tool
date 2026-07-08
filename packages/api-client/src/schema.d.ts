@@ -1552,6 +1552,85 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/receipt-scan": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * レシート画像の解析
+         * @description レシート画像から合計金額・日付・店名を抽出する。解析手段は環境に応じて claude CLI / Claude API / OCR へフォールバックする。
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ReceiptScanBody"];
+                };
+            };
+            responses: {
+                /** @description 解析結果（読み取れなかった項目は null） */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ReceiptScanResponse"];
+                    };
+                };
+                /** @description バリデーションエラー */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description 未認証 */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description AI 使用制限の超過（Claude API 経路のみ） */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description 全手段で解析に失敗 */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -2230,6 +2309,37 @@ export interface components {
              * @example true
              */
             initialSetupCompleted?: boolean;
+        };
+        ReceiptScanResponse: {
+            /**
+             * @description 合計金額（円）。読み取れなければ null
+             * @example 702
+             */
+            amount: number | null;
+            /**
+             * @description 日付 (YYYY-MM-DD)。読み取れなければ null
+             * @example 2026-07-09
+             */
+            date: string | null;
+            /**
+             * @description 店名など。読み取れなければ null
+             * @example ローソン 品川店
+             */
+            content: string | null;
+            /**
+             * @description 使用された解析手段
+             * @enum {string}
+             */
+            source: "claude-cli" | "claude-api" | "ocr";
+        };
+        ReceiptScanBody: {
+            /** @description base64 エンコード済み画像（data: プレフィックスなし・最大約7MB） */
+            image: string;
+            /**
+             * @description 画像の MIME タイプ
+             * @enum {string}
+             */
+            mimeType: "image/jpeg" | "image/png";
         };
     };
     responses: never;

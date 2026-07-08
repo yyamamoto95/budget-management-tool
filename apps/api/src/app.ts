@@ -21,6 +21,7 @@ import type { UpdateUserUseCase } from './application/use-cases/user/UpdateUserU
 import type { GetUserSettingsUseCase } from './application/use-cases/settings/GetUserSettingsUseCase';
 import type { UpsertUserSettingsUseCase } from './application/use-cases/settings/UpsertUserSettingsUseCase';
 import type { GetDashboardUseCase } from './application/use-cases/dashboard/GetDashboardUseCase';
+import type { ReceiptScanService } from './application/services/receipt/ReceiptScanService';
 import { buildServices } from './container';
 import type { ICategoryRepository } from './domain/repositories/ICategoryRepository';
 import type { IExpenseRepository } from './domain/repositories/IExpenseRepository';
@@ -31,6 +32,7 @@ import type { ISecurityAnswerRepository } from './domain/repositories/ISecurityA
 import type { IUserRepository } from './domain/repositories/IUserRepository';
 import { createCategoryRoutes } from './presentation/routes/category';
 import { createDashboardRoutes } from './presentation/routes/dashboard';
+import { createReceiptRoutes } from './presentation/routes/receipt';
 import { createAuthRoutes } from './presentation/routes/auth';
 import { createSettingsRoutes } from './presentation/routes/settings';
 import { createBudgetRoutes } from './presentation/routes/budget';
@@ -86,6 +88,8 @@ export type RouteServices = {
     upsertUserSettingsUseCase: UpsertUserSettingsUseCase;
     // Dashboard
     getDashboardUseCase: GetDashboardUseCase;
+    // Receipt（#514）
+    receiptScanService: ReceiptScanService;
 };
 
 /** Hono context の型変数定義（認証済みルートで userId を参照するために使用） */
@@ -128,10 +132,14 @@ export function createApp(deps: AppDeps) {
     app.route('/api', createRecoveryRoutes(services));
     app.route('/api', createExportRoutes(services));
     app.route('/api', createSettingsRoutes(services));
+    app.route('/api', createReceiptRoutes(services));
 
     app.onError((err, c) => {
         if (err instanceof DomainException) {
-            return c.json({ result: 'error', message: err.message }, err.statusCode as 400 | 401 | 403 | 404 | 500);
+            return c.json(
+                { result: 'error', message: err.message },
+                err.statusCode as 400 | 401 | 403 | 404 | 429 | 500
+            );
         }
         console.error('[unhandled error]', err);
         return c.json({ result: 'error', message: 'Something broken' }, 500);
