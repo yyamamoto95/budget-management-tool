@@ -66,13 +66,16 @@ export default function EntryScreen() {
     date: string | null;
     content: string | null;
   }) => {
-    if (result.amount !== null) setAmountText(String(result.amount));
-    if (result.content !== null) setContent(result.content);
+    // != null で null と undefined の両方を防ぐ（防衛的チェック）
+    if (result.amount != null) setAmountText(String(result.amount));
+    if (result.content != null) setContent(result.content);
 
     // 記録フォームの日付は今日/昨日のみのため、それ以外の日付は反映せず通知する
-    if (result.date !== null) {
-      const today = toDateString(new Date());
-      const yesterday = new Date();
+    if (result.date != null) {
+      // 日付境界のレースを避けるため now は1回だけ取得する
+      const now = new Date();
+      const today = toDateString(now);
+      const yesterday = new Date(now);
       yesterday.setDate(yesterday.getDate() - 1);
       if (result.date === today) {
         setDayOffset(0);
