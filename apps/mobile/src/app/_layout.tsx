@@ -18,7 +18,7 @@ function RootNavigator() {
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Protected guard={status === 'signedIn'}>
-        <Stack.Screen name="index" />
+        <Stack.Screen name="(tabs)" />
         <Stack.Screen name="entry" options={{ presentation: 'modal' }} />
       </Stack.Protected>
       <Stack.Protected guard={status !== 'signedIn'}>
