@@ -73,3 +73,12 @@ export function aggregateExpensesByCategory(
         })
         .sort((a, b) => b.amount - a.amount);
 }
+
+export type VsLastMonthTone = 'saving' | 'even' | 'increase';
+
+/** 先月比の表示（文言・トーン）。Web レポートのチップとモバイルで共有する */
+export function vsLastMonthDisplay(pct: number): { tone: VsLastMonthTone; label: string } {
+    if (pct === 100) return { tone: 'even', label: '先月と同額です' };
+    if (pct < 100) return { tone: 'saving', label: `先月比 ▼${100 - pct}% 節約しています` };
+    return { tone: 'increase', label: `▲ 先月より${pct - 100}% 増加` };
+}

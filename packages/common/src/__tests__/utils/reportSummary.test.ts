@@ -3,6 +3,7 @@ import {
     aggregateExpensesByCategory,
     calcVsLastMonthPct,
     summarizeReportTotals,
+    vsLastMonthDisplay,
 } from '../../utils/reportSummary';
 
 const EXPENSES = [
@@ -59,5 +60,19 @@ describe('aggregateExpensesByCategory', () => {
 
     it('支出がなければ空配列', () => {
         expect(aggregateExpensesByCategory([{ amount: 100, balanceType: 1, categoryId: 100 }], CATEGORIES)).toEqual([]);
+    });
+});
+
+describe('vsLastMonthDisplay', () => {
+    it('100% は中立（先月と同額です）', () => {
+        expect(vsLastMonthDisplay(100)).toEqual({ tone: 'even', label: '先月と同額です' });
+    });
+
+    it('100% 未満は節約トーン', () => {
+        expect(vsLastMonthDisplay(80)).toEqual({ tone: 'saving', label: '先月比 ▼20% 節約しています' });
+    });
+
+    it('100% 超は増加トーン', () => {
+        expect(vsLastMonthDisplay(130)).toEqual({ tone: 'increase', label: '▲ 先月より30% 増加' });
     });
 });

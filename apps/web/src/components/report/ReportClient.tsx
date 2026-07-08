@@ -8,7 +8,7 @@ import { ArrowRight } from "lucide-react";
 import { PAGE_VARIANTS, PAGE_ITEM_VARIANTS, SPRING } from "@/lib/motion";
 import type { ExpenseResponse, CategoryItem } from "@/lib/api/types";
 import type { Period } from "@/components/records/PeriodFilter";
-import { summarizeReportTotals, calcVsLastMonthPct, aggregateExpensesByCategory } from "@budget/common";
+import { summarizeReportTotals, calcVsLastMonthPct, aggregateExpensesByCategory, vsLastMonthDisplay, type VsLastMonthTone } from "@budget/common";
 import { CategoryBreakdown } from "./CategoryBreakdown";
 
 const PERIOD_LABELS: Record<Period, string> = {
@@ -18,17 +18,12 @@ const PERIOD_LABELS: Record<Period, string> = {
   all: "全期間",
 };
 
-function getVsLastChipStyle(pct: number): { background: string; color: string } {
-  if (pct < 100) return { background: "var(--color-income-light)", color: "var(--color-income)" };
-  if (pct === 100) return { background: "var(--color-surface-subtle)", color: "var(--foreground)" };
-  return { background: "#fff1f2", color: "#e11d48" };
-}
-
-function getVsLastLabel(pct: number): string {
-  if (pct === 100) return "先月と同額です";
-  if (pct < 100) return `先月比 ▼${100 - pct}% 節約しています`;
-  return `▲ 先月より${pct - 100}% 増加`;
-}
+// 判定・文言は @budget/common（vsLastMonthDisplay）に共通化。ここは配色マッピングのみ
+const VS_LAST_CHIP_STYLE: Record<VsLastMonthTone, { background: string; color: string }> = {
+  saving: { background: "var(--color-income-light)", color: "var(--color-income)" },
+  even: { background: "var(--color-surface-subtle)", color: "var(--foreground)" },
+  increase: { background: "#fff1f2", color: "#e11d48" },
+};
 
 type Props = {
   initialExpenses: ExpenseResponse[];
@@ -169,12 +164,12 @@ export function ReportClient({
                 {vsLastPct !== null && (
                   <motion.div
                     className="mb-1 mt-2 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold"
-                    style={getVsLastChipStyle(vsLastPct)}
+                    style={VS_LAST_CHIP_STYLE[vsLastMonthDisplay(vsLastPct).tone]}
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={SPRING.base}
                   >
-                    {getVsLastLabel(vsLastPct)}
+                    {vsLastMonthDisplay(vsLastPct).label}
                   </motion.div>
                 )}
 

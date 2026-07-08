@@ -3,6 +3,8 @@ import {
   aggregateExpensesByCategory,
   calcVsLastMonthPct,
   summarizeReportTotals,
+  vsLastMonthDisplay,
+  type VsLastMonthTone,
 } from '@budget/common';
 import {
   ActivityIndicator,
@@ -25,6 +27,13 @@ const PERIODS: { value: ReportPeriod; label: string }[] = [
   { value: 'month', label: '今月' },
   { value: 'lastMonth', label: '先月' },
 ];
+
+/** 先月比のトーン別カラー（Web レポートのチップ配色と同一マッピング） */
+const VS_LAST_COLOR: Record<VsLastMonthTone, string> = {
+  saving: colors.income,
+  even: colors.foreground,
+  increase: '#e11d48',
+};
 
 /** レポート画面（Web /report と同一の集計 — ロジックは @budget/common で共有） */
 export default function ReportScreen() {
@@ -92,7 +101,9 @@ export default function ReportScreen() {
               <Text style={styles.caption}>支出合計</Text>
               <Text style={styles.hero}>¥{totals.totalExpense.toLocaleString()}</Text>
               {vsLastPct !== null && (
-                <Text style={styles.vsLast}>先月比 {vsLastPct}%</Text>
+                <Text style={[styles.vsLast, { color: VS_LAST_COLOR[vsLastMonthDisplay(vsLastPct).tone] }]}>
+                  {vsLastMonthDisplay(vsLastPct).label}
+                </Text>
               )}
               <View style={styles.totalsRow}>
                 <Text style={styles.totalsLabel}>収入</Text>
@@ -230,9 +241,7 @@ const styles = StyleSheet.create({
   },
   vsLast: {
     fontSize: 12,
-    fontWeight: '600',
-    color: colors.foreground,
-    opacity: 0.55,
+    fontWeight: '700',
   },
   totalsRow: {
     flexDirection: 'row',
