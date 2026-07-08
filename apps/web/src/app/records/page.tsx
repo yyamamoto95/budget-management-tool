@@ -19,13 +19,16 @@ const VALID_PERIODS: Period[] = ["week", "month", "lastMonth", "all"];
 async function RecordsContent({
   period,
   search,
+  date,
 }: {
   period: Period;
   search: string;
+  /** YYYY-MM-DD。指定時はその日の記録に絞り込む（#463） */
+  date: string | null;
 }) {
   const [expensesResult, expenseCatsResult, incomeCatsResult] =
     await Promise.allSettled([
-      getExpenses({ period, search: search || undefined }),
+      getExpenses({ period, search: search || undefined, date: date || undefined }),
       getCategories(0),
       getCategories(1),
     ]);
@@ -44,6 +47,7 @@ async function RecordsContent({
 
   if (expensesResult.status === "rejected") throw expensesResult.reason;
 
+  // date は API 側でサーバーサイドフィルタされる（GET /expense?date=YYYY-MM-DD）
   const expenses = expensesResult.value.expense ?? [];
   const expenseCategories =
     expenseCatsResult.status === "fulfilled" ? expenseCatsResult.value : [];
@@ -57,6 +61,7 @@ async function RecordsContent({
       allCategories={allCategories}
       initialPeriod={period}
       initialSearch={search}
+      initialDate={date}
     />
   );
 }
@@ -64,15 +69,18 @@ async function RecordsContent({
 export default async function RecordsPageRoute({
   searchParams,
 }: {
-  searchParams: Promise<{ period?: string; search?: string }>;
+  searchParams: Promise<{ period?: string; search?: string; date?: string }>;
 }) {
   const cookieStore = await cookies();
   const userId = cookieStore.get("user_id")?.value ?? "Guest";
   const params = await searchParams;
 
-  const period: Period = VALID_PERIODS.includes(params.period as Period)
+  // date 指定時（ホームの行タップ遷移 #463）は全期間から該当日に絞り込む
+  const date = /^\d{4}-\d{2}-\d{2}$/.test(params.date ?? "") ? (params.date as string) : null;
+  const requestedPeriod: Period = VALID_PERIODS.includes(params.period as Period)
     ? (params.period as Period)
     : "month";
+  const period: Period = date ? "all" : requestedPeriod;
   const search = params.search ?? "";
 
   return (
@@ -87,7 +95,7 @@ export default async function RecordsPageRoute({
           </div>
         }
       >
-        <RecordsContent period={period} search={search} />
+        <RecordsContent period={period} search={search} date={date} />
       </Suspense>
     </AppShell>
   );
