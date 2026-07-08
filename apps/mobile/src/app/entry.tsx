@@ -1,7 +1,10 @@
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
+import * as ImagePicker from 'expo-image-picker';
+import { Camera } from 'lucide-react-native';
 import {
   ActivityIndicator,
+  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -15,6 +18,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '@/lib/auth/auth-context';
 import { useCategories } from '@/lib/api/use-categories';
 import { useCreateExpense } from '@/lib/api/use-create-expense';
+import { useReceiptScan } from '@/lib/api/use-receipt-scan';
+import { colors } from '@/theme/tokens';
 
 /** 収支区分（API スキーマ準拠: 0=支出, 1=収入） */
 const BALANCE_TYPE = { expense: 0, income: 1 } as const;
@@ -51,6 +56,82 @@ export default function EntryScreen() {
     setBalanceType(next);
     // 収支タイプが変わるとカテゴリ体系も変わるため選択をリセットする
     setCategoryId(null);
+  };
+
+  const receiptScan = useReceiptScan();
+
+  /** 撮影/選択した画像を解析し、結果をフォームへプリフィルする（登録はしない） */
+  const applyScanResult = (result: {
+    amount: number | null;
+    date: string | null;
+    content: string | null;
+  }) => {
+    // != null で null と undefined の両方を防ぐ（防衛的チェック）
+    if (result.amount != null) setAmountText(String(result.amount));
+    if (result.content != null) setContent(result.content);
+
+    // 記録フォームの日付は今日/昨日のみのため、それ以外の日付は反映せず通知する
+    if (result.date != null) {
+      // 日付境界のレースを避けるため now は1回だけ取得する
+      const now = new Date();
+      const today = toDateString(now);
+      const yesterday = new Date(now);
+      yesterday.setDate(yesterday.getDate() - 1);
+      if (result.date === today) {
+        setDayOffset(0);
+      } else if (result.date === toDateString(yesterday)) {
+        setDayOffset(1);
+      } else {
+        Alert.alert(
+          'レシートの日付は反映されません',
+          `レシートの日付は ${result.date} でした。このフォームでは今日または昨日のみ選択できます。`,
+        );
+      }
+    }
+  };
+
+  const handleReceiptScan = async (useCamera: boolean) => {
+    setErrorMessage(null);
+    const picked = useCamera
+      ? await (async () => {
+          const permission = await ImagePicker.requestCameraPermissionsAsync();
+          if (!permission.granted) {
+            setErrorMessage('カメラへのアクセスが許可されていません');
+            return null;
+          }
+          return ImagePicker.launchCameraAsync({ base64: true, quality: 0.5 });
+        })()
+      : await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ['images'],
+          base64: true,
+          quality: 0.5,
+        });
+
+    if (!picked || picked.canceled) return;
+    const asset = picked.assets[0];
+    if (!asset.base64) {
+      setErrorMessage('画像の読み込みに失敗しました');
+      return;
+    }
+
+    try {
+      const result = await receiptScan.mutateAsync({
+        imageBase64: asset.base64,
+        mimeType: asset.mimeType === 'image/png' ? 'image/png' : 'image/jpeg',
+      });
+      applyScanResult(result);
+    } catch (e) {
+      // 解析失敗でも手入力は継続できる
+      setErrorMessage(e instanceof Error ? e.message : 'レシートの解析に失敗しました');
+    }
+  };
+
+  const promptReceiptSource = () => {
+    Alert.alert('レシート読取', '画像の取得方法を選んでください', [
+      { text: 'カメラで撮影', onPress: () => void handleReceiptScan(true) },
+      { text: 'ライブラリから選択', onPress: () => void handleReceiptScan(false) },
+      { text: 'キャンセル', style: 'cancel' },
+    ]);
   };
 
   const handleSubmit = async () => {
@@ -98,6 +179,26 @@ export default function EntryScreen() {
               <Text style={styles.close}>閉じる</Text>
             </Pressable>
           </View>
+
+          {/* レシート読取（#515）: 解析結果はプリフィルのみ。登録は必ずユーザーが確認する */}
+          <Pressable
+            style={[styles.scanButton, receiptScan.isPending && styles.scanButtonDisabled]}
+            onPress={promptReceiptSource}
+            disabled={receiptScan.isPending || createExpense.isPending}
+            accessibilityRole="button"
+          >
+            {receiptScan.isPending ? (
+              <>
+                <ActivityIndicator size="small" color={colors.brandPrimary} />
+                <Text style={styles.scanLabel}>レシートを解析中…（最大1分ほどかかります）</Text>
+              </>
+            ) : (
+              <>
+                <Camera size={16} color={colors.brandPrimary} />
+                <Text style={styles.scanLabel}>レシートを読み取って自動入力</Text>
+              </>
+            )}
+          </Pressable>
 
           {/* 支出 / 収入 切り替え */}
           <View style={styles.segment}>
@@ -251,6 +352,26 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#1c1410',
     opacity: 0.6,
+  },
+  scanButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.brandPrimary,
+    backgroundColor: colors.brandLight,
+    paddingVertical: 12,
+    marginBottom: 4,
+  },
+  scanButtonDisabled: {
+    opacity: 0.7,
+  },
+  scanLabel: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.brandPrimary,
   },
   segment: {
     flexDirection: 'row',
