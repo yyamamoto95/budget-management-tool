@@ -1,4 +1,3 @@
-import { Link } from 'expo-router';
 import {
   ActivityIndicator,
   Pressable,
@@ -9,8 +8,8 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useAuth } from '@/lib/auth/auth-context';
 import { useDashboard, type DashboardData } from '@/lib/api/use-dashboard';
+import { AppHeader } from '@/components/layout/AppHeader';
 import { LivingMarginCard } from '@/components/dashboard/LivingMarginCard';
 import { MonthlySummaryCard } from '@/components/dashboard/MonthlySummaryCard';
 import { TodayStatusCard } from '@/components/dashboard/TodayStatusCard';
@@ -18,25 +17,18 @@ import { WeeklyStreak } from '@/components/dashboard/WeeklyStreak';
 import { colors } from '@/theme/tokens';
 
 export default function HomeScreen() {
-  const { userId, logout } = useAuth();
   const { data, isPending, isError, error, refetch, isRefetching } = useDashboard();
 
   return (
     // 下部セーフエリアはタブバーが処理するため除外（二重パディング防止）
     <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
+      <AppHeader />
       <ScrollView
         contentContainerStyle={styles.container}
         refreshControl={
           <RefreshControl refreshing={isRefetching} onRefresh={() => refetch()} />
         }
       >
-        <View style={styles.header}>
-          <Text style={styles.userId}>{userId}</Text>
-          <Pressable onPress={logout} accessibilityRole="button" hitSlop={8}>
-            <Text style={styles.logout}>ログアウト</Text>
-          </Pressable>
-        </View>
-
         {isPending && (
           <View style={styles.center}>
             <ActivityIndicator size="large" color={colors.income} />
@@ -54,13 +46,6 @@ export default function HomeScreen() {
 
         {data && <Dashboard data={data} today={new Date()} />}
       </ScrollView>
-
-      {/* クイック記録への導線（#496） */}
-      <Link href="/entry" asChild>
-        <Pressable style={styles.fab} accessibilityRole="button" accessibilityLabel="記録する">
-          <Text style={styles.fabLabel}>＋ 記録</Text>
-        </Pressable>
-      </Link>
     </SafeAreaView>
   );
 }
@@ -123,26 +108,10 @@ const styles = StyleSheet.create({
   },
   container: {
     padding: 20,
-    // FAB（＋ 記録）と最終カードが重ならないよう下部に余白を確保する
-    paddingBottom: 100,
+    paddingTop: 8,
+    // タブ中央の + ボタンと最終カードが重ならないよう下部に余白を確保する
+    paddingBottom: 48,
     gap: 12,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  userId: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: colors.foreground,
-    opacity: 0.7,
-  },
-  logout: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#c62828',
   },
   center: {
     paddingVertical: 64,
@@ -218,24 +187,5 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: colors.foreground,
     opacity: 0.5,
-  },
-  fab: {
-    position: 'absolute',
-    right: 20,
-    bottom: 28,
-    borderRadius: 999,
-    backgroundColor: colors.income,
-    paddingHorizontal: 22,
-    paddingVertical: 14,
-    shadowColor: '#000000',
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 6,
-  },
-  fabLabel: {
-    fontSize: 15,
-    fontWeight: '800',
-    color: colors.surface,
   },
 });
