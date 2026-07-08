@@ -2,6 +2,12 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { ExpenseInputModal } from '../../components/input/ExpenseInputModal'
 
+const routerRefresh = vi.fn();
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push: vi.fn(), refresh: routerRefresh }),
+}));
+
+
 const mockCreateExpenseAction = vi.fn().mockResolvedValue({ error: null, success: true })
 vi.mock('@/lib/actions/expense', () => ({
     createExpenseAction: (...args: unknown[]) => mockCreateExpenseAction(...args),

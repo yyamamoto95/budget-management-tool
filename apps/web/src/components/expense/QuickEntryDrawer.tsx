@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useState, useEffect, useCallback, useRef, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import {
   Delete, PenLine, ChevronDown, Receipt, Check, Camera, Loader2,
 } from "lucide-react";
@@ -45,6 +46,7 @@ export function QuickEntryDrawer({
   effectiveDailyExpense = null,
   dailyBudget = null,
 }: Props) {
+  const router = useRouter();
   const [balanceType, setBalanceType] = useState<0 | 1>(0);
   const [categoryId, setCategoryId] = useState<number>(expenseCategories[0]?.id ?? 0);
   const [amountStr, setAmountStr] = useState("");
@@ -123,6 +125,13 @@ export function QuickEntryDrawer({
     const timer = setTimeout(() => setJustSubmitted(false), SUCCESS_FEEDBACK_MS);
     return () => clearTimeout(timer);
   }, [justSubmitted]);
+
+  // 登録成功後にホームの数値（サーバーコンポーネント由来）を更新する。
+  // action 内の revalidatePath は isPending ハングの原因になるため（#437）、
+  // 成功フィードバック表示とは独立にここで refresh する
+  useEffect(() => {
+    if (state.success) router.refresh();
+  }, [state, router]);
 
   const categories = balanceType === 0 ? expenseCategories : incomeCategories;
   const visible = showAll ? categories : categories.slice(0, VISIBLE_COUNT);

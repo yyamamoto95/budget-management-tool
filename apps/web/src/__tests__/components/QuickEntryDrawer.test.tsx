@@ -3,6 +3,12 @@ import { render, screen, fireEvent, act } from "@testing-library/react";
 import { QuickEntryDrawer } from "@/components/expense/QuickEntryDrawer";
 import type { CategoryItem } from "@/lib/api/types";
 
+const routerRefresh = vi.fn();
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push: vi.fn(), refresh: routerRefresh }),
+}));
+
+
 // vaul の Drawer はポータルを使うため、テスト環境では DOM への描画を確認する
 vi.mock("@/lib/actions/expense", () => ({
   createExpenseAction: vi.fn().mockResolvedValue({ error: null, success: false }),

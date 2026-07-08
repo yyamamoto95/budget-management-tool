@@ -4,6 +4,12 @@ import * as React from 'react'
 import { ExpenseCreateForm } from '../../components/expense/ExpenseCreateForm'
 import type { CategoryItem } from '@/lib/api/types'
 
+const routerRefresh = vi.fn();
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push: vi.fn(), refresh: routerRefresh }),
+}));
+
+
 // Server Actionをモック
 vi.mock('@/lib/actions/expense', () => ({
     createExpenseAction: vi.fn(),

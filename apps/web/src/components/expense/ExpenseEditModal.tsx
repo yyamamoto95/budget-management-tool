@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { updateExpenseAction } from "@/lib/actions/expense";
 import type { UpdateExpenseActionState } from "@/lib/actions/expense";
 import type { ExpenseResponse, CategoryItem } from "@/lib/api/types";
@@ -28,6 +29,7 @@ type Props = {
 const initialState: UpdateExpenseActionState = { error: null, success: false };
 
 export function ExpenseEditModal({ expense, onClose, expenseCategories, incomeCategories }: Props) {
+  const router = useRouter();
   const boundAction = updateExpenseAction.bind(null, expense.id);
   const [state, formAction, isPending] = useActionState(boundAction, initialState);
   const [balanceType, setBalanceType] = useState<0 | 1>(expense.balanceType);
@@ -37,9 +39,11 @@ export function ExpenseEditModal({ expense, onClose, expenseCategories, incomeCa
   // 更新成功時にモーダルを閉じる
   useEffect(() => {
     if (state.success) {
+      // action 内 revalidatePath は #437 のため禁止。ここでサーバーデータを更新する
+      router.refresh();
       onClose();
     }
-  }, [state.success, onClose]);
+  }, [state.success, onClose, router]);
 
   return (
     <Dialog open={true} onOpenChange={(open) => !open && onClose()}>

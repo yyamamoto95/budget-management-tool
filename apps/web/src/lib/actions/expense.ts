@@ -1,6 +1,5 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { serverFetch, ApiError } from "../api/client";
 import { createExpenseSchema, updateExpenseSchema } from "@budget/common";
 import type { GetExpenseResponse } from "../api/types";
@@ -57,8 +56,10 @@ export async function createExpenseAction(
     return { error: "支出の登録に失敗しました", success: false };
   }
 
-  revalidatePath("/");
-  revalidatePath("/expenses");
+  // 注意: ここで revalidatePath を呼んではならない（#437）。
+  // action 応答に RSC 再レンダーが同梱されると、遅い環境で useActionState の
+  // isPending が解除されないクライアント側ハングが発生する。
+  // 画面データの更新は呼び出し側が成功後に router.refresh() で行う。
   return {
     error: null,
     success: true,
@@ -117,14 +118,11 @@ export async function updateExpenseAction(
     return { error: "支出の更新に失敗しました", success: false };
   }
 
-  revalidatePath("/");
-  revalidatePath("/expenses");
+  // revalidatePath は使わない（#437: isPending ハングの原因）。呼び出し側で router.refresh() する
   return { error: null, success: true };
 }
 
-/** 支出を削除する Server Action */
+/** 支出を削除する Server Action（呼び出し側で成功後に router.refresh() すること。#437） */
 export async function deleteExpenseAction(id: string): Promise<void> {
   await serverFetch(`/api/expense/${id}`, { method: "DELETE" });
-  revalidatePath("/");
-  revalidatePath("/expenses");
 }
