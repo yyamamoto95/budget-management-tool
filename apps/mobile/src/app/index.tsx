@@ -1,6 +1,7 @@
 import { calcSavingsForecast } from '@budget/common';
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useAuth } from '@/lib/auth/auth-context';
 
 // Phase 1 のサンプルデータ。Phase 2 で @budget/api-client 経由の実データに置き換える
 const SAMPLE = {
@@ -11,6 +12,7 @@ const SAMPLE = {
 };
 
 export default function HomeScreen() {
+  const { userId, logout } = useAuth();
   const now = new Date();
   const forecast = calcSavingsForecast({
     ...SAMPLE,
@@ -21,6 +23,13 @@ export default function HomeScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.userId}>{userId}</Text>
+          <Pressable onPress={logout} accessibilityRole="button" hitSlop={8}>
+            <Text style={styles.logout}>ログアウト</Text>
+          </Pressable>
+        </View>
+
         <Text style={styles.caption}>今日使えるお金（サンプル）</Text>
         <Text style={styles.hero}>¥{forecast.dailyRemainingBudget.toLocaleString()}</Text>
 
@@ -65,6 +74,23 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
     gap: 12,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  userId: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#1c1410',
+    opacity: 0.7,
+  },
+  logout: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#c62828',
   },
   caption: {
     fontSize: 13,
