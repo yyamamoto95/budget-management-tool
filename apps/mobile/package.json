@@ -3,6 +3,7 @@
   "main": "expo-router/entry",
   "version": "1.0.0",
   "dependencies": {
+    "@budget/api-client": "workspace:*",
     "@budget/common": "workspace:*",
     "@expo/metro-runtime": "~6.1.2",
     "@react-navigation/native": "^7.1.8",
@@ -11,6 +12,7 @@
     "expo-constants": "~18.0.9",
     "expo-linking": "~8.0.8",
     "expo-router": "~6.0.10",
+    "expo-secure-store": "~15.0.8",
     "expo-splash-screen": "~31.0.10",
     "expo-status-bar": "~3.0.8",
     "react": "19.1.0",
