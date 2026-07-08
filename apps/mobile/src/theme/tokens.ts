@@ -1,55 +1,73 @@
 /**
  * デザイントークン（Web と同一値）。
- * SSOT: .github/design/figma-tokens.json + apps/web/src/app/globals.css（ライトモード値）
- * RN は CSS 変数・linear-gradient を使えないため、単色フォールバックで保持する。
+ * 値は pnpm sync:tokens が生成する tokens.generated.ts（globals.css ライトモード由来）を参照する。
+ * CssVarName の keyof 型により、Web 側で変数が消えるとここが型エラーになり乖離を検知できる。
+ * RN は CSS 変数・linear-gradient を使えないため、bar はグラデーションの主色を用いる。
  */
 import type { BudgetTone, SavingsInsightKind, SpendStatus } from '@budget/common';
+import { cssVars, type CssVarName } from './tokens.generated';
+
+function v(name: CssVarName): string {
+  return cssVars[name];
+}
 
 export const colors = {
-  background: '#faf6f2',
-  surface: '#ffffff',
-  foreground: '#1c1410',
-  borderDefault: 'rgba(28,20,16,0.08)',
+  background: v('--background'),
+  surface: v('--color-surface-default'),
+  foreground: v('--foreground'),
+  borderDefault: v('--border-default'),
 
-  brandPrimary: '#f18840',
-  brandLight: '#fff6ee',
+  brandPrimary: v('--color-brand-primary'),
+  brandLight: v('--color-brand-light'),
 
-  expense: '#f18840',
-  expenseLight: '#fff6ee',
-  income: '#35b5a2',
-  incomeLight: '#ecfaf8',
+  expense: v('--color-expense'),
+  expenseLight: v('--color-expense-light'),
+  income: v('--color-income'),
+  incomeLight: v('--color-income-light'),
 } as const;
 
-/** カード全体の3トーン配色（globals.css --color-status-* と同値） */
+/** カード全体の3トーン配色（--color-status-*） */
 export const statusTone: Record<
   BudgetTone,
   { bg: string; border: string; hero: string; badge: string }
 > = {
   safe: {
-    bg: '#f8faf8',
-    border: 'rgba(196,181,165,0.5)',
-    hero: '#6b5b52',
-    badge: '#c4b5a5',
+    bg: v('--color-status-safe-bg'),
+    border: v('--color-status-safe-border'),
+    hero: v('--color-status-safe-hero'),
+    badge: v('--color-status-safe-badge'),
   },
   caution: {
-    bg: '#fef4f4',
-    border: 'rgba(248,113,113,0.35)',
-    hero: '#b91c1c',
-    badge: '#f87171',
+    bg: v('--color-status-caution-bg'),
+    border: v('--color-status-caution-border'),
+    hero: v('--color-status-caution-hero'),
+    badge: v('--color-status-caution-badge'),
   },
   danger: {
-    bg: '#fff1f2',
-    border: 'rgba(244,63,94,0.35)',
-    hero: '#9f1239',
-    badge: '#f43f5e',
+    bg: v('--color-status-danger-bg'),
+    border: v('--color-status-danger-border'),
+    hero: v('--color-status-danger-hero'),
+    badge: v('--color-status-danger-badge'),
   },
 };
 
-/** forecast 系トークン（globals.css --color-forecast-* と同値。bar はグラデーションの主色） */
+/** forecast 系トークン（bar はグラデーションではなく主色 --color-forecast-* を使用） */
 const forecast = {
-  safe: { color: '#35b5a2', badgeBg: 'rgba(53,181,162,0.10)', bar: '#35b5a2' },
-  caution: { color: '#e879a3', badgeBg: 'rgba(232,121,163,0.12)', bar: '#e879a3' },
-  danger: { color: '#f43f5e', badgeBg: 'rgba(244,63,94,0.09)', bar: '#f43f5e' },
+  safe: {
+    color: v('--color-forecast-safe'),
+    badgeBg: v('--color-forecast-safe-badge-bg'),
+    bar: v('--color-forecast-safe'),
+  },
+  caution: {
+    color: v('--color-forecast-caution'),
+    badgeBg: v('--color-forecast-caution-badge-bg'),
+    bar: v('--color-forecast-caution'),
+  },
+  danger: {
+    color: v('--color-forecast-danger'),
+    badgeBg: v('--color-forecast-danger-badge-bg'),
+    bar: v('--color-forecast-danger'),
+  },
 } as const;
 
 /** 4状態バッジ・進捗バーの配色（Web DailyBudgetHero の SPEND_STATUS_UI と同マッピング） */
