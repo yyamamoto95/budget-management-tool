@@ -69,7 +69,8 @@ export function QuickEntryDrawer({
         return;
       }
 
-      if (result.amount != null) {
+      // API 側で整数・正数に正規化済みだが、キーパッドが整数前提のため防衛的に検証する
+      if (result.amount != null && Number.isInteger(result.amount) && result.amount > 0) {
         setAmountStr(String(Math.min(result.amount, MAX_AMOUNT)));
       }
       if (result.content != null) {
