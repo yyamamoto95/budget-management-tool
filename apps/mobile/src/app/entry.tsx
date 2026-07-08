@@ -205,8 +205,15 @@ export default function EntryScreen() {
         >
           <View style={styles.headerRow}>
             <Text style={styles.title}>クイック記録</Text>
-            <Pressable onPress={() => router.back()} accessibilityRole="button" hitSlop={8}>
-              <Text style={styles.close}>閉じる</Text>
+            <Pressable
+              onPress={() => router.back()}
+              disabled={createExpense.isPending}
+              accessibilityRole="button"
+              hitSlop={8}
+            >
+              <Text style={[styles.close, createExpense.isPending && styles.disabledText]}>
+                閉じる
+              </Text>
             </Pressable>
           </View>
 
@@ -244,6 +251,7 @@ export default function EntryScreen() {
                   key={type}
                   style={[styles.segmentItem, selected && { backgroundColor: active }]}
                   onPress={() => handleSelectBalanceType(type)}
+                  disabled={createExpense.isPending}
                   accessibilityRole="button"
                 >
                   <Text style={[styles.segmentLabel, selected && styles.segmentLabelActive]}>
@@ -257,7 +265,11 @@ export default function EntryScreen() {
           {/* 金額パネル（Web と同一: ラベル + 右寄せ大表示） */}
           <View style={styles.amountPanel}>
             <Text style={styles.amountCaption}>{isExpense ? '支出金額' : '収入金額'}</Text>
-            <Text style={[styles.amountValue, { color: brandColor }]}>
+            <Text
+              style={[styles.amountValue, { color: brandColor }]}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+            >
               ¥{amountText === '' ? '0' : Number(amountText).toLocaleString()}
             </Text>
           </View>
@@ -285,6 +297,7 @@ export default function EntryScreen() {
                         selected && { borderColor: category.color, borderWidth: 2 },
                       ]}
                       onPress={() => setCategoryId(selected ? null : category.id)}
+                      disabled={createExpense.isPending}
                       accessibilityRole="button"
                     >
                       <Text style={[styles.chipLabel, { color: category.color }]}>
@@ -347,6 +360,7 @@ export default function EntryScreen() {
                   key={offset}
                   style={[styles.dateChip, selected && styles.dateChipActive]}
                   onPress={() => setDayOffset(offset)}
+                  disabled={createExpense.isPending}
                   accessibilityRole="button"
                 >
                   <Text style={[styles.dateChipLabel, selected && styles.dateChipLabelActive]}>
@@ -416,6 +430,9 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '700',
     color: colors.brandPrimary,
+  },
+  disabledText: {
+    opacity: 0.4,
   },
   scanButton: {
     flexDirection: 'row',
