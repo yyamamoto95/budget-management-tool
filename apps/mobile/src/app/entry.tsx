@@ -30,7 +30,11 @@ export default function EntryScreen() {
   const router = useRouter();
   const { userId } = useAuth();
   const [balanceType, setBalanceType] = useState<0 | 1>(BALANCE_TYPE.expense);
-  const { data: categories, isPending: categoriesLoading } = useCategories(balanceType);
+  const {
+    data: categories,
+    isPending: categoriesLoading,
+    isError: isCategoriesError,
+  } = useCategories(balanceType);
   const createExpense = useCreateExpense();
 
   const [amountText, setAmountText] = useState('');
@@ -74,7 +78,11 @@ export default function EntryScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['bottom']}>
+    <SafeAreaView
+      style={styles.safeArea}
+      // iOS のモーダルは OS が上部を自動調整するが Android はされないため top を含める
+      edges={Platform.OS === 'ios' ? ['bottom'] : ['top', 'bottom']}
+    >
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -119,6 +127,7 @@ export default function EntryScreen() {
             placeholder="0"
             placeholderTextColor="rgba(28,20,16,0.3)"
             keyboardType="number-pad"
+            maxLength={9}
             editable={!createExpense.isPending}
           />
 
@@ -126,6 +135,8 @@ export default function EntryScreen() {
           <Text style={styles.label}>カテゴリ</Text>
           {categoriesLoading ? (
             <ActivityIndicator color="#2e7d32" />
+          ) : isCategoriesError ? (
+            <Text style={styles.error}>カテゴリの取得に失敗しました。通信環境を確認してください</Text>
           ) : (
             <View style={styles.chips}>
               {(categories ?? []).map((category) => {
@@ -182,6 +193,7 @@ export default function EntryScreen() {
             onChangeText={setContent}
             placeholder="昼食代など"
             placeholderTextColor="rgba(28,20,16,0.3)"
+            maxLength={255}
             editable={!createExpense.isPending}
           />
 

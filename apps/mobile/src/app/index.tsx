@@ -148,6 +148,8 @@ const styles = StyleSheet.create({
   },
   container: {
     padding: 20,
+    // FAB（＋ 記録）と最終カードが重ならないよう下部に余白を確保する
+    paddingBottom: 100,
     gap: 12,
   },
   header: {
