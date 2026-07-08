@@ -60,16 +60,20 @@ export default function EntryScreen() {
 
   const receiptScan = useReceiptScan();
 
-  /** 撮影/選択した画像を解析し、結果をフォームへプリフィルする（登録はしない） */
+  /**
+   * 撮影/選択した画像の解析結果をフォームへプリフィルし、
+   * 読み取り内容のサマリーを返す（登録はしない）
+   */
   const applyScanResult = (result: {
     amount: number | null;
     date: string | null;
     content: string | null;
-  }) => {
+  }): string => {
     // != null で null と undefined の両方を防ぐ（防衛的チェック）
     if (result.amount != null) setAmountText(String(result.amount));
     if (result.content != null) setContent(result.content);
 
+    let dateNote = '';
     // 記録フォームの日付は今日/昨日のみのため、それ以外の日付は反映せず通知する
     if (result.date != null) {
       // 日付境界のレースを避けるため now は1回だけ取得する
@@ -82,12 +86,15 @@ export default function EntryScreen() {
       } else if (result.date === toDateString(yesterday)) {
         setDayOffset(1);
       } else {
-        Alert.alert(
-          'レシートの日付は反映されません',
-          `レシートの日付は ${result.date} でした。このフォームでは今日または昨日のみ選択できます。`,
-        );
+        dateNote = '（今日/昨日以外のため日付は未反映）';
       }
     }
+
+    return [
+      result.amount != null ? `金額: ¥${result.amount.toLocaleString()}` : '金額: 読み取れず',
+      result.date != null ? `日付: ${result.date}${dateNote}` : '日付: 読み取れず',
+      result.content != null ? `店名: ${result.content}` : '店名: 読み取れず',
+    ].join('\n');
   };
 
   const handleReceiptScan = async (useCamera: boolean) => {
@@ -119,10 +126,14 @@ export default function EntryScreen() {
         imageBase64: asset.base64,
         mimeType: asset.mimeType === 'image/png' ? 'image/png' : 'image/jpeg',
       });
-      applyScanResult(result);
+      // 成功時は読み取り結果を必ずメッセージで明示する（全項目 null でも通知される）
+      const summary = applyScanResult(result);
+      Alert.alert('レシートを読み取りました', `${summary}\n\n内容を確認して登録してください。`);
     } catch (e) {
-      // 解析失敗でも手入力は継続できる
-      setErrorMessage(e instanceof Error ? e.message : 'レシートの解析に失敗しました');
+      const message = e instanceof Error ? e.message : 'レシートの解析に失敗しました';
+      // 失敗時もメッセージで明示する（手入力はそのまま継続できる）
+      setErrorMessage(message);
+      Alert.alert('レシートを解析できませんでした', `${message}\n\n手入力で登録できます。`);
     }
   };
 
@@ -190,7 +201,7 @@ export default function EntryScreen() {
             {receiptScan.isPending ? (
               <>
                 <ActivityIndicator size="small" color={colors.brandPrimary} />
-                <Text style={styles.scanLabel}>レシートを解析中…（最大1分ほどかかります）</Text>
+                <Text style={styles.scanLabel}>レシートを解析中…（最大2分ほどかかります）</Text>
               </>
             ) : (
               <>
