@@ -18,6 +18,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '@/lib/auth/auth-context';
 import { useCategories } from '@/lib/api/use-categories';
+import { getCategoryIcon } from '@/lib/categoryIcons';
 import { useCreateExpense } from '@/lib/api/use-create-expense';
 import { useReceiptScan } from '@/lib/api/use-receipt-scan';
 import { colors } from '@/theme/tokens';
@@ -169,7 +170,7 @@ export default function EntryScreen() {
         balanceType,
         userId,
         date: toDateString(date),
-        ...(categoryId !== null ? { categoryId } : {}),
+        ...(effectiveCategoryId !== null ? { categoryId: effectiveCategoryId } : {}),
         ...(content ? { content } : {}),
       });
       // 二重登録防止のため入力をリセットしてから戻る（Web #478 と同じ方針）
@@ -187,6 +188,8 @@ export default function EntryScreen() {
   const allCategories = categories ?? [];
   const visibleCategories = showAll ? allCategories : allCategories.slice(0, VISIBLE_COUNT);
   const restCount = Math.max(0, allCategories.length - VISIBLE_COUNT);
+  // Web と同一挙動: 常にいずれか1つ選択（既定は表示順の先頭）・選択解除なし
+  const effectiveCategoryId = categoryId ?? allCategories[0]?.id ?? null;
 
   return (
     <SafeAreaView
@@ -277,7 +280,7 @@ export default function EntryScreen() {
           {/* カテゴリ（表示順 4 件 + もっと見る — Web と同一） */}
           <View style={styles.categoryHeader}>
             <Text style={styles.label}>カテゴリ</Text>
-            <Text style={styles.labelNote}>よく使う順</Text>
+            {!showAll && <Text style={styles.labelNote}>よく使う順</Text>}
           </View>
           {categoriesLoading ? (
             <ActivityIndicator color={colors.brandPrimary} />
@@ -285,22 +288,36 @@ export default function EntryScreen() {
             <Text style={styles.error}>カテゴリの取得に失敗しました。通信環境を確認してください</Text>
           ) : (
             <>
-              <View style={styles.chips}>
+              <View style={styles.categoryGrid}>
                 {visibleCategories.map((category) => {
-                  const selected = categoryId === category.id;
+                  const selected = effectiveCategoryId === category.id;
+                  const Icon = getCategoryIcon(category.key);
                   return (
                     <Pressable
                       key={category.id}
                       style={[
-                        styles.chip,
-                        { backgroundColor: category.bg },
-                        selected && { borderColor: category.color, borderWidth: 2 },
+                        styles.categoryTile,
+                        selected && {
+                          backgroundColor: category.bg,
+                          // Web と同一: カテゴリ色の 25% 透過枠（#RRGGBB40）
+                          borderColor: `${category.color}40`,
+                          borderWidth: 2,
+                        },
                       ]}
-                      onPress={() => setCategoryId(selected ? null : category.id)}
+                      onPress={() => setCategoryId(category.id)}
                       disabled={createExpense.isPending}
                       accessibilityRole="button"
                     >
-                      <Text style={[styles.chipLabel, { color: category.color }]}>
+                      <Icon
+                        size={16}
+                        color={selected ? category.color : 'rgba(28,20,16,0.35)'}
+                      />
+                      <Text
+                        style={[
+                          styles.categoryTileLabel,
+                          { color: selected ? category.color : 'rgba(28,20,16,0.55)' },
+                        ]}
+                      >
                         {category.name}
                       </Text>
                     </Pressable>
@@ -314,8 +331,8 @@ export default function EntryScreen() {
                   accessibilityRole="button"
                 >
                   <ChevronDown
-                    size={14}
-                    color={colors.foreground}
+                    size={12}
+                    color="rgba(28,20,16,0.45)"
                     style={showAll ? { transform: [{ rotate: '180deg' }] } : undefined}
                   />
                   <Text style={styles.moreLabel}>
@@ -509,34 +526,43 @@ const styles = StyleSheet.create({
     color: colors.foreground,
     opacity: 0.4,
   },
-  chips: {
+  categoryGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
+    gap: 6,
   },
-  chip: {
-    borderRadius: 10,
-    paddingHorizontal: 14,
+  categoryTile: {
+    // Web と同一の 4 列グリッド: (100% - gap 3 つ) / 4。
+    // flexGrow は使わない（総数が4の倍数でないとき最終行が伸びて崩れるため）
+    flexBasis: '23.5%',
+    alignItems: 'center',
+    gap: 4,
     paddingVertical: 8,
-    borderWidth: 2,
-    borderColor: 'transparent',
+    borderRadius: 10,
+    backgroundColor: colors.background,
+    borderWidth: 1,
+    borderColor: 'rgba(28,20,16,0.10)',
   },
-  chipLabel: {
-    fontSize: 13,
-    fontWeight: '700',
+  categoryTileLabel: {
+    fontSize: 10,
+    fontWeight: '600',
+    textAlign: 'center',
   },
   moreButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 4,
-    paddingVertical: 4,
+    paddingVertical: 6,
+    borderRadius: 10,
+    backgroundColor: colors.background,
+    borderWidth: 1,
+    borderColor: 'rgba(28,20,16,0.10)',
   },
   moreLabel: {
-    fontSize: 12,
+    fontSize: 10,
     fontWeight: '600',
-    color: colors.foreground,
-    opacity: 0.6,
+    color: 'rgba(28,20,16,0.45)',
   },
   keypad: {
     flexDirection: 'row',
@@ -569,23 +595,24 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   dateChip: {
-    borderRadius: 999,
+    borderRadius: 10,
     paddingHorizontal: 16,
     paddingVertical: 6,
-    backgroundColor: 'rgba(28,20,16,0.06)',
+    backgroundColor: colors.background,
+    borderWidth: 1,
+    borderColor: 'rgba(28,20,16,0.10)',
   },
   dateChipActive: {
-    backgroundColor: colors.foreground,
+    backgroundColor: colors.brandLight,
+    borderColor: colors.brandPrimary,
   },
   dateChipLabel: {
     fontSize: 12,
     fontWeight: '700',
-    color: colors.foreground,
-    opacity: 0.6,
+    color: 'rgba(28,20,16,0.55)',
   },
   dateChipLabelActive: {
-    color: '#ffffff',
-    opacity: 1,
+    color: colors.brandPrimary,
   },
   input: {
     borderRadius: 10,
