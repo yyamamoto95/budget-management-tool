@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { ArrowRight, LayoutDashboard, PieChart, Settings, CircleUser, Wand2, BarChart2, Receipt, Layers, PiggyBank, SunMedium, Shapes, Camera } from 'lucide-react'
+import { ArrowRight, LayoutDashboard, PieChart, Settings, CircleUser, Wand2, BarChart2, Receipt, Layers, PiggyBank, SunMedium, Shapes, Camera, TrendingUp } from 'lucide-react'
 
 type PrototypeCard = {
   path: string
@@ -98,6 +98,14 @@ const prototypes: PrototypeCard[] = [
     icon: Shapes,
     issue: 'sandbox',
     status: 'wip' as const,
+  },
+  {
+    path: '/investment-capacity',
+    title: '投資余力診断カード',
+    description: '今月の投資上限・リスク許容度・生活の備えバー。「投資を控える」2パターンと検証ツールへの導線付き。',
+    icon: TrendingUp,
+    issue: '#543',
+    status: 'wip',
   },
   {
     path: '/my-page',
