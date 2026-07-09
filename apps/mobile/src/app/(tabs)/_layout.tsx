@@ -63,7 +63,8 @@ export default function TabsLayout() {
 
       <Pressable
         style={[styles.centerButton, { bottom: insets.bottom + 22 }]}
-        onPress={() => router.push('/entry')}
+        // navigate は同一ルートの重複プッシュを抑止する（連打対策）
+        onPress={() => router.navigate('/entry')}
         accessibilityRole="button"
         accessibilityLabel="記録する"
       >
