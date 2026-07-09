@@ -1,16 +1,15 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { PERIOD_LABELS } from "@budget/common";
 import { SPRING } from "@/lib/motion";
 
 export type Period = "week" | "month" | "lastMonth" | "all";
 
-const PERIOD_OPTIONS: { value: Period; label: string }[] = [
-  { value: "week", label: "直近7日" },
-  { value: "month", label: "今月" },
-  { value: "lastMonth", label: "先月" },
-  { value: "all", label: "全期間" },
-];
+// ラベルは @budget/common の PERIOD_LABELS に共通化（#539）
+const PERIOD_OPTIONS: { value: Period; label: string }[] = (
+  ["week", "month", "lastMonth", "all"] as const
+).map((value) => ({ value, label: PERIOD_LABELS[value] }));
 
 type Props = {
   value: Period;

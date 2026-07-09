@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
+import { formatYen, weeklyStreakStateOf, countWeeklyAchievement, type WeeklyStreakState } from "@budget/common";
 import { motion } from "framer-motion";
 import { CheckCircle2, AlertCircle, HelpCircle, MinusCircle } from "lucide-react";
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
@@ -18,11 +19,8 @@ type Props = {
   dailyBudget: number | null;
 };
 
-type StreakState = "achieved" | "over" | "unrecorded" | "future";
-
-function formatYen(n: number): string {
-  return `¥${Math.round(n).toLocaleString("ja-JP")}`;
-}
+// 状態判定・金額表示は @budget/common に共通化（モバイル WeeklyStreak と単一実装 #539）
+type StreakState = WeeklyStreakState;
 
 function StreakTooltipContent({
   dow, date, state, expense, dailyBudget,
@@ -101,10 +99,10 @@ export function WeeklyStreak({ weeklyRecord, dailyBudget }: Props) {
   const todayStr = new Date().toISOString().slice(0, 10);
   const budget = dailyBudget ?? 0;
 
-  const weekAchievedCount = weeklyRecord.filter(
-    (d) => d.recorded && d.expense <= budget,
-  ).length;
-  const weekRecordedCount = weeklyRecord.filter((d) => d.recorded).length;
+  const { achieved: weekAchievedCount, recorded: weekRecordedCount } = countWeeklyAchievement(
+    weeklyRecord,
+    dailyBudget,
+  );
 
   return (
     <TooltipProvider delayDuration={150}>
@@ -133,16 +131,10 @@ export function WeeklyStreak({ weeklyRecord, dailyBudget }: Props) {
         <div className="grid grid-cols-7 gap-1">
           {weeklyRecord.map((day) => {
             const isToday = day.date === todayStr;
-            const isFuture = day.date > todayStr;
-            const achieved = !isFuture && day.recorded && day.expense <= budget;
-            const over = !isFuture && day.recorded && day.expense > budget;
-            const unrecorded = !isFuture && !day.recorded;
-
-            let streakState: StreakState;
-            if (achieved) streakState = "achieved";
-            else if (over) streakState = "over";
-            else if (unrecorded) streakState = "unrecorded";
-            else streakState = "future";
+            const streakState = weeklyStreakStateOf(day, dailyBudget, todayStr);
+            const achieved = streakState === "achieved";
+            const over = streakState === "over";
+            const unrecorded = streakState === "unrecorded";
 
             let Icon;
             let color: string;
@@ -172,7 +164,7 @@ export function WeeklyStreak({ weeklyRecord, dailyBudget }: Props) {
             const [, mm, dd] = day.date.split("-");
             const dateLabel = `${parseInt(mm)}/${parseInt(dd)}(${day.dow})`;
             return (
-              <StreakTooltip key={day.date} content={isFuture ? null : tooltipContent}>
+              <StreakTooltip key={day.date} content={streakState === "future" ? null : tooltipContent}>
                 <span
                   className="text-[8px] font-semibold leading-none tabular-nums"
                   style={{ color: isToday ? "var(--color-brand-primary)" : "var(--foreground)", opacity: isToday ? 1 : 0.42 }}

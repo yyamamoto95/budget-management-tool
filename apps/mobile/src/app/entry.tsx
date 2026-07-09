@@ -2,7 +2,15 @@ import { useState } from 'react';
 import { useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { Camera, ChevronDown, Delete } from 'lucide-react-native';
-import { applyKeypadKey, KEYPAD_KEYS, MAX_AMOUNT, type KeypadKey } from '@budget/common';
+import {
+  applyKeypadKey,
+  BALANCE_TYPE,
+  CATEGORY_VISIBLE_COUNT,
+  KEYPAD_KEYS,
+  MAX_AMOUNT,
+  toLocalDateString,
+  type KeypadKey,
+} from '@budget/common';
 import {
   ActivityIndicator,
   Alert,
@@ -22,19 +30,6 @@ import { getCategoryIcon } from '@/lib/categoryIcons';
 import { useCreateExpense } from '@/lib/api/use-create-expense';
 import { useReceiptScan } from '@/lib/api/use-receipt-scan';
 import { colors } from '@/theme/tokens';
-
-/** 収支区分（API スキーマ準拠: 0=支出, 1=収入） */
-const BALANCE_TYPE = { expense: 0, income: 1 } as const;
-
-/** カテゴリの初期表示件数（Web QuickEntryDrawer と同一） */
-const VISIBLE_COUNT = 4;
-
-function toDateString(date: Date): string {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, '0');
-  const d = String(date.getDate()).padStart(2, '0');
-  return `${y}-${m}-${d}`;
-}
 
 export default function EntryScreen() {
   const router = useRouter();
@@ -92,12 +87,12 @@ export default function EntryScreen() {
     if (result.date != null) {
       // 日付境界のレースを避けるため now は1回だけ取得する
       const now = new Date();
-      const today = toDateString(now);
+      const today = toLocalDateString(now);
       const yesterday = new Date(now);
       yesterday.setDate(yesterday.getDate() - 1);
       if (result.date === today) {
         setDayOffset(0);
-      } else if (result.date === toDateString(yesterday)) {
+      } else if (result.date === toLocalDateString(yesterday)) {
         setDayOffset(1);
       } else {
         dateNote = '（今日/昨日以外のため日付は未反映）';
@@ -169,7 +164,7 @@ export default function EntryScreen() {
         amount,
         balanceType,
         userId,
-        date: toDateString(date),
+        date: toLocalDateString(date),
         ...(effectiveCategoryId !== null ? { categoryId: effectiveCategoryId } : {}),
         ...(content ? { content } : {}),
       });
@@ -186,8 +181,8 @@ export default function EntryScreen() {
   const isExpense = balanceType === BALANCE_TYPE.expense;
   const brandColor = isExpense ? colors.brandPrimary : colors.income;
   const allCategories = categories ?? [];
-  const visibleCategories = showAll ? allCategories : allCategories.slice(0, VISIBLE_COUNT);
-  const restCount = Math.max(0, allCategories.length - VISIBLE_COUNT);
+  const visibleCategories = showAll ? allCategories : allCategories.slice(0, CATEGORY_VISIBLE_COUNT);
+  const restCount = Math.max(0, allCategories.length - CATEGORY_VISIBLE_COUNT);
   // Web と同一挙動: 常にいずれか1つ選択（既定は表示順の先頭）・選択解除なし
   const effectiveCategoryId = categoryId ?? allCategories[0]?.id ?? null;
 

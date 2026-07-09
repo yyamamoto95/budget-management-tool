@@ -2,6 +2,8 @@ import { useState } from 'react';
 import {
   aggregateExpensesByCategory,
   calcVsLastMonthPct,
+  PERIOD_LABELS,
+  REPORT_PERIODS,
   summarizeReportTotals,
   vsLastMonthDisplay,
   type VsLastMonthTone,
@@ -22,11 +24,11 @@ import { useDashboard } from '@/lib/api/use-dashboard';
 import { useReportExpenses, type ReportPeriod } from '@/lib/api/use-report-expenses';
 import { colors } from '@/theme/tokens';
 
-const PERIODS: { value: ReportPeriod; label: string }[] = [
-  { value: 'week', label: '今週' },
-  { value: 'month', label: '今月' },
-  { value: 'lastMonth', label: '先月' },
-];
+// ラベルは @budget/common の PERIOD_LABELS に共通化（Web PeriodFilter と同一表記 #539）
+const PERIODS: { value: ReportPeriod; label: string }[] = REPORT_PERIODS.map((value) => ({
+  value,
+  label: PERIOD_LABELS[value],
+}));
 
 /** 先月比のトーン別カラー（Web レポートのチップ配色と同一マッピング） */
 const VS_LAST_COLOR: Record<VsLastMonthTone, string> = {

@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { formatYen, formatYenSigned, calcSavingsRate, calcMonthPace } from "@budget/common";
 import { ArrowUpRight, ArrowDownRight, Wallet } from "lucide-react";
 import { SPRING } from "@/lib/motion";
 
@@ -9,33 +10,19 @@ type Props = {
   lastMonthExpense: number;
 };
 
-function formatYen(n: number): string {
-  return `¥${Math.round(n).toLocaleString("ja-JP")}`;
-}
-
-function formatYenSigned(n: number): string {
-  return `${n >= 0 ? "+" : "−"}¥${Math.abs(Math.round(n)).toLocaleString("ja-JP")}`;
-}
+// 金額表示・貯蓄率・先月比ペースは @budget/common に共通化（#539）
 
 export function MonthlySummaryCard({ monthSummary, lastMonthExpense }: Props) {
   const netMonth = monthSummary.income - monthSummary.expense;
-  const savingsRate = monthSummary.income > 0
-    ? Math.round((netMonth / monthSummary.income) * 100)
-    : 0;
+  const savingsRate = calcSavingsRate(monthSummary.income, monthSummary.expense);
 
   // 先月比: 日割り平均で比較
   const now = new Date();
-  const dayOfMonth = now.getDate();
-  const lastMonthDailyAvg = lastMonthExpense / 30;
-  const thisMonthDailyAvg = monthSummary.expense / Math.max(1, dayOfMonth);
-  const momPct = lastMonthDailyAvg > 0
-    ? Math.round((thisMonthDailyAvg / lastMonthDailyAvg - 1) * 100)
-    : 0;
+  const pace = calcMonthPace(monthSummary.expense, now.getDate(), lastMonthExpense);
+  const momPct = pace?.momPct ?? 0;
   const momSaved = momPct < 0;
 
-  const sRate = monthSummary.income > 0
-    ? Math.round((netMonth / monthSummary.income) * 100)
-    : 0;
+  const sRate = calcSavingsRate(monthSummary.income, monthSummary.expense);
 
   const monthLabel = `${now.getFullYear()} / ${String(now.getMonth() + 1).padStart(2, "0")}`;
 
@@ -147,7 +134,7 @@ export function MonthlySummaryCard({ monthSummary, lastMonthExpense }: Props) {
           </span>
           <span className="text-[9px]" style={{ color: "var(--foreground)", opacity: 0.42 }}>
             {momSaved
-              ? `月換算で${formatYen(Math.round((lastMonthDailyAvg - thisMonthDailyAvg) * 30))}節約`
+              ? `月換算で${formatYen(pace?.monthlySavedAmount ?? 0)}節約`
               : "先月より支出増"}
           </span>
         </div>

@@ -1,8 +1,16 @@
+import { NAV_ITEM_DEFS } from '@budget/common';
 import { Tabs, useRouter } from 'expo-router';
-import { BarChart2, Home, Plus, Receipt, Settings } from 'lucide-react-native';
+import { Plus } from 'lucide-react-native';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { NAV_ICON_MAP } from '@/lib/navIcons';
 import { colors } from '@/theme/tokens';
+
+/** タブラベル（SSOT は @budget/common の NAV_ITEM_DEFS。一致はテストで強制 #539） */
+const NAV_LABELS = Object.fromEntries(NAV_ITEM_DEFS.map((d) => [d.key, d.label])) as Record<
+  (typeof NAV_ITEM_DEFS)[number]['key'],
+  string
+>;
 
 /**
  * ナビゲーション（Web navItems.ts と同一構成: ホーム / 明細 / [+] / レポート / 設定）
@@ -26,15 +34,15 @@ export default function TabsLayout() {
         <Tabs.Screen
           name="index"
           options={{
-            title: 'ホーム',
-            tabBarIcon: ({ color, size }) => <Home color={color} size={size} />,
+            title: NAV_LABELS.home,
+            tabBarIcon: ({ color, size }) => <NAV_ICON_MAP.home color={color} size={size} />,
           }}
         />
         <Tabs.Screen
           name="records"
           options={{
-            title: '明細',
-            tabBarIcon: ({ color, size }) => <Receipt color={color} size={size} />,
+            title: NAV_LABELS.records,
+            tabBarIcon: ({ color, size }) => <NAV_ICON_MAP.records color={color} size={size} />,
           }}
         />
         <Tabs.Screen
@@ -48,15 +56,15 @@ export default function TabsLayout() {
         <Tabs.Screen
           name="report"
           options={{
-            title: 'レポート',
-            tabBarIcon: ({ color, size }) => <BarChart2 color={color} size={size} />,
+            title: NAV_LABELS.report,
+            tabBarIcon: ({ color, size }) => <NAV_ICON_MAP.report color={color} size={size} />,
           }}
         />
         <Tabs.Screen
           name="settings"
           options={{
-            title: '設定',
-            tabBarIcon: ({ color, size }) => <Settings color={color} size={size} />,
+            title: NAV_LABELS.settings,
+            tabBarIcon: ({ color, size }) => <NAV_ICON_MAP.settings color={color} size={size} />,
           }}
         />
       </Tabs>
