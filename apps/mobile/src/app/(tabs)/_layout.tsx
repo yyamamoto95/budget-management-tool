@@ -1,4 +1,4 @@
-import { Link, Tabs } from 'expo-router';
+import { Tabs, useRouter } from 'expo-router';
 import { BarChart2, Home, Plus, Receipt, Settings } from 'lucide-react-native';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -11,6 +11,7 @@ import { colors } from '@/theme/tokens';
  */
 export default function TabsLayout() {
   const insets = useSafeAreaInsets();
+  const router = useRouter();
 
   return (
     <View style={styles.root}>
@@ -60,15 +61,14 @@ export default function TabsLayout() {
         />
       </Tabs>
 
-      <Link href="/entry" asChild>
-        <Pressable
-          style={[styles.centerButton, { bottom: insets.bottom + 22 }]}
-          accessibilityRole="button"
-          accessibilityLabel="記録する"
-        >
-          <Plus size={26} color={colors.surface} strokeWidth={3} />
-        </Pressable>
-      </Link>
+      <Pressable
+        style={[styles.centerButton, { bottom: insets.bottom + 22 }]}
+        onPress={() => router.push('/entry')}
+        accessibilityRole="button"
+        accessibilityLabel="記録する"
+      >
+        <Plus size={26} color={colors.surface} strokeWidth={3} />
+      </Pressable>
     </View>
   );
 }
@@ -82,7 +82,10 @@ const styles = StyleSheet.create({
   },
   centerButton: {
     position: 'absolute',
-    alignSelf: 'center',
+    // alignSelf: center は絶対配置との組み合わせで実機の挙動が不安定なため、
+    // left 50% + 幅の半分のマージン補正で決定的にセンタリングする（#534）
+    left: '50%',
+    marginLeft: -28,
     width: 56,
     height: 56,
     borderRadius: 28,
