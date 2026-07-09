@@ -11,10 +11,11 @@
  *
  * 算出ロジックは packages/common/src/utils/investmentCapacity.ts（実装済み）。
  * sandbox は common 非依存のため、ここでは同じ式をデモ用に再掲している。
+ * ホバー依存の UI は使わない（スマホレビュー前提。タップのみで全操作できる）。
  */
 
 import { useState } from 'react'
-import { TrendingUp, PiggyBank, ExternalLink } from 'lucide-react'
+import { TrendingUp, PiggyBank, ExternalLink, Check, ChevronDown } from 'lucide-react'
 
 const D = {
   bg: '#fffdf5',
@@ -75,9 +76,10 @@ const TOLERANCE_LABELS: Record<RiskTolerance, string> = {
   high: '高（変動を許容）',
 }
 
-// ---- デモ用プリセット ----
+// ---- デモ用シナリオ ----
 type Preset = {
   name: string
+  emoji: string
   note: string
   totalAssets: number
   monthlyIncome: number
@@ -86,22 +88,25 @@ type Preset = {
 
 const PRESETS: Preset[] = [
   {
-    name: '投資余力あり',
-    note: '防衛資金 2.0 倍・月 6 万円の黒字',
+    name: '余裕のある家計',
+    emoji: '🌱',
+    note: '備え 2 倍・月 6 万円の黒字 → 投資上限が表示される',
     totalAssets: 2_880_000,
     monthlyIncome: 300_000,
     avgDailyExpense: 8_000,
   },
   {
-    name: '投資を控える（防衛資金が未達）',
-    note: '黒字はあるが備えが目標の 83%',
+    name: '備えがまだ途中の家計',
+    emoji: '🛡️',
+    note: '黒字はあるが備えが目標の 83% → 「控える月」になる',
     totalAssets: 1_200_000,
     monthlyIncome: 300_000,
     avgDailyExpense: 8_000,
   },
   {
-    name: '投資を控える（月次赤字）',
-    note: '備えは十分だが今月は赤字ペース',
+    name: '今月が赤字の家計',
+    emoji: '📉',
+    note: '備えは十分だが支出超過 → 「控える月」になる',
     totalAssets: 2_880_000,
     monthlyIncome: 200_000,
     avgDailyExpense: 8_000,
@@ -112,7 +117,51 @@ function yen(value: number): string {
   return `¥${value.toLocaleString()}`
 }
 
-/** ホームカードのモック（LivingMarginCard と同じシェルトーン） */
+/** 見出し（ステップ番号つき） */
+function StepHeading({ step, title, note }: { step: number; title: string; note?: string }) {
+  return (
+    <div className="flex items-center gap-2.5">
+      <span
+        className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-extrabold text-white"
+        style={{ background: D.brand }}
+      >
+        {step}
+      </span>
+      <div>
+        <p className="text-sm font-extrabold" style={{ color: D.text }}>
+          {title}
+        </p>
+        {note && (
+          <p className="text-[11px]" style={{ color: D.muted }}>
+            {note}
+          </p>
+        )}
+      </div>
+    </div>
+  )
+}
+
+/** ホームの既存カードのダミー（掲載位置を伝えるための飾り） */
+function ExistingCardGhost() {
+  return (
+    <div
+      className="rounded-2xl border border-dashed p-4"
+      style={{ borderColor: 'rgba(28,20,16,0.18)', background: 'rgba(255,255,255,0.55)' }}
+    >
+      <div className="flex items-center justify-between">
+        <span className="text-[13px] font-bold" style={{ color: D.text, opacity: 0.45 }}>
+          生活余力
+        </span>
+        <PiggyBank size={14} aria-hidden style={{ color: D.text, opacity: 0.25 }} />
+      </div>
+      <p className="mt-1 text-sm font-bold" style={{ color: D.text, opacity: 0.35 }}>
+        生活費 4.0 ヶ月分（既存カード）
+      </p>
+    </div>
+  )
+}
+
+/** 本命: 投資余力カード（LivingMarginCard と同じシェルトーン） */
 function CapacityCard({ diagnosis }: { diagnosis: Diagnosis }) {
   const ratioPct = Math.min(diagnosis.emergencyFundRatio, 1.0) * 100
   const deepLink = diagnosis.shouldHold
@@ -123,7 +172,7 @@ function CapacityCard({ diagnosis }: { diagnosis: Diagnosis }) {
       className="rounded-2xl border p-4"
       style={{ background: D.card, borderColor: D.border, boxShadow: '0 1px 4px rgba(28,20,16,0.06)' }}
     >
-      <div className="mb-1 flex items-center justify-between">
+      <div className="mb-2 flex items-center justify-between">
         <span className="text-[13px] font-bold" style={{ color: D.text }}>
           投資余力
         </span>
@@ -135,7 +184,7 @@ function CapacityCard({ diagnosis }: { diagnosis: Diagnosis }) {
           <p className="text-lg font-black" style={{ color: D.text }}>
             今月は投資を控える月
           </p>
-          <p className="mt-1.5 text-xs" style={{ color: D.muted }}>
+          <p className="mt-2 text-xs leading-relaxed" style={{ color: D.muted }}>
             {diagnosis.emergencyFundRatio < 1.0
               ? `生活の備え（目標 ${yen(diagnosis.emergencyFundTargetJpy)}）が ${Math.round(
                   diagnosis.emergencyFundRatio * 100
@@ -156,19 +205,19 @@ function CapacityCard({ diagnosis }: { diagnosis: Diagnosis }) {
               円
             </span>
           </div>
-          <p className="mt-1.5 text-xs font-semibold" style={{ color: D.income }}>
+          <p className="mt-2 text-xs font-semibold" style={{ color: D.income }}>
             リスク許容度: {TOLERANCE_LABELS[diagnosis.riskTolerance]}
           </p>
         </>
       )}
 
       {/* 生活防衛資金の充足バー（事実のみ。色は良好=income / 注意=caution） */}
-      <div className="mt-3">
+      <div className="mt-4">
         <div className="flex items-center justify-between text-[11px]" style={{ color: D.muted }}>
           <span>生活の備え（生活費 {TARGET_MONTHS} ヶ月分が目安）</span>
           <span className="tabular-nums">{Math.round(diagnosis.emergencyFundRatio * 100)}%</span>
         </div>
-        <div className="mt-1 h-1.5 overflow-hidden rounded-full" style={{ background: D.border }}>
+        <div className="mt-1.5 h-1.5 overflow-hidden rounded-full" style={{ background: D.border }}>
           <div
             className="h-full rounded-full"
             style={{
@@ -183,7 +232,7 @@ function CapacityCard({ diagnosis }: { diagnosis: Diagnosis }) {
         <a
           href={deepLink}
           onClick={(e) => e.preventDefault()}
-          className="mt-3 inline-flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-bold"
+          className="mt-4 inline-flex w-full items-center justify-center gap-1.5 rounded-xl border px-3 py-2.5 text-xs font-bold"
           style={{ borderColor: D.border, color: D.text, background: D.brandLight }}
         >
           <ExternalLink size={12} aria-hidden />
@@ -204,59 +253,130 @@ export function InvestmentCapacityPrototype() {
   const diagnosis = diagnose(preset.totalAssets, preset.monthlyIncome, preset.avgDailyExpense)
 
   return (
-    <div className="min-h-screen p-6" style={{ background: D.bg }}>
-      <div className="max-w-lg">
-        <div className="mb-6">
+    <div className="min-h-screen p-5 pb-24" style={{ background: D.bg }}>
+      <div className="mx-auto flex max-w-lg flex-col gap-6">
+        {/* ヘッダー */}
+        <header>
           <h1 className="flex items-center gap-2 text-xl font-extrabold" style={{ color: D.text }}>
-            <PiggyBank size={20} style={{ color: D.brand }} />
-            投資余力診断カード（#543）
+            <TrendingUp size={20} style={{ color: D.brand }} />
+            投資余力診断カード
           </h1>
-          <p className="mt-1 text-xs" style={{ color: D.muted }}>
-            ホームの生活余力カードの下に追加する想定。「投資を控える」も正しい結果として表示する。
-            CTA は investment-analysis-tool へのディープリンク（risk_tolerance と monthly_limit のみ。PII なし）。
+          <p className="mt-1.5 text-xs leading-relaxed" style={{ color: D.muted }}>
+            ホーム画面に追加する新カードの試作です（#543）。家計の状況に応じて
+            「今月の投資上限」または「今月は投資を控える月」を表示します。
           </p>
-        </div>
+        </header>
 
-        {/* シナリオ切替 */}
-        <div className="mb-4 flex flex-col gap-2">
-          {PRESETS.map((p) => (
-            <button
-              key={p.name}
-              onClick={() => setPreset(p)}
-              className="rounded-xl border px-3 py-2 text-left text-xs font-bold transition-colors"
-              style={{
-                borderColor: preset.name === p.name ? D.brand : D.border,
-                background: preset.name === p.name ? D.brandLight : D.card,
-                color: D.text,
-              }}
-            >
-              {p.name}
-              <span className="ml-2 font-normal" style={{ color: D.muted }}>
-                {p.note}
-              </span>
-            </button>
-          ))}
-        </div>
+        {/* ステップ 1: シナリオを選ぶ */}
+        <section className="flex flex-col gap-3">
+          <StepHeading
+            step={1}
+            title="家計のシナリオを選ぶ"
+            note="タップするとカードの表示が切り替わります"
+          />
+          <div className="flex flex-col gap-2">
+            {PRESETS.map((p) => {
+              const selected = preset.name === p.name
+              return (
+                <button
+                  key={p.name}
+                  onClick={() => setPreset(p)}
+                  className="flex items-center gap-3 rounded-2xl border-2 px-4 py-3 text-left"
+                  style={{
+                    borderColor: selected ? D.brand : D.border,
+                    background: selected ? D.brandLight : D.card,
+                  }}
+                >
+                  <span className="text-xl" aria-hidden>
+                    {p.emoji}
+                  </span>
+                  <span className="flex-1">
+                    <span className="block text-sm font-extrabold" style={{ color: D.text }}>
+                      {p.name}
+                    </span>
+                    <span className="mt-0.5 block text-[11px] leading-relaxed" style={{ color: D.muted }}>
+                      {p.note}
+                    </span>
+                  </span>
+                  <span
+                    className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full"
+                    style={{
+                      background: selected ? D.brand : D.border,
+                      color: selected ? '#fff' : 'transparent',
+                    }}
+                    aria-hidden
+                  >
+                    <Check size={14} strokeWidth={3} />
+                  </span>
+                </button>
+              )
+            })}
+          </div>
+        </section>
 
-        <CapacityCard diagnosis={diagnosis} />
+        {/* ステップ 2: ホーム掲載イメージ */}
+        <section className="flex flex-col gap-3">
+          <StepHeading
+            step={2}
+            title="ホーム掲載イメージ"
+            note="生活余力カード（点線＝既存）のすぐ下に並びます"
+          />
+          <div
+            className="flex flex-col gap-3 rounded-3xl p-4"
+            style={{ background: 'rgba(28,20,16,0.035)' }}
+          >
+            <ExistingCardGhost />
+            <CapacityCard diagnosis={diagnosis} />
+          </div>
+        </section>
 
-        {/* 入力条件の内訳（デモ用） */}
-        <div
-          className="mt-4 rounded-xl border p-3 text-[11px] leading-relaxed"
-          style={{ borderColor: D.border, background: D.card, color: D.muted }}
+        {/* 詳細（デフォルトは畳んでおき、密度を下げる） */}
+        <details className="rounded-2xl border" style={{ borderColor: D.border, background: D.card }}>
+          <summary
+            className="flex cursor-pointer list-none items-center justify-between px-4 py-3 text-xs font-bold"
+            style={{ color: D.text }}
+          >
+            この診断の入力データと計算ルール
+            <ChevronDown size={14} style={{ color: D.muted }} />
+          </summary>
+          <div
+            className="border-t px-4 py-3 text-[11px] leading-relaxed"
+            style={{ borderColor: D.border, color: D.muted }}
+          >
+            <p className="font-bold" style={{ color: D.text }}>
+              入力（既存の生活余力と同じデータを使用）
+            </p>
+            <p className="mt-1">
+              総資産 {yen(preset.totalAssets)} / 月次固定収入 {yen(preset.monthlyIncome)} / 日次平均支出{' '}
+              {yen(preset.avgDailyExpense)}（月換算 {yen(preset.avgDailyExpense * 30)}）
+            </p>
+            <p className="mt-3 font-bold" style={{ color: D.text }}>
+              計算ルール（初期仮設定）
+            </p>
+            <ul className="mt-1 list-disc space-y-1 pl-4">
+              <li>生活の備えの目標 = 生活費 {TARGET_MONTHS} ヶ月分。未達なら投資上限 0 円（控える月）</li>
+              <li>投資上限 = 月次黒字 × {SURPLUS_RATIO * 100}%（千円単位切り捨て）。赤字なら 0 円</li>
+              <li>リスク許容度 = 備えが目標の 2 倍以上で「中」・3 倍以上で「高」</li>
+              <li>検証ツールへ渡すのはリスク許容度と上限額のみ（個人情報は渡さない）</li>
+            </ul>
+          </div>
+        </details>
+
+        {/* レビュー観点 */}
+        <section
+          className="rounded-2xl border px-4 py-3 text-[11px] leading-relaxed"
+          style={{ borderColor: D.border, background: D.incomeLight, color: D.muted }}
         >
-          <p className="font-bold" style={{ color: D.text }}>
-            この診断の入力（既存の生活余力と同じデータ）
+          <p className="text-xs font-bold" style={{ color: D.text }}>
+            レビューで見てほしいポイント
           </p>
-          <p>
-            総資産 {yen(preset.totalAssets)} / 月次固定収入 {yen(preset.monthlyIncome)} / 日次平均支出{' '}
-            {yen(preset.avgDailyExpense)}（月換算 {yen(preset.avgDailyExpense * 30)}）
-          </p>
-          <p className="mt-1">
-            初期仮設定: 生活の備え目標 = 生活費 {TARGET_MONTHS} ヶ月分 / 投資上限 = 月次黒字 ×{' '}
-            {SURPLUS_RATIO * 100}%（千円単位切り捨て） / 許容度 = 備え {'≥'}2 倍で中・{'≥'}3 倍で高
-          </p>
-        </div>
+          <ul className="mt-1.5 list-disc space-y-1 pl-4">
+            <li>「今月は投資を控える月」の文言は納得感があるか（責められた感じがしないか）</li>
+            <li>上限額とリスク許容度、どちらを主役にすべきか</li>
+            <li>「この条件で戦略の過去検証を見る」ボタンの文言はわかりやすいか</li>
+            <li>ホームに常設してよいか、条件を満たしたときだけ出すべきか</li>
+          </ul>
+        </section>
       </div>
     </div>
   )
