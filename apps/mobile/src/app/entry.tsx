@@ -301,7 +301,7 @@ export default function EntryScreen() {
                           backgroundColor: category.bg,
                           // Web と同一: カテゴリ色の 25% 透過枠（#RRGGBB40）
                           borderColor: `${category.color}40`,
-                          borderWidth: 1.5,
+                          borderWidth: 2,
                         },
                       ]}
                       onPress={() => setCategoryId(category.id)}
@@ -532,9 +532,9 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   categoryTile: {
-    // Web と同一の 4 列グリッド: (100% - gap 3 つ) / 4
-    flexBasis: '23%',
-    flexGrow: 1,
+    // Web と同一の 4 列グリッド: (100% - gap 3 つ) / 4。
+    // flexGrow は使わない（総数が4の倍数でないとき最終行が伸びて崩れるため）
+    flexBasis: '23.5%',
     alignItems: 'center',
     gap: 4,
     paddingVertical: 8,
