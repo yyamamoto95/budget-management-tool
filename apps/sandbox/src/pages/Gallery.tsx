@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { ArrowRight, LayoutDashboard, PieChart, Settings, CircleUser, Wand2, BarChart2, Receipt, Layers, PiggyBank, SunMedium, Shapes, Camera, TrendingUp } from 'lucide-react'
+import { ArrowRight, LayoutDashboard, PieChart, Settings, CircleUser, Wand2, BarChart2, Receipt, Layers, PiggyBank, SunMedium, Shapes, Camera } from 'lucide-react'
 
 type PrototypeCard = {
   path: string
@@ -14,7 +14,7 @@ const prototypes: PrototypeCard[] = [
   {
     path: '/home',
     title: 'ホーム画面',
-    description: 'タップ展開DailyBudget・明示的モバイル順序・貯蓄ランウェイ・通知パネル・連続記録UX・PC モーダル/SP ドロワー記録。',
+    description: 'タップ展開DailyBudget・明示的モバイル順序・貯蓄ランウェイ・投資余力カード（#543）・通知パネル・連続記録UX・PC モーダル/SP ドロワー記録。',
     icon: LayoutDashboard,
     issue: 'sandbox',
     status: 'wip',
@@ -30,7 +30,7 @@ const prototypes: PrototypeCard[] = [
   {
     path: '/personal-settings',
     title: '個人設定 — 現行',
-    description: '2カラムレイアウト。左:フォーム / 右:プレビューカード sticky。貯蓄目標・収入配分バー付き。',
+    description: '2カラムレイアウト。左:フォーム / 右:プレビューカード sticky。貯蓄目標・収入配分バー・投資余力診断のしくみ（#543）付き。',
     icon: Settings,
     issue: '#283',
     status: 'ready',
@@ -98,14 +98,6 @@ const prototypes: PrototypeCard[] = [
     icon: Shapes,
     issue: 'sandbox',
     status: 'wip' as const,
-  },
-  {
-    path: '/investment-capacity',
-    title: '投資余力診断カード',
-    description: '今月の投資上限・リスク許容度・生活の備えバー。「投資を控える」2パターンと検証ツールへの導線付き。',
-    icon: TrendingUp,
-    issue: '#543',
-    status: 'wip',
   },
   {
     path: '/my-page',
