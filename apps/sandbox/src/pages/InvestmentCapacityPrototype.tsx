@@ -15,7 +15,18 @@
  */
 
 import { useState } from 'react'
-import { TrendingUp, PiggyBank, ExternalLink, Check, ChevronDown } from 'lucide-react'
+import {
+  TrendingUp,
+  PiggyBank,
+  ExternalLink,
+  Check,
+  ChevronDown,
+  ChevronRight,
+  Lightbulb,
+  Bell,
+  Tags,
+  Wallet,
+} from 'lucide-react'
 
 const D = {
   bg: '#fffdf5',
@@ -248,6 +259,74 @@ function CapacityCard({ diagnosis }: { diagnosis: Diagnosis }) {
   )
 }
 
+/** 設定画面のモック: 「診断のしくみ」は知りたい人だけが開く「ちなみに」トーンの補足 */
+function SettingsMock() {
+  const [open, setOpen] = useState(true)
+  const ghostRows = [
+    { icon: Bell, label: '通知' },
+    { icon: Tags, label: 'カテゴリ管理' },
+    { icon: Wallet, label: '総資産・固定費' },
+  ]
+  return (
+    <div
+      className="flex flex-col gap-3 rounded-3xl p-4"
+      style={{ background: 'rgba(28,20,16,0.035)' }}
+    >
+      <div className="overflow-hidden rounded-2xl border" style={{ borderColor: D.border, background: D.card }}>
+        {/* 既存の設定行（ダミー） */}
+        {ghostRows.map(({ icon: Icon, label }) => (
+          <div
+            key={label}
+            className="flex items-center gap-3 border-b px-4 py-3"
+            style={{ borderColor: D.border, opacity: 0.4 }}
+          >
+            <Icon size={16} style={{ color: D.text }} aria-hidden />
+            <span className="flex-1 text-sm font-semibold" style={{ color: D.text }}>
+              {label}
+            </span>
+            <ChevronRight size={14} style={{ color: D.muted }} aria-hidden />
+          </div>
+        ))}
+        {/* 本命: 投資余力診断のしくみ（タップで開閉） */}
+        <button
+          onClick={() => setOpen((v) => !v)}
+          className="flex w-full items-center gap-3 px-4 py-3 text-left"
+        >
+          <TrendingUp size={16} style={{ color: D.brand }} aria-hidden />
+          <span className="flex-1 text-sm font-semibold" style={{ color: D.text }}>
+            投資余力診断のしくみ
+          </span>
+          <ChevronDown
+            size={14}
+            style={{ color: D.muted, transform: open ? 'rotate(180deg)' : undefined }}
+            aria-hidden
+          />
+        </button>
+        {open && (
+          <div className="px-4 pb-4">
+            {/* 「ちなみに」トーンの補足カード: 読まなくても困らない、脚注のような佇まい */}
+            <div
+              className="rounded-xl px-3.5 py-3"
+              style={{ background: 'rgba(28,20,16,0.04)' }}
+            >
+              <p className="flex items-center gap-1.5 text-xs font-bold" style={{ color: D.text, opacity: 0.75 }}>
+                <Lightbulb size={13} style={{ color: D.brand }} aria-hidden />
+                ちなみに、どう計算している？
+              </p>
+              <ul className="mt-2 space-y-1.5 text-[11px] leading-relaxed" style={{ color: D.muted }}>
+                <li>・まず「生活費 6 ヶ月分の備え」を最優先。備えが目標に届くまで、投資はおすすめしません</li>
+                <li>・上限は毎月の黒字の半分まで。残りの半分は現金で手元に残す想定です</li>
+                <li>・家計にゆとりがあるほどリスク許容度が上がり、検証ツールで比べられる戦略の幅が広がります</li>
+                <li>・検証ツールに渡すのは「リスク許容度」と「上限額」の 2 つだけ。名前や記録の中身は渡しません</li>
+              </ul>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 export function InvestmentCapacityPrototype() {
   const [preset, setPreset] = useState<Preset>(PRESETS[0])
   const diagnosis = diagnose(preset.totalAssets, preset.monthlyIncome, preset.avgDailyExpense)
@@ -330,6 +409,16 @@ export function InvestmentCapacityPrototype() {
           </div>
         </section>
 
+        {/* ステップ 3: 設定画面イメージ（診断のしくみの置き場所） */}
+        <section className="flex flex-col gap-3">
+          <StepHeading
+            step={3}
+            title="設定画面イメージ — 診断のしくみ"
+            note="カードには載せず、知りたい人だけが設定から見られる「ちなみに」扱い"
+          />
+          <SettingsMock />
+        </section>
+
         {/* 詳細（デフォルトは畳んでおき、密度を下げる） */}
         <details className="rounded-2xl border" style={{ borderColor: D.border, background: D.card }}>
           <summary
@@ -375,6 +464,7 @@ export function InvestmentCapacityPrototype() {
             <li>上限額とリスク許容度、どちらを主役にすべきか</li>
             <li>「この条件で戦略の過去検証を見る」ボタンの文言はわかりやすいか</li>
             <li>ホームに常設してよいか、条件を満たしたときだけ出すべきか</li>
+            <li>③ 設定の「ちなみに」補足はこの温度感・文量で良いか</li>
           </ul>
         </section>
       </div>
