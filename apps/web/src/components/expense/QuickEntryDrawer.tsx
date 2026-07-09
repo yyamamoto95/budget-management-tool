@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer";
-import { formatLivingMarginImpact, applyKeypadKey, MAX_AMOUNT, KEYPAD_KEYS, type KeypadKey } from "@budget/common";
+import { formatLivingMarginImpact, applyKeypadKey, MAX_AMOUNT, KEYPAD_KEYS, CATEGORY_VISIBLE_COUNT, type KeypadKey } from "@budget/common";
 import { toast } from "sonner";
 import { createExpenseAction } from "@/lib/actions/expense";
 import { scanReceiptAction } from "@/lib/actions/receipt";
@@ -29,7 +29,6 @@ type Props = {
   dailyBudget?: DailyBudgetSnapshot | null;
 };
 
-const VISIBLE_COUNT = 4;
 /** 成功フィードバック（✓ 記録しました！）の表示時間（ms） */
 const SUCCESS_FEEDBACK_MS = 1600;
 /** 「記録後の残り」を警告色にする閾値（1日予算に対する残額の比率） */
@@ -136,8 +135,8 @@ export function QuickEntryDrawer({
   }, [state, router]);
 
   const categories = balanceType === 0 ? expenseCategories : incomeCategories;
-  const visible = showAll ? categories : categories.slice(0, VISIBLE_COUNT);
-  const rest = categories.slice(VISIBLE_COUNT);
+  const visible = showAll ? categories : categories.slice(0, CATEGORY_VISIBLE_COUNT);
+  const rest = categories.slice(CATEGORY_VISIBLE_COUNT);
   const brandColor = balanceType === 0 ? "#e07236" : "#27a08f";
 
   // 「記録後の残り」プレビュー（支出のみ・金額入力中のみ）。サンドボックス AmountPanel 準拠（#461）

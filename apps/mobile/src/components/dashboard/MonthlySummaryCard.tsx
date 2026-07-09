@@ -1,3 +1,4 @@
+import { calcMonthPace, calcSavingsRate, formatYen } from '@budget/common';
 import { ArrowDownRight, ArrowUpRight } from 'lucide-react-native';
 import { StyleSheet, Text, View } from 'react-native';
 import { colors } from '@/theme/tokens';
@@ -12,10 +13,10 @@ type Props = {
 /** 月間サマリーカード（収入・支出 + 先月比。Web MonthlySummaryCard と同じ日割り比較） */
 export function MonthlySummaryCard({ monthSummary, lastMonthExpense, today }: Props) {
   const now = today ?? new Date();
-  const thisMonthDailyAvg = monthSummary.expense / Math.max(1, now.getDate());
-  const lastMonthDailyAvg = lastMonthExpense / 30;
-  const momPct =
-    lastMonthDailyAvg > 0 ? Math.round((thisMonthDailyAvg / lastMonthDailyAvg - 1) * 100) : null;
+  // 計算式は @budget/common に共通化（Web MonthlySummaryCard と単一実装 #539）
+  const pace = calcMonthPace(monthSummary.expense, now.getDate(), lastMonthExpense);
+  const momPct = pace?.momPct ?? null;
+  const savingsRate = calcSavingsRate(monthSummary.income, monthSummary.expense);
 
   return (
     <View style={styles.card}>
@@ -28,7 +29,7 @@ export function MonthlySummaryCard({ monthSummary, lastMonthExpense, today }: Pr
             <Text style={styles.label}>収入</Text>
           </View>
           <Text style={[styles.value, { color: colors.income }]}>
-            ¥{monthSummary.income.toLocaleString()}
+            {formatYen(monthSummary.income)}
           </Text>
         </View>
         <View style={styles.row}>
@@ -37,7 +38,7 @@ export function MonthlySummaryCard({ monthSummary, lastMonthExpense, today }: Pr
             <Text style={styles.label}>支出</Text>
           </View>
           <Text style={[styles.value, { color: colors.brandPrimary }]}>
-            ¥{monthSummary.expense.toLocaleString()}
+            {formatYen(monthSummary.expense)}
           </Text>
         </View>
       </View>
@@ -46,6 +47,11 @@ export function MonthlySummaryCard({ monthSummary, lastMonthExpense, today }: Pr
         <Text style={styles.mom}>
           先月比（日割り平均） {momPct === 0 ? '±0' : momPct > 0 ? `+${momPct}` : momPct}%
         </Text>
+      )}
+
+      {/* 貯蓄率（Web と同一の計算・表現 #539） */}
+      {savingsRate > 0 && (
+        <Text style={styles.savingsRate}>収入の{savingsRate}%を貯蓄ペース</Text>
       )}
     </View>
   );
@@ -87,6 +93,11 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '800',
     fontVariant: ['tabular-nums'],
+  },
+  savingsRate: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: colors.income,
   },
   mom: {
     fontSize: 11,

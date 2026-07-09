@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { formatYen } from "@budget/common";
 import { calcSavingsForecast, type SavingsForecastState } from "@budget/common";
 import { SPRING } from "@/lib/motion";
 
@@ -13,10 +14,7 @@ type Props = {
   today?: Date;
 };
 
-function formatYen(n: number): string {
-  const abs = Math.abs(Math.round(n)).toLocaleString("ja-JP");
-  return `${n < 0 ? "−" : ""}¥${abs}`;
-}
+// 金額表示は @budget/common の formatYen に共通化（#539・負数は −¥ 表示で同一挙動）
 
 /** 4状態のカラー（globals.css のセマンティックトークン / #458） */
 const STATE_TOKENS: Record<
