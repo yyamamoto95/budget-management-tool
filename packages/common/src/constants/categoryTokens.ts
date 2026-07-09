@@ -234,3 +234,36 @@ export function getIncomeCategoryToken(name: string): CategoryColorToken {
 	const key = INCOME_NAME_MAP[name] ?? "other";
 	return INCOME_CATEGORY_TOKENS[key] ?? INCOME_CATEGORY_TOKENS.other;
 }
+
+/**
+ * カテゴリ key → lucide アイコン名の対応表（SSOT）。
+ * Web は lucide-react、モバイルは lucide-react-native から同名アイコンを解決し、
+ * 各プラットフォームの単体テストでこの表との一致を強制する（#537）。
+ */
+export const CATEGORY_ICON_NAMES = {
+	food: 'ShoppingBasket',
+	dining: 'Utensils',
+	transport: 'Car',
+	utility: 'Zap',
+	telecom: 'Smartphone',
+	housing: 'Building2',
+	tax: 'Landmark',
+	medical: 'Heart',
+	insurance: 'Shield',
+	daily: 'ShoppingBag',
+	education: 'GraduationCap',
+	beauty: 'Scissors',
+	clothing: 'Shirt',
+	leisure: 'Music',
+	other: 'Tag',
+	unclassified: 'CircleDashed',
+	salary: 'Banknote',
+	bonus: 'Gift',
+	sideJob: 'Briefcase',
+	pension: 'Users',
+	benefit: 'Wallet',
+	investment: 'TrendingUp',
+} as const;
+
+/** アイコン対応表のフォールバックアイコン名（未知のカテゴリ key 用） */
+export const CATEGORY_FALLBACK_ICON_NAME = 'Tag' as const;
