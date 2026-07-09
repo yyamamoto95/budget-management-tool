@@ -276,7 +276,6 @@ export function QuickEntryDrawer({
             ref={receiptInputRef}
             type="file"
             accept="image/jpeg,image/png"
-            capture="environment"
             className="hidden"
             onChange={(e) => {
               const file = e.target.files?.[0];
