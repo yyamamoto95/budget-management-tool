@@ -11,6 +11,19 @@
     "user-flow"
   ],
   "license": "MIT",
+  "author": "yyamamoto95",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yyamamoto95/budget-management-tool.git",
+    "directory": "packages/flow-wireframe"
+  },
+  "homepage": "https://github.com/yyamamoto95/budget-management-tool/tree/main/packages/flow-wireframe#readme",
+  "bugs": {
+    "url": "https://github.com/yyamamoto95/budget-management-tool/issues"
+  },
+  "engines": {
+    "node": ">=18"
+  },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
