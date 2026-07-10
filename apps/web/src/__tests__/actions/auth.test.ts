@@ -57,7 +57,7 @@ describe('guestLoginAction', () => {
         expect(redirect).toHaveBeenCalledWith('/')
     })
 
-    it('returnTo が / 始まりのとき、そのパスへリダイレクトする', async () => {
+    it('returnTo が渡されても常に /（ホーム）へリダイレクトする（#549）', async () => {
         vi.mocked(serverFetch).mockResolvedValue(TOKEN_RESPONSE)
 
         const formData = new FormData()
@@ -65,7 +65,7 @@ describe('guestLoginAction', () => {
 
         await guestLoginAction(formData)
 
-        expect(redirect).toHaveBeenCalledWith('/report')
+        expect(redirect).toHaveBeenCalledWith('/')
     })
 
     it('API エラー時は ApiError をスローする', async () => {
@@ -129,7 +129,7 @@ describe('loginAction', () => {
         expect(redirect).toHaveBeenCalledWith('/')
     })
 
-    it('returnTo が / 始まりのとき、そのパスへリダイレクトする', async () => {
+    it('returnTo が渡されても常に /（ホーム）へリダイレクトする（#549）', async () => {
         vi.mocked(serverFetch).mockResolvedValue(TOKEN_RESPONSE)
 
         const formData = new FormData()
@@ -139,29 +139,16 @@ describe('loginAction', () => {
 
         await loginAction(initialState, formData)
 
-        expect(redirect).toHaveBeenCalledWith('/expenses')
+        expect(redirect).toHaveBeenCalledWith('/')
     })
 
-    it('returnTo が外部URL（/ 始まりでない）のとき、/ へフォールバックする', async () => {
+    it('returnTo が外部URLでも /（ホーム）へリダイレクトする（オープンリダイレクト不能）', async () => {
         vi.mocked(serverFetch).mockResolvedValue(TOKEN_RESPONSE)
 
         const formData = new FormData()
         formData.set('userId', 'user1')
         formData.set('password', 'pass')
         formData.set('returnTo', 'https://evil.example.com/phishing')
-
-        await loginAction(initialState, formData)
-
-        expect(redirect).toHaveBeenCalledWith('/')
-    })
-
-    it('returnTo が空のとき、/ へリダイレクトする', async () => {
-        vi.mocked(serverFetch).mockResolvedValue(TOKEN_RESPONSE)
-
-        const formData = new FormData()
-        formData.set('userId', 'user1')
-        formData.set('password', 'pass')
-        formData.set('returnTo', '')
 
         await loginAction(initialState, formData)
 

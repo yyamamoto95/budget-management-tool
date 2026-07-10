@@ -41,7 +41,8 @@ test.describe('生活余力（US-402）', () => {
         const home = new HomePage(page)
         await home.goto()
 
-        const card = page.getByTestId('living-margin-card')
+        // #550: カードは SP カルーセルと PC グリッドの両方に DOM 存在するため可視要素に絞る
+        const card = page.locator('[data-testid="living-margin-card"]:visible')
         await expect(card).toBeVisible()
         await expect(card.getByText('生活余力')).toBeVisible()
     })
@@ -100,7 +101,8 @@ test.describe('生活余力（US-402）', () => {
 
             // ホーム再読み込み → 生活余力（◯ヶ月分）が表示される
             await page.reload()
-            const card = page.getByTestId('living-margin-card')
+            // #550: カードは SP カルーセルと PC グリッドの両方に DOM 存在するため可視要素に絞る
+        const card = page.locator('[data-testid="living-margin-card"]:visible')
             await expect(card).toBeVisible()
             await expect(card.getByText('ヶ月分', { exact: true })).toBeVisible({ timeout: 30000 })
 
