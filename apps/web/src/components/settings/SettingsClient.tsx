@@ -276,9 +276,10 @@ export function SettingsClient({ settings }: Props) {
                   ))}
                 </div>
                 {/* SectionCard は overflow-visible のため、背景付きフッターは角丸を自前で
-                    合わせる（角丸を突き破って下角が欠けて見える問題の修正 #554） */}
+                    合わせる（角丸を突き破って下角が欠けて見える問題の修正 #554）。
+                    親の radius 16px から border 1px を引いた 15px で内接させる */}
                 <div
-                  className="flex items-center justify-between rounded-b-2xl border-t px-4 py-2.5"
+                  className="flex items-center justify-between rounded-b-[15px] border-t px-4 py-2.5"
                   style={{
                     background: "var(--color-surface-subtle)",
                     borderColor: "var(--border-default)",
