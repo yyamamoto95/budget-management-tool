@@ -54,6 +54,8 @@ export class PrismaUserSettingsRepository implements IUserSettingsRepository {
             fixedExpensesDetail: parseFixedExpensesDetail(record.fixedExpensesDetail),
             savingsGoal: record.savingsGoal,
             initialSetupCompleted: record.initialSetupCompleted,
+            autoFixedEnabled: record.autoFixedEnabled,
+            autoFixedDay: record.autoFixedDay,
             createdAt: record.createdAt,
             updatedAt: record.updatedAt,
         };
@@ -72,6 +74,8 @@ export class PrismaUserSettingsRepository implements IUserSettingsRepository {
                 fixedExpensesDetail: toPrismaJson(settings.fixedExpensesDetail),
                 savingsGoal: settings.savingsGoal ?? 0,
                 initialSetupCompleted: settings.initialSetupCompleted ?? false,
+                autoFixedEnabled: settings.autoFixedEnabled ?? false,
+                autoFixedDay: settings.autoFixedDay ?? 27,
             },
             update: {
                 totalAssets: settings.totalAssets,
@@ -87,6 +91,12 @@ export class PrismaUserSettingsRepository implements IUserSettingsRepository {
                 ...(settings.initialSetupCompleted !== undefined && {
                     initialSetupCompleted: settings.initialSetupCompleted,
                 }),
+                ...(settings.autoFixedEnabled !== undefined && {
+                    autoFixedEnabled: settings.autoFixedEnabled,
+                }),
+                ...(settings.autoFixedDay !== undefined && {
+                    autoFixedDay: settings.autoFixedDay,
+                }),
             },
         });
         return {
@@ -99,6 +109,8 @@ export class PrismaUserSettingsRepository implements IUserSettingsRepository {
             fixedExpensesDetail: parseFixedExpensesDetail(record.fixedExpensesDetail),
             savingsGoal: record.savingsGoal,
             initialSetupCompleted: record.initialSetupCompleted,
+            autoFixedEnabled: record.autoFixedEnabled,
+            autoFixedDay: record.autoFixedDay,
             createdAt: record.createdAt,
             updatedAt: record.updatedAt,
         };

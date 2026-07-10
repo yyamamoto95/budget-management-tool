@@ -30,6 +30,10 @@ export type UserSettings = {
     savingsGoal: number;
     /** 初回設定完了フラグ */
     initialSetupCompleted: boolean;
+    /** 固定費の毎月自動登録を有効にするか（#552） */
+    autoFixedEnabled: boolean;
+    /** 固定費の自動登録日（1〜28） */
+    autoFixedDay: number;
     createdAt: Date;
     updatedAt: Date;
 };

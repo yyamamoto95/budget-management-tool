@@ -21,6 +21,7 @@ import type { UpdateUserUseCase } from './application/use-cases/user/UpdateUserU
 import type { GetUserSettingsUseCase } from './application/use-cases/settings/GetUserSettingsUseCase';
 import type { UpsertUserSettingsUseCase } from './application/use-cases/settings/UpsertUserSettingsUseCase';
 import type { GetDashboardUseCase } from './application/use-cases/dashboard/GetDashboardUseCase';
+import type { RegisterAutoFixedExpensesUseCase } from './application/use-cases/dashboard/RegisterAutoFixedExpensesUseCase';
 import type { ReceiptScanService } from './application/services/receipt/ReceiptScanService';
 import { buildServices } from './container';
 import type { ICategoryRepository } from './domain/repositories/ICategoryRepository';
@@ -28,6 +29,7 @@ import type { IExpenseRepository } from './domain/repositories/IExpenseRepositor
 import type { IPasswordResetTokenRepository } from './domain/repositories/IPasswordResetTokenRepository';
 import type { IRefreshTokenRepository } from './domain/repositories/IRefreshTokenRepository';
 import type { IUserSettingsRepository } from './domain/repositories/IUserSettingsRepository';
+import type { IAutoFixedRegistrar } from './domain/repositories/IAutoFixedRegistrar';
 import type { ISecurityAnswerRepository } from './domain/repositories/ISecurityAnswerRepository';
 import type { IUserRepository } from './domain/repositories/IUserRepository';
 import { createCategoryRoutes } from './presentation/routes/category';
@@ -50,6 +52,7 @@ export type AppDeps = {
     securityAnswerRepository: ISecurityAnswerRepository;
     passwordResetTokenRepository: IPasswordResetTokenRepository;
     userSettingsRepository: IUserSettingsRepository;
+    autoFixedRegistrar: IAutoFixedRegistrar;
 };
 
 /**
@@ -88,6 +91,7 @@ export type RouteServices = {
     upsertUserSettingsUseCase: UpsertUserSettingsUseCase;
     // Dashboard
     getDashboardUseCase: GetDashboardUseCase;
+    registerAutoFixedExpensesUseCase: RegisterAutoFixedExpensesUseCase;
     // Receipt（#514）
     receiptScanService: ReceiptScanService;
 };

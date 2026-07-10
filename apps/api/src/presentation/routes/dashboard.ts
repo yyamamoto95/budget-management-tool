@@ -22,7 +22,11 @@ const getDashboardRoute = createRoute({
     },
 });
 
-export function createDashboardRoutes({ tokenService, getDashboardUseCase }: RouteServices) {
+export function createDashboardRoutes({
+    tokenService,
+    getDashboardUseCase,
+    registerAutoFixedExpensesUseCase,
+}: RouteServices) {
     const auth = createAuthMiddleware(tokenService);
     const app = createOpenAPIApp();
 
@@ -30,6 +34,15 @@ export function createDashboardRoutes({ tokenService, getDashboardUseCase }: Rou
 
     app.openapi(getDashboardRoute, async (c) => {
         const userId = c.get('userId');
+
+        // 固定費の毎月自動登録（#552・アクセス時遅延登録）。
+        // 失敗してもダッシュボード表示は継続する（次回アクセスで再試行される）
+        try {
+            await registerAutoFixedExpensesUseCase.execute(userId);
+        } catch (error) {
+            console.warn('固定費の自動登録に失敗しました（次回アクセスで再試行）:', error);
+        }
+
         const result = await getDashboardUseCase.execute(userId);
 
         return c.json(

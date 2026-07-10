@@ -136,11 +136,25 @@ model UserSettings {
   fixedExpensesDetail   Json?    @map("fixed_expenses_detail")
   savingsGoal           Int      @default(0) @map("savings_goal")
   initialSetupCompleted Boolean  @default(false) @map("initial_setup_completed")
+  // 固定費の毎月自動登録（#552）。日付は月末問題を避けるため 1〜28 をアプリ層で強制する
+  autoFixedEnabled      Boolean  @default(false) @map("auto_fixed_enabled")
+  autoFixedDay          Int      @default(27) @map("auto_fixed_day")
   createdAt             DateTime @default(now()) @db.DateTime(6) @map("created_at")
   updatedAt             DateTime @updatedAt @db.DateTime(6) @map("updated_at")
 
   @@index([userId], map: "IDX_user_settings_user_id")
   @@map("user_settings")
+}
+
+// 固定費自動登録の冪等ログ（#552）。ユーザー × 対象年月で一意にし二重登録を防ぐ
+model AutoFixedLog {
+  id        String   @id @db.VarChar(26)
+  userId    String   @db.VarChar(255) @map("user_id")
+  yearMonth String   @db.VarChar(7) @map("year_month")
+  createdAt DateTime @default(now()) @db.DateTime(6) @map("created_at")
+
+  @@unique([userId, yearMonth], map: "auto_fixed_log_user_month_key")
+  @@map("auto_fixed_log")
 }
 
 // パスワードリセット用一時トークン

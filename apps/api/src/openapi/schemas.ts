@@ -439,6 +439,15 @@ export const UserSettingsResponseSchema = z
             .min(0)
             .openapi({ description: '月間貯蓄目標（円）。1日予算の算出時に控除する', example: 30000 }),
         initialSetupCompleted: z.boolean().openapi({ description: '初回設定完了フラグ', example: false }),
+        autoFixedEnabled: z
+            .boolean()
+            .openapi({ description: '固定費の毎月自動登録を有効にするか（#552）', example: false }),
+        autoFixedDay: z
+            .number()
+            .int()
+            .min(1)
+            .max(28)
+            .openapi({ description: '固定費の自動登録日（1〜28）', example: 27 }),
     })
     .openapi('UserSettingsResponse');
 
@@ -480,6 +489,17 @@ export const UpsertUserSettingsBodySchema = z
             })
             .optional()
             .openapi({ description: '初回設定完了フラグ', example: true }),
+        autoFixedEnabled: z
+            .boolean({ invalid_type_error: '自動登録フラグは真偽値で入力してください' })
+            .optional()
+            .openapi({ description: '固定費の毎月自動登録を有効にするか。省略時は既存値を維持', example: true }),
+        autoFixedDay: z
+            .number({ invalid_type_error: '自動登録日は数値で入力してください' })
+            .int()
+            .min(1, '自動登録日は1以上の値を入力してください')
+            .max(28, '自動登録日は28以下の値を入力してください')
+            .optional()
+            .openapi({ description: '固定費の自動登録日（1〜28）。省略時は既存値を維持', example: 27 }),
     })
     .openapi('UpsertUserSettingsBody');
 

@@ -2276,6 +2276,16 @@ export interface components {
              * @example false
              */
             initialSetupCompleted: boolean;
+            /**
+             * @description 固定費の毎月自動登録を有効にするか（#552）
+             * @example false
+             */
+            autoFixedEnabled: boolean;
+            /**
+             * @description 固定費の自動登録日（1〜28）
+             * @example 27
+             */
+            autoFixedDay: number;
         };
         UpsertUserSettingsBody: {
             /**
@@ -2309,6 +2319,16 @@ export interface components {
              * @example true
              */
             initialSetupCompleted?: boolean;
+            /**
+             * @description 固定費の毎月自動登録を有効にするか。省略時は既存値を維持
+             * @example true
+             */
+            autoFixedEnabled?: boolean;
+            /**
+             * @description 固定費の自動登録日（1〜28）。省略時は既存値を維持
+             * @example 27
+             */
+            autoFixedDay?: number;
         };
         ReceiptScanResponse: {
             /**

@@ -897,6 +897,16 @@ components:
           type: boolean
           description: 初回設定完了フラグ
           example: false
+        autoFixedEnabled:
+          type: boolean
+          description: 固定費の毎月自動登録を有効にするか（#552）
+          example: false
+        autoFixedDay:
+          type: integer
+          minimum: 1
+          maximum: 28
+          description: 固定費の自動登録日（1〜28）
+          example: 27
       required:
         - totalAssets
         - monthlyIncome
@@ -905,6 +915,8 @@ components:
         - fixedExpensesDetail
         - savingsGoal
         - initialSetupCompleted
+        - autoFixedEnabled
+        - autoFixedDay
     UpsertUserSettingsBody:
       type: object
       properties:
@@ -942,6 +954,16 @@ components:
           type: boolean
           description: 初回設定完了フラグ
           example: true
+        autoFixedEnabled:
+          type: boolean
+          description: 固定費の毎月自動登録を有効にするか。省略時は既存値を維持
+          example: true
+        autoFixedDay:
+          type: integer
+          minimum: 1
+          maximum: 28
+          description: 固定費の自動登録日（1〜28）。省略時は既存値を維持
+          example: 27
       required:
         - totalAssets
         - monthlyIncome
