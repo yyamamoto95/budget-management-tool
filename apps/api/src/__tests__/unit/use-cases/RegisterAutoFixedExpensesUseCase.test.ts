@@ -39,7 +39,7 @@ function makeDeps(settings: UserSettings | null, registered = true) {
 }
 
 describe('RegisterAutoFixedExpensesUseCase', () => {
-    const today = new Date('2026-07-20T09:00:00');
+    const today = new Date('2026-07-20T09:00:00+09:00');
 
     it('オンかつ登録日を過ぎているとき、当月分の明細をレジストラへ渡す', async () => {
         const { settingsRepo, registrar } = makeDeps(baseSettings);

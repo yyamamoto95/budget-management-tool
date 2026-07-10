@@ -38,6 +38,16 @@ export const AUTO_FIXED_ITEM_MAP: Record<AutoFixedKey, { categoryId: number; lab
 /** 明細の content に付与する自動登録の目印（明細一覧で判別できるようにする） */
 export const AUTO_FIXED_CONTENT_SUFFIX = '（自動登録）';
 
+/**
+ * 日本時間での日付要素を返す（サーバーの実行タイムゾーンに依存させない）。
+ * 家計簿の「今日」「今月」はユーザーの生活時間 = JST を正とする。
+ */
+const JST_OFFSET_MS = 9 * 60 * 60 * 1000;
+function jstParts(today: Date): { year: number; month: number; day: number } {
+    const jst = new Date(today.getTime() + JST_OFFSET_MS);
+    return { year: jst.getUTCFullYear(), month: jst.getUTCMonth() + 1, day: jst.getUTCDate() };
+}
+
 /** 登録日を 1〜28 に丸める（不正値はデフォルトに落とす） */
 export function clampAutoFixedDay(day: number): number {
     if (!Number.isInteger(day)) return AUTO_FIXED_DAY_DEFAULT;
@@ -54,12 +64,13 @@ export function shouldRegisterAutoFixed(params: {
     today: Date;
 }): boolean {
     if (!params.enabled) return false;
-    return params.today.getDate() >= clampAutoFixedDay(params.day);
+    return jstParts(params.today).day >= clampAutoFixedDay(params.day);
 }
 
-/** 対象年月（YYYY-MM）を返す */
+/** 対象年月（YYYY-MM・日本時間基準）を返す */
 export function autoFixedYearMonth(today: Date): string {
-    return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+    const { year, month } = jstParts(today);
+    return `${year}-${String(month).padStart(2, '0')}`;
 }
 
 export type AutoFixedEntry = {

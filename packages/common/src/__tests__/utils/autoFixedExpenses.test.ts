@@ -22,7 +22,7 @@ describe('clampAutoFixedDay', () => {
 })
 
 describe('shouldRegisterAutoFixed', () => {
-    const today = new Date('2026-07-15T10:00:00')
+    const today = new Date('2026-07-15T10:00:00+09:00')
 
     it('オフのときは常に false', () => {
         expect(shouldRegisterAutoFixed({ enabled: false, day: 1, today })).toBe(false)
@@ -36,7 +36,7 @@ describe('shouldRegisterAutoFixed', () => {
 })
 
 describe('buildAutoFixedEntries', () => {
-    const today = new Date('2026-07-15T10:00:00')
+    const today = new Date('2026-07-15T10:00:00+09:00')
 
     it('金額のある項目だけを、登録日の日付・カテゴリ・自動登録の目印つきで組み立てる', () => {
         const entries = buildAutoFixedEntries(
@@ -71,6 +71,13 @@ describe('buildAutoFixedEntries', () => {
 
 describe('autoFixedYearMonth', () => {
     it('YYYY-MM 形式で返す', () => {
-        expect(autoFixedYearMonth(new Date('2026-01-05'))).toBe('2026-01')
+        expect(autoFixedYearMonth(new Date('2026-01-05T00:00:00+09:00'))).toBe('2026-01')
+    })
+
+    it('UTC では前日でも日本時間の日付で判定する', () => {
+        // UTC 2026-06-30 16:00 = JST 2026-07-01 01:00
+        const utcEdge = new Date('2026-06-30T16:00:00Z')
+        expect(autoFixedYearMonth(utcEdge)).toBe('2026-07')
+        expect(shouldRegisterAutoFixed({ enabled: true, day: 1, today: utcEdge })).toBe(true)
     })
 })
