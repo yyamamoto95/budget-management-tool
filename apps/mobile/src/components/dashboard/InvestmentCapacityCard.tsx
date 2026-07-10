@@ -1,5 +1,5 @@
 import {
-  buildInvestmentDeepLinkQuery,
+  buildInvestmentToolCtaUrl,
   calculateInvestmentCapacity,
   emergencyFundDisplay,
   formatCapacityHoldReason,
@@ -27,11 +27,8 @@ export function InvestmentCapacityCard({ livingMargin }: { livingMargin: LivingM
 
   const fund = emergencyFundDisplay(result.emergencyFundRatio);
   const holdReason = formatCapacityHoldReason(result);
-  const deepLinkQuery = buildInvestmentDeepLinkQuery(result);
-  const ctaUrl =
-    deepLinkQuery && INVESTMENT_TOOL_URL
-      ? `${INVESTMENT_TOOL_URL.replace(/\/$/, '')}/?${deepLinkQuery}`
-      : null;
+  // URL のスキーム検証（http/https 以外は CTA 非表示）・送客可否は common に集約
+  const ctaUrl = buildInvestmentToolCtaUrl(INVESTMENT_TOOL_URL, result);
 
   return (
     <View style={styles.card} testID="investment-capacity-card">
@@ -75,7 +72,7 @@ export function InvestmentCapacityCard({ livingMargin }: { livingMargin: LivingM
 
       {ctaUrl && (
         <Pressable
-          style={styles.cta}
+          style={({ pressed }) => [styles.cta, pressed && styles.ctaPressed]}
           accessibilityRole="link"
           onPress={() => {
             // 端末外ブラウザで検証ツールを開く（失敗しても静かに握りつぶさずログへ）
@@ -179,6 +176,9 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
     paddingVertical: 10,
     alignItems: 'center',
+  },
+  ctaPressed: {
+    opacity: 0.6,
   },
   ctaLabel: {
     fontSize: 12,

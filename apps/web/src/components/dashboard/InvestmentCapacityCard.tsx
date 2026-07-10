@@ -1,9 +1,8 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { ExternalLink, TrendingUp } from "lucide-react";
 import {
-  buildInvestmentDeepLinkQuery,
+  buildInvestmentToolCtaUrl,
   calculateInvestmentCapacity,
   emergencyFundDisplay,
   formatCapacityHoldReason,
@@ -12,7 +11,6 @@ import {
   RISK_TOLERANCE_LABELS,
   type LivingMarginInputs,
 } from "@budget/common";
-import { SPRING } from "@/lib/motion";
 
 type Props = {
   livingMargin: LivingMarginInputs;
@@ -35,14 +33,12 @@ export function InvestmentCapacityCard({ livingMargin }: Props) {
 
   const fund = emergencyFundDisplay(result.emergencyFundRatio);
   const holdReason = formatCapacityHoldReason(result);
-  const deepLinkQuery = buildInvestmentDeepLinkQuery(result);
-  const ctaHref =
-    deepLinkQuery && INVESTMENT_TOOL_URL
-      ? `${INVESTMENT_TOOL_URL.replace(/\/$/, "")}/?${deepLinkQuery}`
-      : null;
+  // URL のスキーム検証・送客可否は common に集約。アニメーションは HomeClient 側の
+  // PAGE_ITEM_VARIANTS に一任するため、ここはプレーンな div にする
+  const ctaHref = buildInvestmentToolCtaUrl(INVESTMENT_TOOL_URL, result);
 
   return (
-    <motion.div
+    <div
       data-testid="investment-capacity-card"
       className="overflow-hidden rounded-2xl border p-4"
       style={{
@@ -50,9 +46,6 @@ export function InvestmentCapacityCard({ livingMargin }: Props) {
         borderColor: "var(--border-default)",
         boxShadow: "var(--shadow-card)",
       }}
-      initial={{ opacity: 0, y: 22 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={SPRING.smooth}
     >
       <div className="mb-1 flex items-center justify-between">
         <span className="text-[13px] font-bold" style={{ color: "var(--foreground)" }}>
@@ -144,6 +137,6 @@ export function InvestmentCapacityCard({ livingMargin }: Props) {
       >
         {INVESTMENT_CAPACITY_TEXT.disclaimer}
       </p>
-    </motion.div>
+    </div>
   );
 }

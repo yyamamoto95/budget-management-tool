@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
     buildInvestmentDeepLinkQuery,
+    buildInvestmentToolCtaUrl,
     calculateInvestmentCapacity,
     emergencyFundDisplay,
     formatCapacityHoldReason,
@@ -137,6 +138,41 @@ describe('formatCapacityHoldReason', () => {
                 calculateInvestmentCapacity({ ...baseInputs, totalAssets: null })
             )
         ).toBeNull()
+    })
+})
+
+describe('buildInvestmentToolCtaUrl', () => {
+    const investable = calculateInvestmentCapacity({
+        totalAssets: 2_880_000,
+        avgDailyExpense: 8_000,
+        monthlyIncome: 300_000,
+        recordedDays: 30,
+    })
+
+    it('http(s) のベース URL のとき、末尾スラッシュを整えた CTA URL を返す', () => {
+        expect(buildInvestmentToolCtaUrl('https://example.com/', investable)).toBe(
+            'https://example.com/?risk_tolerance=mid&monthly_limit=30000'
+        )
+        expect(buildInvestmentToolCtaUrl('http://localhost:3000', investable)).toBe(
+            'http://localhost:3000/?risk_tolerance=mid&monthly_limit=30000'
+        )
+    })
+
+    it('未設定・http(s) 以外のベース URL は null（設定ミスで相対遷移させない）', () => {
+        expect(buildInvestmentToolCtaUrl(undefined, investable)).toBeNull()
+        expect(buildInvestmentToolCtaUrl('', investable)).toBeNull()
+        expect(buildInvestmentToolCtaUrl('example.com', investable)).toBeNull()
+        expect(buildInvestmentToolCtaUrl('javascript:alert(1)', investable)).toBeNull()
+    })
+
+    it('投資を控える月は null（送客しない）', () => {
+        const hold = calculateInvestmentCapacity({
+            totalAssets: 1_200_000,
+            avgDailyExpense: 8_000,
+            monthlyIncome: 300_000,
+            recordedDays: 30,
+        })
+        expect(buildInvestmentToolCtaUrl('https://example.com', hold)).toBeNull()
     })
 })
 

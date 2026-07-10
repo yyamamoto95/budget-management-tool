@@ -166,3 +166,22 @@ export function buildInvestmentDeepLinkQuery(
     // 値は列挙型と整数のみのため URL エンコード不要（DOM 非依存のまま組み立てる）
     return `risk_tolerance=${result.riskTolerance}&monthly_limit=${result.monthlyLimitJpy}`;
 }
+
+/**
+ * 検証ツールへの CTA URL を組み立てる（Web / モバイル共通）。
+ * ベース URL が未設定・http(s) 以外（相対パス等の設定ミス）、または送客しない診断結果の
+ * 場合は null を返し、呼び出し側は CTA を表示しない。
+ */
+export function buildInvestmentToolCtaUrl(
+    baseUrl: string | undefined,
+    result: InvestmentCapacityResult
+): string | null {
+    if (!baseUrl || !/^https?:\/\//.test(baseUrl)) {
+        return null;
+    }
+    const query = buildInvestmentDeepLinkQuery(result);
+    if (query === null) {
+        return null;
+    }
+    return `${baseUrl.replace(/\/$/, '')}/?${query}`;
+}
