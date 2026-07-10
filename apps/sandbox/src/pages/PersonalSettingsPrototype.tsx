@@ -15,6 +15,7 @@ import {
   Check, TrendingUp, Zap, Car, ShoppingBag,
   Wallet, Heart, Calendar, Settings, PiggyBank,
   ChevronLeft, ChevronRight, ChevronDown, BookOpen, Home,
+  Lightbulb,
 } from 'lucide-react'
 import { SandboxLayout } from '../components/SandboxLayout'
 
@@ -374,6 +375,66 @@ function SectionCard({ title, children, delay = 0, noClip = false }: {
   )
 }
 
+// ─── 診断のしくみ（#543）─────────────────────────────────────────────────────
+/**
+ * ガイドタブ常設のトグル UI。使い方ガイド（ホームツアー）でも同内容を説明するが、
+ * ツアーを閉じた後もいつでも読み返せるようにここに置く。
+ * 開くと「ちなみに」トーンの補足（脚注のような佇まい・平易な文言）を表示する。
+ */
+function MechanismToggleCard() {
+  const [open, setOpen] = useState(false)
+  return (
+    <SectionCard title="診断のしくみ" delay={0.06}>
+      <div>
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          aria-expanded={open}
+          className="flex w-full items-center gap-3 px-4 py-3.5 text-left transition-colors hover:bg-[#fff6ee]"
+        >
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md"
+            style={{ background: D.brandLight }}>
+            <TrendingUp size={16} style={{ color: D.brand }} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-[13px] font-bold" style={{ color: D.text }}>投資余力診断のしくみ</div>
+            <div className="text-[11px] mt-0.5" style={{ color: D.muted }}>「今月の上限」がどう決まるかの補足です</div>
+          </div>
+          <motion.span animate={{ rotate: open ? 180 : 0 }} transition={SPRING.QUICK} style={{ flexShrink: 0 }}>
+            <ChevronDown size={14} style={{ color: D.muted }} />
+          </motion.span>
+        </button>
+        <AnimatePresence>
+          {open && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={SPRING.QUICK}
+              className="overflow-hidden"
+            >
+              <div className="px-4 pb-4">
+                <div className="rounded-xl px-3.5 py-3" style={{ background: 'rgba(28,20,16,0.04)' }}>
+                  <p className="flex items-center gap-1.5 text-xs font-bold" style={{ color: 'rgba(28,20,16,0.75)' }}>
+                    <Lightbulb size={13} style={{ color: D.brand }} aria-hidden />
+                    ちなみに、どう計算している？
+                  </p>
+                  <ul className="mt-2 space-y-1.5 text-[11px] leading-relaxed" style={{ color: D.muted }}>
+                    <li>・まず「生活費 6 ヶ月分の備え」を最優先。備えが目標に届くまで、投資はおすすめしません</li>
+                    <li>・上限は毎月の黒字の半分まで。残りの半分は現金で手元に残す想定です</li>
+                    <li>・家計にゆとりがあるほどリスク許容度が上がり、検証ツールで比べられる戦略の幅が広がります</li>
+                    <li>・検証ツールに渡すのは「リスク許容度」と「上限額」の 2 つだけ。名前や記録の中身は渡しません</li>
+                  </ul>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </SectionCard>
+  )
+}
+
 // ─── Toast ───────────────────────────────────────────────────────────────────
 function Toast({ visible }: { visible: boolean }) {
   return (
@@ -659,6 +720,7 @@ export function PersonalSettingsPrototype() {
               /* ── ガイドタブ ─────────────────────────────────────────────── */
               <motion.div
                 key="guide"
+                className="flex flex-col gap-5"
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={SPRING.SMOOTH}
@@ -701,6 +763,9 @@ export function PersonalSettingsPrototype() {
                     </div>
                   </div>
                 </SectionCard>
+
+                {/* 診断のしくみ（#543 — ガイドツアーと同内容をいつでも読み返せる常設トグル） */}
+                <MechanismToggleCard />
               </motion.div>
             ) : (
               /* ── 設定フォーム ────────────────────────────────────────────── */
