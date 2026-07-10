@@ -101,7 +101,7 @@ describe('LoginForm', () => {
         expect(button).toBeDisabled()
     })
 
-    it('returnTo が渡されたとき、hidden input に returnTo 値がセットされる', () => {
+    it('returnTo が渡されても hidden input は出力されない（ログイン後は常にホームへ遷移 #549）', () => {
         vi.mocked(React.useActionState).mockReturnValue([
             { error: null },
             vi.fn(),
@@ -110,9 +110,7 @@ describe('LoginForm', () => {
 
         const { container } = render(<LoginForm returnTo="/expenses" />)
 
-        const hiddenInput = container.querySelector('input[name="returnTo"]')
-        expect(hiddenInput).not.toBeNull()
-        expect(hiddenInput).toHaveValue('/expenses')
+        expect(container.querySelector('input[name="returnTo"]')).toBeNull()
     })
 
     it('returnTo が渡されたとき、セッション切れトーストが呼ばれる', () => {

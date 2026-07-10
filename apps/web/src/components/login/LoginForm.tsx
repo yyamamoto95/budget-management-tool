@@ -77,10 +77,8 @@ export function LoginForm({ returnTo }: Props) {
 
         {returnTo && <SessionExpiredToast />}
 
+        {/* ログイン後は常にホームへ遷移するため returnTo はトースト表示のみに使う（#549） */}
         <form action={formAction} className="flex flex-col gap-4">
-          {returnTo && (
-            <input type="hidden" name="returnTo" value={returnTo} />
-          )}
           <div className="flex flex-col gap-1">
             <label htmlFor="userId" className="text-sm font-semibold text-[#1c1410]">
               ユーザー名
@@ -138,9 +136,6 @@ export function LoginForm({ returnTo }: Props) {
 
         <div className="mt-4 border-t border-[rgba(28,20,16,0.08)] pt-4 space-y-3">
           <form action={guestLoginAction}>
-            {returnTo && (
-              <input type="hidden" name="returnTo" value={returnTo} />
-            )}
             <button type="submit" className="btn-ghost w-full">
               ゲストユーザーでログイン
             </button>
