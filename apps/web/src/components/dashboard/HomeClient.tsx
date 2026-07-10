@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { calculateInvestmentCapacity, calculateLivingMargin } from "@budget/common";
 import { PAGE_VARIANTS, PAGE_ITEM_VARIANTS } from "@/lib/motion";
@@ -85,6 +85,9 @@ export function HomeClient({
 }: Props) {
   const [drawerOpen, setDrawerOpen] = useState(false);
 
+  // スライド配列の再生成による不要な再レンダリングを避ける（レビュー指摘対応）
+  const carouselSlides = useMemo(() => buildCarouselSlides(dashboard), [dashboard]);
+
   // 生活余力（#418）。登録直後の即時フィードバック用に実効日次支出 E も導出する
   const livingMarginResult = calculateLivingMargin(dashboard.livingMargin);
   const effectiveDailyExpense =
@@ -135,9 +138,7 @@ export function HomeClient({
 
         {/* SP: スワイプカルーセル（#550 / sandbox 承認済みデザイン。DOM順 = 表示順） */}
         <motion.div variants={PAGE_ITEM_VARIANTS} className="lg:hidden">
-          <DashboardCarousel
-            slides={buildCarouselSlides(dashboard)}
-          />
+          <DashboardCarousel slides={carouselSlides} />
         </motion.div>
 
         {/* PC: 2カラムグリッド */}

@@ -36,8 +36,11 @@ const SLIDE_VARIANTS = {
  * スライドの中身は既存のダッシュボードカードをそのまま受け取る（DOM順 = 表示順）。
  */
 export function DashboardCarousel({ slides }: { slides: CarouselSlide[] }) {
-  const [index, setIndex] = useState(0);
+  const [rawIndex, setIndex] = useState(0);
   const [direction, setDirection] = useState<1 | -1>(1);
+  // データ更新でスライド数が減った場合（例: 投資余力が算出不能になった）に
+  // 範囲外参照でクラッシュしないよう末尾へクランプする
+  const index = Math.min(rawIndex, Math.max(0, slides.length - 1));
 
   const go = (next: number) => {
     if (next < 0 || next >= slides.length || next === index) return;
