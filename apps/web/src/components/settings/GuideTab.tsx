@@ -95,6 +95,7 @@ function MechanismToggle() {
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
+        aria-controls="investment-mechanism-panel"
         className="flex w-full items-center gap-3 px-4 py-3.5 text-left"
       >
         <div
@@ -123,6 +124,7 @@ function MechanismToggle() {
       <AnimatePresence>
         {open && (
           <motion.div
+            id="investment-mechanism-panel"
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
@@ -143,13 +145,13 @@ function MechanismToggle() {
                   ちなみに、どう計算している？
                 </p>
                 <ul
-                  className="mt-2 space-y-1.5 text-[11px] leading-relaxed"
+                  className="mt-2 list-disc space-y-1.5 pl-4 text-[11px] leading-relaxed"
                   style={{ color: "var(--foreground)", opacity: 0.6 }}
                 >
-                  <li>・まず「生活費 6 ヶ月分の備え」を最優先。備えが目標に届くまで、投資はおすすめしません</li>
-                  <li>・上限は毎月の黒字の半分まで。残りの半分は現金で手元に残す想定です</li>
-                  <li>・家計にゆとりがあるほどリスク許容度が上がり、検証ツールで比べられる戦略の幅が広がります</li>
-                  <li>・検証ツールに渡すのは「リスク許容度」と「上限額」の 2 つだけ。名前や記録の中身は渡しません</li>
+                  <li>まず「生活費 6 ヶ月分の備え」を最優先。備えが目標に届くまで、投資はおすすめしません</li>
+                  <li>上限は毎月の黒字の半分まで。残りの半分は現金で手元に残す想定です</li>
+                  <li>家計にゆとりがあるほどリスク許容度が上がり、検証ツールで比べられる戦略の幅が広がります</li>
+                  <li>検証ツールに渡すのは「リスク許容度」と「上限額」の 2 つだけ。名前や記録の中身は渡しません</li>
                 </ul>
               </div>
             </div>

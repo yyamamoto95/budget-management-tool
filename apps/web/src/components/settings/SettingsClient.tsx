@@ -256,6 +256,8 @@ export function SettingsClient({ settings }: Props) {
                     key={item.key}
                     type="button"
                     role="tab"
+                    id={`settings-tab-${item.key}`}
+                    aria-controls={`settings-panel-${item.key}`}
                     aria-selected={active}
                     onClick={() => setActiveMenu(item.key)}
                     className="flex flex-1 items-center justify-center gap-1.5 rounded-[10px] py-2 text-[12px] font-bold transition-colors"
@@ -276,6 +278,12 @@ export function SettingsClient({ settings }: Props) {
               })}
             </div>
 
+            <div
+              role="tabpanel"
+              id={`settings-panel-${activeMenu}`}
+              aria-labelledby={`settings-tab-${activeMenu}`}
+              className="space-y-4"
+            >
             {activeMenu === "guide" ? (
               <GuideTab />
             ) : (
@@ -521,6 +529,7 @@ export function SettingsClient({ settings }: Props) {
             </motion.div>
               </>
             )}
+            </div>
           </div>
         </div>
       </motion.div>
