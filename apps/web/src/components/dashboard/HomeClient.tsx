@@ -6,6 +6,7 @@ import { calculateLivingMargin } from "@budget/common";
 import { PAGE_VARIANTS, PAGE_ITEM_VARIANTS } from "@/lib/motion";
 import type { DashboardResponse, CategoryItem } from "@/lib/api/types";
 import { DailyBudgetHero } from "./DailyBudgetHero";
+import { InvestmentCapacityCard } from "./InvestmentCapacityCard";
 import { LivingMarginCard } from "./LivingMarginCard";
 import { useLivingMargin } from "@/components/providers/LivingMarginProvider";
 import { MonthlySummaryCard } from "./MonthlySummaryCard";
@@ -109,6 +110,11 @@ export function HomeClient({
               monthSummary={dashboard.monthSummary}
               lastMonthExpense={dashboard.lastMonthExpense}
             />
+          </motion.div>
+
+          {/* InvestmentCapacityCard — 投資余力（#543 / #545）。算出不能時は非表示 */}
+          <motion.div variants={PAGE_ITEM_VARIANTS}>
+            <InvestmentCapacityCard livingMargin={dashboard.livingMargin} />
           </motion.div>
         </div>
 

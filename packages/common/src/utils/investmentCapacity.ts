@@ -28,6 +28,25 @@ const MONTHLY_LIMIT_ROUNDING_JPY = 1000;
 /** 家計状態から導出するリスク許容度（連携契約 InvestmentCapacity.risk_tolerance と同値） */
 export type RiskTolerance = 'low' | 'mid' | 'high';
 
+/** リスク許容度の表示ラベル（Web / モバイル共通。表記ゆれ防止のため common が SSOT） */
+export const RISK_TOLERANCE_LABELS: Record<RiskTolerance, string> = {
+    low: '低（安定重視）',
+    mid: '中（バランス）',
+    high: '高（変動を許容）',
+};
+
+/** 投資余力カードの表示文言（Web / モバイル共通 SSOT。断定・煽り表現を使わない） */
+export const INVESTMENT_CAPACITY_TEXT = {
+    title: '投資余力',
+    limitLabel: '今月の上限',
+    holdTitle: '今月は投資を控える月',
+    fundLabel: `生活の備え（生活費 ${EMERGENCY_FUND_TARGET_MONTHS} ヶ月分が目安）`,
+    ctaLabel: 'この条件で戦略の過去検証を見る',
+    disclaimer:
+        '診断は家計の記録に基づく目安であり、投資成果を保証するものではありません。' +
+        '投資判断はご自身の責任で行ってください。',
+} as const;
+
 export type InvestmentCapacityResult =
     | {
           status: 'ok';
@@ -99,6 +118,38 @@ export function calculateInvestmentCapacity(
         emergencyFundTargetJpy,
         shouldHold: monthlyLimitJpy <= 0,
     };
+}
+
+/**
+ * 「投資を控える月」の理由文（事実のみのトーン。Web / モバイル共通 SSOT）。
+ * 控える判断でない場合は null を返す。
+ */
+export function formatCapacityHoldReason(
+    result: InvestmentCapacityResult
+): string | null {
+    if (result.status !== 'ok' || !result.shouldHold) {
+        return null;
+    }
+    if (result.emergencyFundRatio < 1.0) {
+        const target = `¥${Math.round(result.emergencyFundTargetJpy).toLocaleString('ja-JP')}`;
+        const percent = Math.max(0, Math.round(result.emergencyFundRatio * 100));
+        return `生活の備え（目標 ${target}）が ${percent}% です。まずは備えを整える段階です。`;
+    }
+    return '今月は支出が収入を上回るペースです。投資より家計の立て直しが先の段階です。';
+}
+
+/**
+ * 生活防衛資金の充足バー表示値（Web / モバイル共通）。
+ * 負の総資産などで充足率が負になっても表示が壊れないよう 0 以上にクランプする。
+ */
+export function emergencyFundDisplay(emergencyFundRatio: number): {
+    /** 表示用パーセント（0 以上・整数） */
+    percent: number;
+    /** バー幅パーセント（0〜100） */
+    barPercent: number;
+} {
+    const percent = Math.max(0, Math.round(emergencyFundRatio * 100));
+    return { percent, barPercent: Math.min(percent, 100) };
 }
 
 /**

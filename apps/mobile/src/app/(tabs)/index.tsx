@@ -10,6 +10,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDashboard, type DashboardData } from '@/lib/api/use-dashboard';
 import { AppHeader } from '@/components/layout/AppHeader';
+import { InvestmentCapacityCard } from '@/components/dashboard/InvestmentCapacityCard';
 import { LivingMarginCard } from '@/components/dashboard/LivingMarginCard';
 import { MonthlySummaryCard } from '@/components/dashboard/MonthlySummaryCard';
 import { TodayStatusCard } from '@/components/dashboard/TodayStatusCard';
@@ -72,6 +73,8 @@ function Dashboard({ data, today }: { data: DashboardData; today?: Date }) {
         lastMonthExpense={data.lastMonthExpense}
         today={today}
       />
+      {/* 投資余力（#543 / #545）。Web と同じく MonthlySummary の後・算出不能時は非表示 */}
+      <InvestmentCapacityCard livingMargin={data.livingMargin} />
 
       <View style={styles.card}>
         <Text style={styles.cardTitle}>最近の記録</Text>

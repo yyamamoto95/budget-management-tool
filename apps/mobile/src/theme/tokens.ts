@@ -24,6 +24,7 @@ export const colors = {
   expenseLight: v('--color-expense-light'),
   income: v('--color-income'),
   incomeLight: v('--color-income-light'),
+  caution: v('--color-caution'),
 } as const;
 
 /** カード全体の3トーン配色（--color-status-*） */
