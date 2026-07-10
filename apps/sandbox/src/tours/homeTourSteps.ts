@@ -13,8 +13,9 @@
  *   5. 明細（全件閲覧・検索）
  *   6. 今月の貯蓄予測（週次チェック）
  *   7. 今月のサマリー（月次振り返り）
- *   8. レポート（カテゴリ分析・傾向把握）
- *   9. 設定（目標・予算の管理）
+ *   8. 投資余力（月次チェック・診断のしくみ）
+ *   9. レポート（カテゴリ分析・傾向把握）
+ *  10. 設定（目標・予算の管理）
  */
 
 import type { ElementType } from 'react'
@@ -25,6 +26,7 @@ import {
   TrendingUp,
   BarChart2,
   PenLine,
+  PiggyBank,
   Receipt,
   Settings,
   List,
@@ -153,7 +155,21 @@ export const HOME_TOUR_STEPS: TourStepDef[] = [
     sidePC: 'left',   // PC では右カラムのため左側に表示
   },
 
-  // ── 8: レポート（カテゴリ分析・傾向把握）────────────────────────────────
+  // ── 8: 投資余力（月次チェック・診断のしくみ）──────────────────────────────
+  {
+    selector: '[data-tour="block-capacity"]',
+    icon: PiggyBank,
+    iconBg: '#ecfdf5',
+    iconColor: '#35b5a2',
+    title: '投資余力',
+    freq: '月1回確認',
+    description:
+      '家計に無理のない「今月投資に回せる上限」を診断します。まず生活費6ヶ月分の備えを最優先し、満たすまでは「投資を控える月」と表示します。\n上限は毎月の黒字の半分まで。検証ツールに渡すのはリスク許容度と上限額の2つだけで、名前や記録の中身は渡しません。',
+    side: 'bottom',
+    sidePC: 'right',  // PC では左カラム（Block 5）のため右側に表示
+  },
+
+  // ── 9: レポート（カテゴリ分析・傾向把握）────────────────────────────────
   {
     selector: '[data-tour="nav-report"]',
     icon: PieChart,
@@ -167,7 +183,7 @@ export const HOME_TOUR_STEPS: TourStepDef[] = [
     sidePC: 'right',  // PC では左サイドバーのため右側に表示
   },
 
-  // ── 9: 設定（目標・予算の管理）────────────────────────────────────────────
+  // ── 10: 設定（目標・予算の管理）───────────────────────────────────────────
   {
     selector: '[data-tour="nav-settings"]',
     icon: Settings,

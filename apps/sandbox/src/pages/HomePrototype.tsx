@@ -41,7 +41,7 @@ import {
     ChevronLeft, ChevronRight, ChevronDown, Delete,
     TrendingDown, TrendingUp, AlertTriangle, AlertCircle, CheckCircle2, HelpCircle, MinusCircle, X,
     ArrowUpRight, ArrowDownRight, Sparkles,
-    PenLine,
+    PenLine, ExternalLink,
 } from "lucide-react";
 import {
     EXPENSE_CATEGORIES as EXPENSE_TOKEN_LIST,
@@ -914,6 +914,53 @@ function QuickEntryContent(p: QECProps) {
 
 // ─── メインコンポーネント ────────────────────────────────────────────────────
 
+/**
+ * 投資余力カード（#543 / #545）
+ * 「今月投資に回してよい上限」を数字主役で表示する。防衛資金未充足・赤字の月は
+ * 「今月は投資を控える月」を肯定形で表示する（このモックは投資可のケース）。
+ * 実装時は @budget/common calculateInvestmentCapacity の結果を接続する。
+ * しくみの説明はここには置かず、設定 >「投資余力診断のしくみ」に置く（ちなみに扱い）。
+ */
+function InvestmentCapacityContent() {
+    // モック値: 備え 200%（充足）・黒字 6 万円 → 上限 3 万円・許容度 中
+    const monthlyLimit   = 30000;
+    const toleranceLabel = "中（バランス）";
+    const fundRatioPct   = 200;
+    return (
+        <>
+            <div className="mb-2 flex items-center justify-between">
+                <span className="text-[13px] font-bold" style={{ color: C.text }}>投資余力</span>
+                <TrendingUp size={14} aria-hidden style={{ color: C.text, opacity: 0.42 }} />
+            </div>
+            <div className="flex items-baseline gap-1.5">
+                <span className="text-sm font-semibold" style={{ color: C.text, opacity: 0.6 }}>今月の上限</span>
+                <span className="hero-number text-3xl font-black tabular-nums" style={{ color: C.text, letterSpacing: "-0.02em" }}>{formatYen(monthlyLimit)}</span>
+            </div>
+            <p className="mt-1.5 text-[11px] font-semibold" style={{ color: C.income }}>リスク許容度: {toleranceLabel}</p>
+            <div className="mt-3">
+                <div className="flex items-center justify-between text-[10px]" style={{ color: C.muted }}>
+                    <span>生活の備え（生活費 6 ヶ月分が目安）</span>
+                    <span className="tabular-nums">{fundRatioPct}%</span>
+                </div>
+                <div className="mt-1 h-1.5 overflow-hidden rounded-full" style={{ background: C.border }}>
+                    <div className="h-full rounded-full" style={{ width: `${Math.min(fundRatioPct, 100)}%`, background: C.income }} />
+                </div>
+            </div>
+            <button
+                type="button"
+                className="mt-3 inline-flex w-full items-center justify-center gap-1.5 border px-3 py-2 text-[11px] font-bold"
+                style={{ borderRadius: R.input, borderColor: C.border, color: C.text, background: C.brandLight }}
+            >
+                <ExternalLink size={11} aria-hidden />
+                この条件で戦略の過去検証を見る
+            </button>
+            <p className="mt-2.5 text-[9px] leading-relaxed" style={{ color: C.muted }}>
+                診断は家計の記録に基づく目安であり、投資成果を保証するものではありません。投資判断はご自身の責任で行ってください。
+            </p>
+        </>
+    );
+}
+
 export function HomePrototype() {
     const shouldReduce  = useReducedMotion();
     const isLargeScreen = useIsLargeScreen();
@@ -969,9 +1016,9 @@ export function HomePrototype() {
         () => (location.state as { fromWizard?: boolean } | null)?.fromWizard ?? false
     );
 
-    // ── SP スワイプカルーセル（今日の状況・今月の貯蓄予測・今月のサマリー）────
-    const CAROUSEL_COUNT  = 3
-    const CAROUSEL_LABELS = ['今日の状況', '今月の貯蓄予測', '今月のサマリー'] as const
+    // ── SP スワイプカルーセル（今日の状況・今月の貯蓄予測・今月のサマリー・投資余力）──
+    const CAROUSEL_COUNT  = 4
+    const CAROUSEL_LABELS = ['今日の状況', '今月の貯蓄予測', '今月のサマリー', '投資余力'] as const
     const [carouselIdx,        setCarouselIdx]        = useState(0)
     const [carouselDir,        setCarouselDir]        = useState<1 | -1>(1)
     const [carouselHintPlayed, setCarouselHintPlayed] = useState(false)
@@ -1666,6 +1713,22 @@ export function HomePrototype() {
                                             </motion.div>
                                         )
                                     })()}
+
+                                    {/* Slide 3: 投資余力（#543） */}
+                                    {carouselIdx === 3 && (
+                                        <motion.div
+                                            key="capacity"
+                                            data-tour="block-capacity"
+                                            custom={carouselDir}
+                                            variants={carouselSlideVariants}
+                                            initial="enter"
+                                            animate="center"
+                                            exit="exit"
+                                            className="p-4"
+                                        >
+                                            <InvestmentCapacityContent />
+                                        </motion.div>
+                                    )}
                                 </AnimatePresence>
                             </motion.div>
 
@@ -1697,7 +1760,7 @@ export function HomePrototype() {
                         </div>
                     </motion.div>
 
-                    {/* ── PC: 2カラムグリッド（Block 1〜4 全表示） ─────────────── */}
+                    {/* ── PC: 2カラムグリッド（Block 1〜5 全表示） ─────────────── */}
                     <motion.div
                         className="hidden lg:grid lg:grid-cols-2 gap-3"
                         variants={pageContainerVariants}
@@ -1838,6 +1901,11 @@ export function HomePrototype() {
                                 </motion.div>
                             )
                         })()}
+
+                        {/* Block 5: 投資余力（#543） */}
+                        <motion.div data-tour="block-capacity" variants={pageItemVariants} className="border p-4" style={{ borderRadius: R.card, background: C.card, borderColor: C.border, boxShadow: C.shadow }}>
+                            <InvestmentCapacityContent />
+                        </motion.div>
                     </motion.div>
 
                     <motion.div

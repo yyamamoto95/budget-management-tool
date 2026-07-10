@@ -14,7 +14,7 @@ const prototypes: PrototypeCard[] = [
   {
     path: '/home',
     title: 'ホーム画面',
-    description: 'タップ展開DailyBudget・明示的モバイル順序・貯蓄ランウェイ・通知パネル・連続記録UX・PC モーダル/SP ドロワー記録。',
+    description: 'タップ展開DailyBudget・明示的モバイル順序・貯蓄ランウェイ・投資余力カード（#543）・通知パネル・連続記録UX・PC モーダル/SP ドロワー記録。',
     icon: LayoutDashboard,
     issue: 'sandbox',
     status: 'wip',
