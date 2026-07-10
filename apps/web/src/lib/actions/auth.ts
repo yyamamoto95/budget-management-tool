@@ -123,22 +123,21 @@ export async function loginAction(
     return { error: "サーバーに接続できませんでした" };
   }
 
-  // returnTo が / 始まりの場合のみ使用（オープンリダイレクト対策）
-  const returnTo = String(formData.get("returnTo") ?? "");
-  redirect(returnTo.startsWith("/") ? returnTo : "/");
+  // ログイン後は常にホームへ遷移する（#549。returnTo による直前ページ復帰は廃止し、
+  // セッション切れの通知は LoginForm のトースト表示のみに使う）
+  redirect("/");
 }
 
 /** ゲストログイン Server Action */
-export async function guestLoginAction(formData: FormData): Promise<void> {
+export async function guestLoginAction(_formData: FormData): Promise<void> {
   const res = await serverFetch<LoginResponse & TokenPair>("/api/guest-login", {
     method: "POST",
   });
   await setTokenCookies({ ...res, userId: res.userId });
   await syncSetupCookie();
 
-  // returnTo が / 始まりの場合のみ使用（オープンリダイレクト対策）
-  const returnTo = String(formData.get("returnTo") ?? "");
-  redirect(returnTo.startsWith("/") ? returnTo : "/");
+  // ログイン後は常にホームへ遷移する（#549）
+  redirect("/");
 }
 
 /** ログアウト Server Action */
