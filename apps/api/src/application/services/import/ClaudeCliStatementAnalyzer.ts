@@ -27,7 +27,7 @@ export class ClaudeCliStatementAnalyzer implements StatementAnalyzer {
     private availability: boolean | null = null;
 
     async isAvailable(): Promise<boolean> {
-        if (process.env.RECEIPT_CLI_DISABLED === 'true') return false;
+        if (process.env.STATEMENT_CLI_DISABLED === 'true') return false;
         if (this.availability !== null) return this.availability;
         try {
             await execFileAsync('claude', ['--version'], { timeout: 10_000 });

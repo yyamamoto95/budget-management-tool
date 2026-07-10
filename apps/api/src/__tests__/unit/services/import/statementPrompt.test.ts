@@ -41,11 +41,20 @@ describe('parseClaudeStatementJson', () => {
         expect(candidates[0].confidence).toBe('high');
     });
 
-    it('金額の文字列・マイナス表記は正の整数に正規化する', () => {
+    it('金額の文字列・マイナス・小数表記は正の整数に正規化する', () => {
         const { candidates } = parseClaudeStatementJson(
-            payload([{ ...validRow, amount: '-¥4,420' }, { ...validRow, amount: -360 }])
+            payload([
+                { ...validRow, amount: '-¥4,420' },
+                { ...validRow, amount: -360 },
+                { ...validRow, amount: '17504.00' },
+            ])
         );
-        expect(candidates.map((c) => c.amount)).toEqual([4420, 360]);
+        expect(candidates.map((c) => c.amount)).toEqual([4420, 360, 17504]);
+    });
+
+    it('日付の前後空白に耐える', () => {
+        const { candidates } = parseClaudeStatementJson(payload([{ ...validRow, date: ' 2026-06-29 ' }]));
+        expect(candidates[0].date).toBe('2026-06-29');
     });
 
     it('日付・金額が読めない行と非オブジェクト行はスキップして数える', () => {

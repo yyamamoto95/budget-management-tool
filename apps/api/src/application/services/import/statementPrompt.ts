@@ -99,9 +99,10 @@ function coerceAmount(value: unknown): number | null {
         return Math.round(Math.abs(value));
     }
     if (typeof value === 'string') {
-        const digits = value.replace(/[,，¥￥円\s\-−]/g, '');
-        if (/^\d+$/.test(digits)) {
-            const amount = Number(digits);
+        // "17,504" "¥17,504" "-4420" に加え "17504.00" のような小数表記も許容する
+        const normalized = value.replace(/[,，¥￥円\s\-−]/g, '');
+        if (/^\d+(\.\d+)?$/.test(normalized)) {
+            const amount = Math.round(Number(normalized));
             if (amount > 0) return amount;
         }
     }
@@ -111,7 +112,8 @@ function coerceAmount(value: unknown): number | null {
 /** "2026/06/29" 等の区切り違いも YYYY-MM-DD に正規化する（実在しない日付は null） */
 function coerceDate(value: unknown): string | null {
     if (typeof value !== 'string') return null;
-    const match = value.match(/^(\d{4})[/\-.](\d{1,2})[/\-.](\d{1,2})/);
+    // LLM 出力の前後空白に耐性を持たせる
+    const match = value.trim().match(/^(\d{4})[/\-.](\d{1,2})[/\-.](\d{1,2})/);
     if (!match) return null;
     return normalizeDate(Number(match[1]), Number(match[2]), Number(match[3]));
 }
