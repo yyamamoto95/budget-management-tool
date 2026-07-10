@@ -45,6 +45,19 @@ export function validate(def: FlowDefinition): ValidationResult {
           `画面「${screen.id}」の部品「${el.label}」の遷移先 goto「${el.goto}」が screens に存在しません`
         );
       }
+      if (el.type === "nav") {
+        for (const item of el.items) {
+          if (
+            typeof item === "object" &&
+            item.goto &&
+            !def.screens.some((s) => s.id === item.goto)
+          ) {
+            errors.push(
+              `画面「${screen.id}」のナビ項目「${item.label}」の遷移先 goto「${item.goto}」が screens に存在しません`
+            );
+          }
+        }
+      }
     }
   }
 
@@ -63,14 +76,22 @@ export function validate(def: FlowDefinition): ValidationResult {
       continue;
     }
     flow.steps.forEach((step, i) => {
-      if (!screenIds.has(step.screen)) {
+      if (step.screen && step.process) {
+        errors.push(
+          `フロー「${flow.id}」の手順${i + 1}に screen と process の両方が指定されています。どちらか一方にしてください`
+        );
+      } else if (!step.screen && !step.process) {
+        errors.push(
+          `フロー「${flow.id}」の手順${i + 1}に screen（画面）か process（処理）のどちらかを指定してください`
+        );
+      } else if (step.screen && !screenIds.has(step.screen)) {
         errors.push(
           `フロー「${flow.id}」の手順${i + 1}が参照する画面「${step.screen}」が screens に存在しません`
         );
       }
       if (i < flow.steps.length - 1 && !step.action) {
         errors.push(
-          `フロー「${flow.id}」の手順${i + 1}（画面「${step.screen}」）に action（操作）がありません。最後の手順以外は操作を書いてください`
+          `フロー「${flow.id}」の手順${i + 1}（${step.screen ? `画面「${step.screen}」` : `処理「${step.process}」`}）に action（操作）がありません。最後の手順以外は操作を書いてください`
         );
       }
     });

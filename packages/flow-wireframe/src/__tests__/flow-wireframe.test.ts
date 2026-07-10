@@ -118,6 +118,80 @@ describe("renderHtml", () => {
   });
 });
 
+describe("v0.2 の汎用化機能", () => {
+  it("layout: desktop はブラウザ枠として描画される", () => {
+    const def = minimalDef();
+    def.screens[0].layout = "desktop";
+    const html = renderHtml(def);
+    expect(html).toContain("wf-desktop");
+    expect(html).toContain("wf-browser-bar");
+  });
+
+  it("process ステップは画面なしの処理ノードとして描画される", () => {
+    const def = minimalDef();
+    def.flows[0].steps = [
+      { screen: "a", action: "保存する" },
+      { process: "ダイジェストを生成", actor: "システム", action: "配信する" },
+      { screen: "b", result: "完了" },
+    ];
+    const html = renderHtml(def);
+    expect(html).toContain("wf-process");
+    expect(html).toContain("ダイジェストを生成");
+    expect(html).toContain("システム");
+  });
+
+  it("screen と process の同時指定・両方欠落を検出する", () => {
+    const def = minimalDef();
+    def.flows[0].steps = [
+      { screen: "a", process: "二重指定", action: "x" },
+      { action: "y" },
+      { screen: "b" },
+    ];
+    const errors = validate(def).errors.join();
+    expect(errors).toContain("どちらか一方");
+    expect(errors).toContain("どちらかを指定");
+  });
+
+  it("nav 項目の goto はホットスポットになり、参照切れは検出される", () => {
+    const def = minimalDef();
+    def.screens[0].elements.push({
+      type: "nav",
+      items: [{ label: "B画面へ", goto: "b" }, "設定"],
+      selected: "設定",
+    });
+    const html = renderHtml(def);
+    expect(html).toContain("wf-nav-hotspot");
+
+    def.screens[0].elements.push({ type: "nav", items: [{ label: "迷子", goto: "nowhere" }] });
+    expect(validate(def).errors.join()).toContain("nowhere");
+  });
+
+  it("external な部品は ↗ マーク付きで描画される", () => {
+    const def = minimalDef();
+    def.screens[0].elements.push({ type: "link", label: "記事を読む", external: true });
+    const html = renderHtml(def);
+    expect(html).toContain("wf-external");
+  });
+});
+
+describe("JSON Schema", () => {
+  it("schema が有効な JSON で、TypeScript の element type 一覧と一致する", () => {
+    const schema = JSON.parse(
+      fs.readFileSync(
+        path.join(__dirname, "..", "..", "schema", "flow-wireframe.schema.json"),
+        "utf-8"
+      )
+    );
+    const schemaTypes: string[] = schema.definitions.element.properties.type.enum;
+    // render.ts の switch が扱う全部品タイプ（types.ts の ScreenElement と対応）
+    const implemented = [
+      "header", "text", "input", "button", "link", "list", "card",
+      "chart", "image", "badge", "choice", "nav", "divider",
+    ];
+    expect([...schemaTypes].sort()).toEqual([...implemented].sort());
+  });
+});
+
 describe("escapeHtml", () => {
   it("HTML特殊文字をすべて変換する", () => {
     expect(escapeHtml(`<a href="x">&'</a>`)).toBe(

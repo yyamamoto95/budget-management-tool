@@ -58,6 +58,19 @@ h2 { border-bottom: 3px solid var(--accent); padding-bottom: 6px; margin-top: 48
 .wf-thumb-name { display: block; font-size: 12px; font-weight: 700; margin-top: 4px; }
 .wf-thumb:hover .wf-thumb-name { color: var(--accent); }
 
+/* デスクトップ枠のミニチュア */
+.wf-thumb-desktop { width: 216px; }
+.wf-thumb-desktop .wf-thumb-scale .wf-frame-wrap { transform: scale(.36); width: 560px; }
+
+/* 画面を持たない処理ステップ */
+.wf-process { position: relative; flex: 0 0 auto; align-self: center; display: flex; flex-direction: column; align-items: center; gap: 2px; border: 2px solid var(--muted); border-radius: 14px; background: #f3f4f6; padding: 14px 16px; min-width: 120px; max-width: 150px; text-align: center; }
+.wf-process-icon { font-size: 22px; color: var(--muted); }
+.wf-process-name { font-size: 12px; font-weight: 700; }
+.wf-process-actor { font-size: 11px; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 0 8px; background: #fff; }
+
+/* 外部サービスへの遷移マーク */
+.wf-external { margin-left: 4px; font-weight: 700; }
+
 /* ステップ間の矢印 */
 .wf-arrow { flex: 0 0 auto; align-self: center; display: flex; flex-direction: column; justify-content: center; min-width: 110px; max-width: 160px; text-align: center; padding: 0 6px; }
 .wf-arrow-action { font-size: 12px; font-weight: 700; color: var(--ink); }
@@ -82,9 +95,13 @@ h2 { border-bottom: 3px solid var(--accent); padding-bottom: 6px; margin-top: 48
 .wf-screen-section:target { outline: 3px solid var(--accent); animation: wf-flash 1.2s ease-out 1; }
 @keyframes wf-flash { from { background: #dbeafe; } to { background: #fff; } }
 
-/* ワイヤーフレーム本体（スマホ枠 320px） */
+/* ワイヤーフレーム本体（スマホ枠 320px / デスクトップ枠 560px） */
 .wf-frame-wrap { display: inline-block; vertical-align: top; }
 .wf-frame { width: 320px; min-height: 120px; border: 2px solid var(--ink); border-radius: 18px; background: #fff; padding: 14px 12px 8px; display: flex; flex-direction: column; gap: 8px; }
+.wf-desktop .wf-frame { width: 560px; border-radius: 10px; }
+.wf-browser-bar { display: flex; align-items: center; gap: 5px; background: #e5e7eb; margin: -14px -12px 6px; padding: 7px 12px; border-radius: 8px 8px 0 0; border-bottom: 2px solid var(--ink); }
+.wf-browser-bar span { width: 9px; height: 9px; border-radius: 50%; background: #fff; border: 1px solid var(--sketch); }
+.wf-browser-bar i { flex: 1; font-style: normal; font-size: 10px; color: var(--muted); background: #fff; border-radius: 999px; padding: 1px 12px; margin-left: 6px; }
 .wf-el { margin: 0; }
 .wf-header { font-weight: 700; font-size: 16px; border-bottom: 2px solid var(--ink); padding-bottom: 6px; }
 .wf-text { font-size: 13px; }
@@ -124,6 +141,8 @@ h2 { border-bottom: 3px solid var(--accent); padding-bottom: 6px; margin-top: 48
 .wf-choice-item.wf-selected, .wf-nav-item.wf-selected { background: var(--ink); color: #fff; font-weight: 700; }
 .wf-nav { display: flex; border-top: 2px solid var(--ink); margin: auto -12px -8px; padding-top: 0; }
 .wf-nav-item { flex: 1; text-align: center; font-size: 11px; padding: 8px 2px; }
+.wf-nav-hotspot { color: var(--accent); text-decoration: none; outline: 1.5px dashed var(--accent); outline-offset: -3px; border-radius: 6px; cursor: pointer; }
+.wf-nav-hotspot:hover { outline-style: solid; }
 .wf-divider { border: none; border-top: 1.5px dashed var(--line); width: 100%; }
 .wf-note-mark { color: var(--accent); font-weight: 700; margin-left: 2px; }
 .wf-notes { max-width: 320px; font-size: 12px; color: var(--muted); padding-left: 20px; margin: 8px 0 0; }
@@ -146,7 +165,7 @@ h2 { border-bottom: 3px solid var(--accent); padding-bottom: 6px; margin-top: 48
 <p class="wf-doc-meta">版: 0.1.0</p>
 </header>
 <main>
-<details class="wf-legend"><summary>この資料の読み方</summary><ul><li><strong>業務フロー</strong>: 画面の縮小図と矢印で「誰が・どの画面で・何をすると・どうなるか」を表します。矢印の上が<strong>操作</strong>、下が<strong>システムの応答</strong>です。</li><li><strong>ふるまい表</strong>: 各フローの下にある「前提・操作・結果」の表は、開発で使うテストシナリオ（Gherkin）と1対1で対応します。</li><li><strong>画面カタログ</strong>: フロー中の縮小図をクリックすると、その画面の実寸ワイヤーフレームへ移動します。</li><li><strong>青い枠のボタン・リンク</strong>はクリックできるホットスポットです。クリックすると遷移先の画面へ移動し、移動先が一瞬ハイライトされます。</li><li>①②… の印は画面下の注釈と対応します。</li></ul></details>
+<details class="wf-legend"><summary>この資料の読み方</summary><ul><li><strong>業務フロー</strong>: 画面の縮小図と矢印で「誰が・どの画面で・何をすると・どうなるか」を表します。矢印の上が<strong>操作</strong>、下が<strong>システムの応答</strong>です。</li><li><strong>ふるまい表</strong>: 各フローの下にある「前提・操作・結果」の表は、開発で使うテストシナリオ（Gherkin）と1対1で対応します。</li><li><strong>画面カタログ</strong>: フロー中の縮小図をクリックすると、その画面の実寸ワイヤーフレームへ移動します。</li><li><strong>青い枠のボタン・リンク</strong>はクリックできるホットスポットです。クリックすると遷移先の画面へ移動し、移動先が一瞬ハイライトされます。</li><li><strong>⚙ の角丸ボックス</strong>は画面を持たない処理（バッチ・自動化など）を表します。下のラベルは処理の主体です。</li><li><strong>↗</strong> は外部サービスへの遷移（このワイヤーフレームの範囲外）を表します。</li><li>①②… の印は画面下の注釈と対応します。</li></ul></details>
 <nav class="wf-toc"><div><h4>業務フロー</h4><ol><li><a href="#flow-US-002"><span class="wf-flow-id">US-002</span>ログインする</a></li><li><a href="#flow-US-301"><span class="wf-flow-id">US-301</span>支出を素早く記録する（クイック入力）</a></li><li><a href="#flow-US-401"><span class="wf-flow-id">US-401</span>ホーム画面でその日の状況を一瞥する</a></li><li><a href="#flow-US-102"><span class="wf-flow-id">US-102</span>使いすぎているカテゴリに気づく</a></li></ol></div><div><h4>画面カタログ</h4><ol><li><a href="#screen-login">ログイン画面</a></li><li><a href="#screen-home">ホーム画面</a></li><li><a href="#screen-quick-record">クイック入力</a></li><li><a href="#screen-home-recorded">ホーム画面（記録直後）</a></li><li><a href="#screen-report">レポート画面</a></li></ol></div></nav>
 <h2 id="flows">業務フロー</h2>
 <section class="wf-flow-section" id="flow-US-002"><h3><span class="wf-flow-id">US-002</span>ログインする<span class="wf-actor">👤 利用者</span></h3><p class="wf-flow-desc">登録済みユーザーが自分のデータにアクセスするまでの流れ。</p><div class="wf-strip"><a class="wf-thumb" href="#screen-login" title="クリックで画面の詳細へ"><span class="wf-thumb-no">1</span><span class="wf-thumb-scale"><div class="wf-frame-wrap"><div class="wf-frame"><div class="wf-el wf-header">家計簿アプリ</div>
@@ -220,7 +239,7 @@ h2 { border-bottom: 3px solid var(--accent); padding-bottom: 6px; margin-top: 48
 <div class="wf-el wf-list"><div class="wf-list-label">今月の収支サマリー</div><ul><li>収入  ¥280,000</li><li>支出  ¥163,200</li><li>収支  +¥116,800（貯蓄率 41%）</li></ul></div>
 <div class="wf-el wf-list"><div class="wf-list-label">最近の記録（直近3日）</div><ul><li>今日　食費　¥820</li><li>昨日　交通　¥340</li><li>昨日　食費　¥1,200</li></ul></div>
 <a class="wf-el wf-button wf-button-primary wf-hotspot" href="#screen-quick-record" title="クリックで「quick-record」へ移動">＋ 記録する<sup class="wf-note-mark">④</sup></a>
-<div class="wf-el wf-nav"><span class="wf-nav-item wf-selected">ホーム</span><span class="wf-nav-item">記録</span><span class="wf-nav-item">明細</span><span class="wf-nav-item">レポート</span><span class="wf-nav-item">設定</span></div></div><ol class="wf-notes"><li>日割り残り予算ヒーロー。支出記録のたびに即時更新（US-101）</li><li>ペースが「良い／注意」かをひと目で示す</li><li>総資産と実効支出から算出。算出不能時は理由と次の行動を案内（US-402）</li><li>最速入力への導線。ホームから1タップで開く</li></ol></div></section>
+<div class="wf-el wf-nav"><span class="wf-nav-item wf-selected">ホーム</span><span class="wf-nav-item">記録</span><span class="wf-nav-item">明細</span><a class="wf-nav-item wf-nav-hotspot" href="#screen-report" title="クリックで「report」へ移動">レポート</a><span class="wf-nav-item">設定</span></div></div><ol class="wf-notes"><li>日割り残り予算ヒーロー。支出記録のたびに即時更新（US-101）</li><li>ペースが「良い／注意」かをひと目で示す</li><li>総資産と実効支出から算出。算出不能時は理由と次の行動を案内（US-402）</li><li>最速入力への導線。ホームから1タップで開く</li></ol></div></section>
 <section class="wf-screen-section" id="screen-quick-record"><h3><span class="wf-screen-id">quick-record</span>クイック入力</h3><p class="wf-screen-note">最小操作（カテゴリ選択＋金額）で記録を完了させる。迷わせないことが最優先。</p><p class="wf-screen-flows">登場するフロー: <a class="wf-tag" href="#flow-US-301">US-301 支出を素早く記録する（クイック入力）</a></p><div class="wf-frame-wrap"><div class="wf-frame"><div class="wf-el wf-header">記録する</div>
 <div class="wf-el wf-choice"><div class="wf-choice-label">種別<sup class="wf-note-mark">①</sup></div><div class="wf-choice-items"><span class="wf-choice-item wf-selected">支出</span><span class="wf-choice-item">収入</span></div></div>
 <div class="wf-el wf-choice"><div class="wf-choice-label">カテゴリ</div><div class="wf-choice-items"><span class="wf-choice-item wf-selected">食費</span><span class="wf-choice-item">交通</span><span class="wf-choice-item">日用品</span><span class="wf-choice-item">その他</span></div></div>
@@ -233,13 +252,13 @@ h2 { border-bottom: 3px solid var(--accent); padding-bottom: 6px; margin-top: 48
 <div class="wf-el wf-card"><div class="wf-card-label">今日使える残り予算<sup class="wf-note-mark">②</sup></div><div class="wf-card-value">¥460</div><div class="wf-card-caption">¥1,280 → ¥460 に即時更新</div></div>
 <div class="wf-el wf-list"><div class="wf-list-label">最近の記録（直近3日）</div><ul><li>今日　食費　¥820 ← いま記録した明細</li><li>昨日　交通　¥340</li><li>昨日　食費　¥1,200</li></ul></div>
 <a class="wf-el wf-button wf-button-primary wf-hotspot" href="#screen-quick-record" title="クリックで「quick-record」へ移動">＋ 続けて記録する</a>
-<div class="wf-el wf-nav"><span class="wf-nav-item wf-selected">ホーム</span><span class="wf-nav-item">記録</span><span class="wf-nav-item">明細</span><span class="wf-nav-item">レポート</span><span class="wf-nav-item">設定</span></div></div><ol class="wf-notes"><li>登録成功の表示とあわせて生活余力への影響を添える。影響が小さい場合は「ほぼ変わりません」</li><li>残り予算・消化率が記録直後に更新される（US-101）</li></ol></div></section>
+<div class="wf-el wf-nav"><span class="wf-nav-item wf-selected">ホーム</span><span class="wf-nav-item">記録</span><span class="wf-nav-item">明細</span><a class="wf-nav-item wf-nav-hotspot" href="#screen-report" title="クリックで「report」へ移動">レポート</a><span class="wf-nav-item">設定</span></div></div><ol class="wf-notes"><li>登録成功の表示とあわせて生活余力への影響を添える。影響が小さい場合は「ほぼ変わりません」</li><li>残り予算・消化率が記録直後に更新される（US-101）</li></ol></div></section>
 <section class="wf-screen-section" id="screen-report"><h3><span class="wf-screen-id">report</span>レポート画面</h3><p class="wf-screen-note">カテゴリ別の支出内訳と期間切替。どのカテゴリが突出しているかに気づける。</p><p class="wf-screen-flows">登場するフロー: <a class="wf-tag" href="#flow-US-102">US-102 使いすぎているカテゴリに気づく</a></p><div class="wf-frame-wrap"><div class="wf-frame"><div class="wf-el wf-header">レポート</div>
 <div class="wf-el wf-choice"><div class="wf-choice-label">期間<sup class="wf-note-mark">①</sup></div><div class="wf-choice-items"><span class="wf-choice-item wf-selected">今月</span><span class="wf-choice-item">直近7日</span><span class="wf-choice-item">先月</span></div></div>
 <div class="wf-el wf-chart"><div class="wf-chart-label">カテゴリ別支出割合</div><div class="wf-chart-donut"></div></div>
 <div class="wf-el wf-list"><div class="wf-list-label">カテゴリ内訳</div><ul><li>食費　　¥62,400（38%）</li><li>住居　　¥55,000（34%）</li><li>交通　　¥28,100（17%）</li><li>日用品　¥17,700（11%）</li></ul></div>
 <p class="wf-el wf-text wf-muted">食費が先月より +12% 増えています<sup class="wf-note-mark">②</sup></p>
-<div class="wf-el wf-nav"><span class="wf-nav-item">ホーム</span><span class="wf-nav-item">記録</span><span class="wf-nav-item">明細</span><span class="wf-nav-item wf-selected">レポート</span><span class="wf-nav-item">設定</span></div></div><ol class="wf-notes"><li>期間はURLに反映され、リンク共有・再訪問時も同じ期間で表示される</li><li>突出カテゴリへの気づきを事実の数字で示す（煽らない）</li></ol></div></section>
+<div class="wf-el wf-nav"><a class="wf-nav-item wf-nav-hotspot" href="#screen-home" title="クリックで「home」へ移動">ホーム</a><span class="wf-nav-item">記録</span><span class="wf-nav-item">明細</span><span class="wf-nav-item wf-selected">レポート</span><span class="wf-nav-item">設定</span></div></div><ol class="wf-notes"><li>期間はURLに反映され、リンク共有・再訪問時も同じ期間で表示される</li><li>突出カテゴリへの気づきを事実の数字で示す（煽らない）</li></ol></div></section>
 </main>
 <footer class="wf-doc-footer">Generated by @yyamamoto95/flow-wireframe — 定義(JSON)と出力(HTML)は1対1で対応します</footer>
 </body>

@@ -39,13 +39,16 @@ export interface ButtonElement extends ElementBase {
   label: string;
   goto?: string;
   variant?: "primary" | "secondary" | "danger";
+  /** true のとき外部サービスへの遷移（↗）として描画する。goto とは併用しない */
+  external?: boolean;
 }
 
-/** テキストリンク。goto はボタンと同様 */
+/** テキストリンク。goto・external はボタンと同様 */
 export interface LinkElement extends ElementBase {
   type: "link";
   label: string;
   goto?: string;
+  external?: boolean;
 }
 
 /** 箇条書き・明細リスト */
@@ -93,10 +96,13 @@ export interface ChoiceElement extends ElementBase {
   selected?: string;
 }
 
-/** 画面下部のナビゲーションバー */
+/** ナビゲーション項目。文字列、または遷移先つきのオブジェクト */
+export type NavItem = string | { label: string; goto?: string };
+
+/** ナビゲーションバー（モバイルは下部・デスクトップは上部を想定） */
 export interface NavElement extends ElementBase {
   type: "nav";
-  items: string[];
+  items: NavItem[];
   selected?: string;
 }
 
@@ -127,6 +133,8 @@ export interface Screen {
   name: string;
   /** 画面の目的や状態の説明 */
   note?: string;
+  /** 画面の枠。mobile=スマホ枠(320px) / desktop=ブラウザ枠(560px)。省略時は mobile */
+  layout?: "mobile" | "desktop";
   elements: ScreenElement[];
 }
 
@@ -137,11 +145,19 @@ export interface Scenario {
   then: string[];
 }
 
-/** フローの 1 ステップ */
+/**
+ * フローの 1 ステップ。
+ * screen（画面）か process（画面を持たない処理）のどちらか一方を指定する。
+ * process はバッチ処理・自動化など、UI を介さない業務ステップの表現に使う。
+ */
 export interface FlowStep {
   /** 表示する画面の ID */
-  screen: string;
-  /** この画面でユーザーが行う操作（次のステップへの矢印ラベル） */
+  screen?: string;
+  /** 画面を持たない処理の名前（例: "RSSを収集"、"ダイジェストを生成"） */
+  process?: string;
+  /** このステップの主体（例: "利用者"、"システム"）。省略時はフローの actor */
+  actor?: string;
+  /** このステップで行う操作（次のステップへの矢印ラベル） */
   action?: string;
   /** 操作に対するシステムの応答・特記事項 */
   result?: string;
@@ -161,6 +177,8 @@ export interface Flow {
 
 /** フロー定義全体 */
 export interface FlowDefinition {
+  /** エディタ補完用の JSON Schema 参照。レンダリングには影響しない */
+  $schema?: string;
   title: string;
   description?: string;
   /** 定義自体のバージョン。出力 HTML に表示される */

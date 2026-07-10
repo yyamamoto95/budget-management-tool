@@ -1,6 +1,7 @@
 import type {
   Flow,
   FlowDefinition,
+  FlowStep,
   RenderOptions,
   Screen,
   ScreenElement,
@@ -63,12 +64,14 @@ function renderElement(el: ScreenElement, c: NoteCollector, interactive: boolean
       const variant = el.variant ?? "primary";
       const hot = interactive && el.goto;
       const tag = hot ? "a" : "span";
-      return `<${tag} class="wf-el wf-button wf-button-${variant}${hot ? " wf-hotspot" : ""}"${hot ? gotoAttrs(el.goto) : ""}>${esc(el.label)}${mark}</${tag}>`;
+      const ext = el.external ? `<span class="wf-external" title="外部サービスへ移動">↗</span>` : "";
+      return `<${tag} class="wf-el wf-button wf-button-${variant}${hot ? " wf-hotspot" : ""}"${hot ? gotoAttrs(el.goto) : ""}>${esc(el.label)}${ext}${mark}</${tag}>`;
     }
     case "link": {
       const hot = interactive && el.goto;
       const tag = hot ? "a" : "span";
-      return `<${tag} class="wf-el wf-link${hot ? " wf-hotspot" : ""}"${hot ? gotoAttrs(el.goto) : ""}>${esc(el.label)}${mark}</${tag}>`;
+      const ext = el.external ? `<span class="wf-external" title="外部サービスへ移動">↗</span>` : "";
+      return `<${tag} class="wf-el wf-link${hot ? " wf-hotspot" : ""}"${hot ? gotoAttrs(el.goto) : ""}>${esc(el.label)}${ext}${mark}</${tag}>`;
     }
     case "list": {
       const label = el.label ? `<div class="wf-list-label">${esc(el.label)}${mark}</div>` : mark;
@@ -123,10 +126,14 @@ function renderElement(el: ScreenElement, c: NoteCollector, interactive: boolean
     }
     case "nav": {
       const items = el.items
-        .map(
-          (i) =>
-            `<span class="wf-nav-item${i === el.selected ? " wf-selected" : ""}">${esc(i)}</span>`
-        )
+        .map((item) => {
+          const label = typeof item === "string" ? item : item.label;
+          const goto = typeof item === "string" ? undefined : item.goto;
+          const hot = interactive && goto;
+          const tag = hot ? "a" : "span";
+          const cls = `wf-nav-item${label === el.selected ? " wf-selected" : ""}${hot ? " wf-nav-hotspot" : ""}`;
+          return `<${tag} class="${cls}"${hot ? gotoAttrs(goto) : ""}>${esc(label)}</${tag}>`;
+        })
         .join("");
       return `<div class="wf-el wf-nav">${items}${mark}</div>`;
     }
@@ -147,9 +154,13 @@ function renderScreenFrame(screen: Screen, interactive = true): string {
     interactive && c.notes.length > 0
       ? `<ol class="wf-notes">${c.notes.map((n) => `<li>${esc(n)}</li>`).join("")}</ol>`
       : "";
+  const desktop = screen.layout === "desktop";
+  const chrome = desktop
+    ? `<div class="wf-browser-bar"><span></span><span></span><span></span><i>${esc(screen.name)}</i></div>`
+    : "";
   return (
-    `<div class="wf-frame-wrap">` +
-    `<div class="wf-frame">${body}</div>` +
+    `<div class="wf-frame-wrap${desktop ? " wf-desktop" : ""}">` +
+    `<div class="wf-frame">${chrome}${body}</div>` +
     notes +
     `</div>`
   );
@@ -172,12 +183,26 @@ function renderScreenSection(screen: Screen, usedBy: Flow[]): string {
 
 /** フロー内で使うミニチュア画面（実物のワイヤーフレームを縮小表示） */
 function renderThumb(screen: Screen, stepNo: number): string {
+  const desktop = screen.layout === "desktop";
   return (
-    `<a class="wf-thumb" href="#screen-${esc(screen.id)}" title="クリックで画面の詳細へ">` +
+    `<a class="wf-thumb${desktop ? " wf-thumb-desktop" : ""}" href="#screen-${esc(screen.id)}" title="クリックで画面の詳細へ">` +
     `<span class="wf-thumb-no">${stepNo}</span>` +
     `<span class="wf-thumb-scale">${renderScreenFrame(screen, false)}</span>` +
     `<span class="wf-thumb-name">${esc(screen.name)}</span>` +
     `</a>`
+  );
+}
+
+/** 画面を持たない処理ステップのノード */
+function renderProcessNode(step: FlowStep, stepNo: number, defaultActor?: string): string {
+  const actor = step.actor ?? defaultActor;
+  return (
+    `<span class="wf-process">` +
+    `<span class="wf-thumb-no">${stepNo}</span>` +
+    `<span class="wf-process-icon" aria-hidden="true">⚙</span>` +
+    `<span class="wf-process-name">${esc(step.process ?? "")}</span>` +
+    (actor ? `<span class="wf-process-actor">${esc(actor)}</span>` : "") +
+    `</span>`
   );
 }
 
@@ -202,8 +227,13 @@ function renderScenario(flow: Flow): string {
 function renderFlowSection(flow: Flow, screensById: Map<string, Screen>): string {
   const strip = flow.steps
     .map((step, i) => {
-      const screen = screensById.get(step.screen);
-      const thumb = screen ? renderThumb(screen, i + 1) : "";
+      let node = "";
+      if (step.screen) {
+        const screen = screensById.get(step.screen);
+        node = screen ? renderThumb(screen, i + 1) : "";
+      } else if (step.process) {
+        node = renderProcessNode(step, i + 1, flow.actor);
+      }
       const isLast = i === flow.steps.length - 1;
       const arrow = !isLast
         ? `<span class="wf-arrow"><span class="wf-arrow-action">${esc(step.action ?? "")}</span>` +
@@ -212,7 +242,7 @@ function renderFlowSection(flow: Flow, screensById: Map<string, Screen>): string
         : step.result
           ? `<span class="wf-flow-goal">🏁 ${esc(step.result)}</span>`
           : "";
-      return thumb + arrow;
+      return node + arrow;
     })
     .join("");
   return (
@@ -234,6 +264,8 @@ function renderLegend(): string {
     `<li><strong>ふるまい表</strong>: 各フローの下にある「前提・操作・結果」の表は、開発で使うテストシナリオ（Gherkin）と1対1で対応します。</li>` +
     `<li><strong>画面カタログ</strong>: フロー中の縮小図をクリックすると、その画面の実寸ワイヤーフレームへ移動します。</li>` +
     `<li><strong>青い枠のボタン・リンク</strong>はクリックできるホットスポットです。クリックすると遷移先の画面へ移動し、移動先が一瞬ハイライトされます。</li>` +
+    `<li><strong>⚙ の角丸ボックス</strong>は画面を持たない処理（バッチ・自動化など）を表します。下のラベルは処理の主体です。</li>` +
+    `<li><strong>↗</strong> は外部サービスへの遷移（このワイヤーフレームの範囲外）を表します。</li>` +
     `<li>①②… の印は画面下の注釈と対応します。</li>` +
     `</ul></details>`
   );

@@ -1,4 +1,5 @@
 {
+  "$schema": "../schema/flow-wireframe.schema.json",
   "title": "家計簿アプリ 業務フロー ワイヤーフレーム",
   "description": "BDD ユーザーストーリー（.github/spec/user-stories.md）の代表フローを見える化したもの。ID はストーリーの US-nnn と対応する。",
   "version": "0.1.0",
@@ -30,7 +31,7 @@
         { "type": "list", "label": "今月の収支サマリー", "items": ["収入  ¥280,000", "支出  ¥163,200", "収支  +¥116,800（貯蓄率 41%）"] },
         { "type": "list", "label": "最近の記録（直近3日）", "items": ["今日　食費　¥820", "昨日　交通　¥340", "昨日　食費　¥1,200"] },
         { "type": "button", "label": "＋ 記録する", "goto": "quick-record", "note": "最速入力への導線。ホームから1タップで開く" },
-        { "type": "nav", "items": ["ホーム", "記録", "明細", "レポート", "設定"], "selected": "ホーム" }
+        { "type": "nav", "items": ["ホーム", "記録", "明細", { "label": "レポート", "goto": "report" }, "設定"], "selected": "ホーム" }
       ]
     },
     {
@@ -57,7 +58,7 @@
         { "type": "card", "label": "今日使える残り予算", "value": "¥460", "caption": "¥1,280 → ¥460 に即時更新", "note": "残り予算・消化率が記録直後に更新される（US-101）" },
         { "type": "list", "label": "最近の記録（直近3日）", "items": ["今日　食費　¥820 ← いま記録した明細", "昨日　交通　¥340", "昨日　食費　¥1,200"] },
         { "type": "button", "label": "＋ 続けて記録する", "goto": "quick-record" },
-        { "type": "nav", "items": ["ホーム", "記録", "明細", "レポート", "設定"], "selected": "ホーム" }
+        { "type": "nav", "items": ["ホーム", "記録", "明細", { "label": "レポート", "goto": "report" }, "設定"], "selected": "ホーム" }
       ]
     },
     {
@@ -70,7 +71,7 @@
         { "type": "chart", "label": "カテゴリ別支出割合", "kind": "donut" },
         { "type": "list", "label": "カテゴリ内訳", "items": ["食費　　¥62,400（38%）", "住居　　¥55,000（34%）", "交通　　¥28,100（17%）", "日用品　¥17,700（11%）"] },
         { "type": "text", "label": "食費が先月より +12% 増えています", "muted": true, "note": "突出カテゴリへの気づきを事実の数字で示す（煽らない）" },
-        { "type": "nav", "items": ["ホーム", "記録", "明細", "レポート", "設定"], "selected": "レポート" }
+        { "type": "nav", "items": [{ "label": "ホーム", "goto": "home" }, "記録", "明細", "レポート", "設定"], "selected": "レポート" }
       ]
     }
   ],

@@ -58,6 +58,19 @@ h2 { border-bottom: 3px solid var(--accent); padding-bottom: 6px; margin-top: 48
 .wf-thumb-name { display: block; font-size: 12px; font-weight: 700; margin-top: 4px; }
 .wf-thumb:hover .wf-thumb-name { color: var(--accent); }
 
+/* デスクトップ枠のミニチュア */
+.wf-thumb-desktop { width: 216px; }
+.wf-thumb-desktop .wf-thumb-scale .wf-frame-wrap { transform: scale(.36); width: 560px; }
+
+/* 画面を持たない処理ステップ */
+.wf-process { position: relative; flex: 0 0 auto; align-self: center; display: flex; flex-direction: column; align-items: center; gap: 2px; border: 2px solid var(--muted); border-radius: 14px; background: #f3f4f6; padding: 14px 16px; min-width: 120px; max-width: 150px; text-align: center; }
+.wf-process-icon { font-size: 22px; color: var(--muted); }
+.wf-process-name { font-size: 12px; font-weight: 700; }
+.wf-process-actor { font-size: 11px; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 0 8px; background: #fff; }
+
+/* 外部サービスへの遷移マーク */
+.wf-external { margin-left: 4px; font-weight: 700; }
+
 /* ステップ間の矢印 */
 .wf-arrow { flex: 0 0 auto; align-self: center; display: flex; flex-direction: column; justify-content: center; min-width: 110px; max-width: 160px; text-align: center; padding: 0 6px; }
 .wf-arrow-action { font-size: 12px; font-weight: 700; color: var(--ink); }
@@ -82,9 +95,13 @@ h2 { border-bottom: 3px solid var(--accent); padding-bottom: 6px; margin-top: 48
 .wf-screen-section:target { outline: 3px solid var(--accent); animation: wf-flash 1.2s ease-out 1; }
 @keyframes wf-flash { from { background: #dbeafe; } to { background: #fff; } }
 
-/* ワイヤーフレーム本体（スマホ枠 320px） */
+/* ワイヤーフレーム本体（スマホ枠 320px / デスクトップ枠 560px） */
 .wf-frame-wrap { display: inline-block; vertical-align: top; }
 .wf-frame { width: 320px; min-height: 120px; border: 2px solid var(--ink); border-radius: 18px; background: #fff; padding: 14px 12px 8px; display: flex; flex-direction: column; gap: 8px; }
+.wf-desktop .wf-frame { width: 560px; border-radius: 10px; }
+.wf-browser-bar { display: flex; align-items: center; gap: 5px; background: #e5e7eb; margin: -14px -12px 6px; padding: 7px 12px; border-radius: 8px 8px 0 0; border-bottom: 2px solid var(--ink); }
+.wf-browser-bar span { width: 9px; height: 9px; border-radius: 50%; background: #fff; border: 1px solid var(--sketch); }
+.wf-browser-bar i { flex: 1; font-style: normal; font-size: 10px; color: var(--muted); background: #fff; border-radius: 999px; padding: 1px 12px; margin-left: 6px; }
 .wf-el { margin: 0; }
 .wf-header { font-weight: 700; font-size: 16px; border-bottom: 2px solid var(--ink); padding-bottom: 6px; }
 .wf-text { font-size: 13px; }
@@ -124,6 +141,8 @@ h2 { border-bottom: 3px solid var(--accent); padding-bottom: 6px; margin-top: 48
 .wf-choice-item.wf-selected, .wf-nav-item.wf-selected { background: var(--ink); color: #fff; font-weight: 700; }
 .wf-nav { display: flex; border-top: 2px solid var(--ink); margin: auto -12px -8px; padding-top: 0; }
 .wf-nav-item { flex: 1; text-align: center; font-size: 11px; padding: 8px 2px; }
+.wf-nav-hotspot { color: var(--accent); text-decoration: none; outline: 1.5px dashed var(--accent); outline-offset: -3px; border-radius: 6px; cursor: pointer; }
+.wf-nav-hotspot:hover { outline-style: solid; }
 .wf-divider { border: none; border-top: 1.5px dashed var(--line); width: 100%; }
 .wf-note-mark { color: var(--accent); font-weight: 700; margin-left: 2px; }
 .wf-notes { max-width: 320px; font-size: 12px; color: var(--muted); padding-left: 20px; margin: 8px 0 0; }
