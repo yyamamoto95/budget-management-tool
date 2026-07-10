@@ -116,7 +116,8 @@ export function ImportReviewPrototype() {
   const selectedRows = candidates.filter((c) => isSelected(c)).map(rowOf)
   const totalOut = selectedRows.filter((r) => r.balanceType === 0).reduce((s, r) => s + r.amount, 0)
   const totalIn = selectedRows.filter((r) => r.balanceType === 1).reduce((s, r) => s + r.amount, 0)
-  const editing = editingId !== null ? rowOf(candidates.find((c) => c.id === editingId) as Candidate) : null
+  const editingBase = editingId !== null ? candidates.find((c) => c.id === editingId) : undefined
+  const editing = editingBase ? rowOf(editingBase) : null
 
   return (
     <div className="min-h-screen p-5 pb-32" style={{ background: D.bg }}>
@@ -194,7 +195,8 @@ export function ImportReviewPrototype() {
                 >
                   {/* 選択チェック */}
                   <button
-                    onClick={() => setSelected((s) => ({ ...s, [row.id]: !checked }))}
+                    onClick={() => !committed && setSelected((s) => ({ ...s, [row.id]: !checked }))}
+                    disabled={committed}
                     aria-label={`${row.content} を${checked ? '除外' : '含める'}`}
                     className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md border"
                     style={{
@@ -207,7 +209,7 @@ export function ImportReviewPrototype() {
                   </button>
 
                   {/* 内容（タップで編集） */}
-                  <button className="min-w-0 flex-1 text-left" onClick={() => setEditingId(row.id)}>
+                  <button className="min-w-0 flex-1 text-left" disabled={committed} onClick={() => !committed && setEditingId(row.id)}>
                     <div className="flex items-center gap-1.5">
                       <span className="truncate text-[13px] font-bold" style={{ color: D.text }}>
                         {row.content}
