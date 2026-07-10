@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import {
     buildInvestmentDeepLinkQuery,
+    buildInvestmentToolCtaUrl,
     calculateInvestmentCapacity,
+    emergencyFundDisplay,
+    formatCapacityHoldReason,
     EMERGENCY_FUND_TARGET_MONTHS,
     INVESTMENT_RATIO_OF_SURPLUS,
 } from '../../utils/investmentCapacity'
@@ -102,5 +105,84 @@ describe('buildInvestmentDeepLinkQuery', () => {
     it('算出不能のとき、null を返す', () => {
         const result = calculateInvestmentCapacity({ ...baseInputs, totalAssets: null })
         expect(buildInvestmentDeepLinkQuery(result)).toBeNull()
+    })
+})
+
+describe('formatCapacityHoldReason', () => {
+    const baseInputs = {
+        totalAssets: 2_880_000,
+        avgDailyExpense: 8_000,
+        monthlyIncome: 300_000,
+        recordedDays: 30,
+    }
+
+    it('防衛資金未充足のとき、目標額と充足率を含む理由文を返す', () => {
+        const result = calculateInvestmentCapacity({ ...baseInputs, totalAssets: 1_200_000 })
+        // 目標 1,440,000 円・充足率 83%
+        expect(formatCapacityHoldReason(result)).toBe(
+            '生活の備え（目標 ¥1,440,000）が 83% です。まずは備えを整える段階です。'
+        )
+    })
+
+    it('月次赤字のとき、家計の立て直しを優先する理由文を返す', () => {
+        const result = calculateInvestmentCapacity({ ...baseInputs, monthlyIncome: 200_000 })
+        expect(formatCapacityHoldReason(result)).toBe(
+            '今月は支出が収入を上回るペースです。投資より家計の立て直しが先の段階です。'
+        )
+    })
+
+    it('投資可能なとき・算出不能のとき、null を返す', () => {
+        expect(formatCapacityHoldReason(calculateInvestmentCapacity(baseInputs))).toBeNull()
+        expect(
+            formatCapacityHoldReason(
+                calculateInvestmentCapacity({ ...baseInputs, totalAssets: null })
+            )
+        ).toBeNull()
+    })
+})
+
+describe('buildInvestmentToolCtaUrl', () => {
+    const investable = calculateInvestmentCapacity({
+        totalAssets: 2_880_000,
+        avgDailyExpense: 8_000,
+        monthlyIncome: 300_000,
+        recordedDays: 30,
+    })
+
+    it('http(s) のベース URL のとき、末尾スラッシュを整えた CTA URL を返す', () => {
+        expect(buildInvestmentToolCtaUrl('https://example.com/', investable)).toBe(
+            'https://example.com/?risk_tolerance=mid&monthly_limit=30000'
+        )
+        expect(buildInvestmentToolCtaUrl('http://localhost:3000', investable)).toBe(
+            'http://localhost:3000/?risk_tolerance=mid&monthly_limit=30000'
+        )
+    })
+
+    it('未設定・http(s) 以外のベース URL は null（設定ミスで相対遷移させない）', () => {
+        expect(buildInvestmentToolCtaUrl(undefined, investable)).toBeNull()
+        expect(buildInvestmentToolCtaUrl('', investable)).toBeNull()
+        expect(buildInvestmentToolCtaUrl('example.com', investable)).toBeNull()
+        expect(buildInvestmentToolCtaUrl('javascript:alert(1)', investable)).toBeNull()
+    })
+
+    it('投資を控える月は null（送客しない）', () => {
+        const hold = calculateInvestmentCapacity({
+            totalAssets: 1_200_000,
+            avgDailyExpense: 8_000,
+            monthlyIncome: 300_000,
+            recordedDays: 30,
+        })
+        expect(buildInvestmentToolCtaUrl('https://example.com', hold)).toBeNull()
+    })
+})
+
+describe('emergencyFundDisplay', () => {
+    it('充足率をパーセント表示とバー幅（100 上限）に変換する', () => {
+        expect(emergencyFundDisplay(2.0)).toEqual({ percent: 200, barPercent: 100 })
+        expect(emergencyFundDisplay(0.83)).toEqual({ percent: 83, barPercent: 83 })
+    })
+
+    it('負の充足率（負債超過など）は 0 にクランプする', () => {
+        expect(emergencyFundDisplay(-0.5)).toEqual({ percent: 0, barPercent: 0 })
     })
 })
