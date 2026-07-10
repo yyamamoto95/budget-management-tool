@@ -100,6 +100,14 @@ const prototypes: PrototypeCard[] = [
     status: 'wip' as const,
   },
   {
+    path: '/import-review',
+    title: 'スクショ一括取り込み — 確認画面',
+    description: '取り込み候補一覧・選択/除外・要確認/重複表示・編集シート・一括登録。正常/重複/部分失敗の3シナリオ。',
+    icon: Camera,
+    issue: '#565',
+    status: 'wip',
+  },
+  {
     path: '/my-page',
     title: 'マイページ',
     description: '名前・パスワードの編集モック。インライン編集・バリデーション・保存トースト付き。',
