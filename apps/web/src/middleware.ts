@@ -88,9 +88,14 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // トークンなし / 無効 → ログイン画面へ（returnTo でセッション切れを伝える）
-  const returnTo = encodeURIComponent(request.nextUrl.pathname + request.nextUrl.search);
-  return NextResponse.redirect(new URL(`/login?returnTo=${returnTo}`, request.url));
+  // トークンなし / 無効 → ログイン画面へ。
+  // トークンを持っていた（= セッションが切れた）場合のみ expired=1 を付与し、
+  // 初回訪問やログアウト後にセッション切れトーストが出ないようにする（#549）
+  const loginUrl = new URL("/login", request.url);
+  if (accessToken || refreshToken) {
+    loginUrl.searchParams.set("expired", "1");
+  }
+  return NextResponse.redirect(loginUrl);
 }
 
 export const config = {
