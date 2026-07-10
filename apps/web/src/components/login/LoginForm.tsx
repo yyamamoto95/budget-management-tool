@@ -40,10 +40,11 @@ function NotificationBanner() {
 }
 
 type Props = {
-  returnTo?: string;
+  /** セッション切れでリダイレクトされてきたか（middleware が expired=1 を付与） */
+  sessionExpired?: boolean;
 };
 
-export function LoginForm({ returnTo }: Props) {
+export function LoginForm({ sessionExpired }: Props) {
   const [state, formAction, isPending] = useActionState(loginAction, initialState);
 
   return (
@@ -75,7 +76,7 @@ export function LoginForm({ returnTo }: Props) {
           <NotificationBanner />
         </Suspense>
 
-        {returnTo && <SessionExpiredToast />}
+        {sessionExpired && <SessionExpiredToast />}
 
         {/* ログイン後は常にホームへ遷移するため returnTo はトースト表示のみに使う（#549） */}
         <form action={formAction} className="flex flex-col gap-4">

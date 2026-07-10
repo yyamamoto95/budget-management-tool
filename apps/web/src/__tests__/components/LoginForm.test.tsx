@@ -101,26 +101,26 @@ describe('LoginForm', () => {
         expect(button).toBeDisabled()
     })
 
-    it('returnTo が渡されても hidden input は出力されない（ログイン後は常にホームへ遷移 #549）', () => {
+    it('sessionExpired でも returnTo の hidden input は出力されない（ログイン後は常にホームへ遷移 #549）', () => {
         vi.mocked(React.useActionState).mockReturnValue([
             { error: null },
             vi.fn(),
             false,
         ] as unknown as ReturnType<typeof React.useActionState>)
 
-        const { container } = render(<LoginForm returnTo="/expenses" />)
+        const { container } = render(<LoginForm sessionExpired />)
 
         expect(container.querySelector('input[name="returnTo"]')).toBeNull()
     })
 
-    it('returnTo が渡されたとき、セッション切れトーストが呼ばれる', () => {
+    it('sessionExpired のとき、セッション切れトーストが呼ばれる', () => {
         vi.mocked(React.useActionState).mockReturnValue([
             { error: null },
             vi.fn(),
             false,
         ] as unknown as ReturnType<typeof React.useActionState>)
 
-        render(<LoginForm returnTo="/expenses" />)
+        render(<LoginForm sessionExpired />)
 
         expect(vi.mocked(Sonner.toast.warning)).toHaveBeenCalledWith(
             'セッションが切れました。再度ログインしてください。',
@@ -128,7 +128,7 @@ describe('LoginForm', () => {
         )
     })
 
-    it('returnTo が未指定のとき、セッション切れトーストが呼ばれない', () => {
+    it('sessionExpired でないとき、セッション切れトーストが呼ばれない', () => {
         vi.mocked(React.useActionState).mockReturnValue([
             { error: null },
             vi.fn(),
