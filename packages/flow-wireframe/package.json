@@ -1,0 +1,38 @@
+{
+  "name": "@yyamamoto95/flow-wireframe",
+  "version": "0.1.0",
+  "description": "業務フロー定義(JSON)から、非エンジニアにも読める自己完結型の静的HTMLワイヤーフレームを生成するライブラリ / CLI",
+  "keywords": [
+    "wireframe",
+    "bdd",
+    "gherkin",
+    "prototyping",
+    "static-html",
+    "user-flow"
+  ],
+  "license": "MIT",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "flow-wireframe": "dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc",
+    "type-check": "tsc --noEmit",
+    "lint": "echo 'no lint config for flow-wireframe'",
+    "test:unit": "vitest run",
+    "example": "tsc && node dist/cli.js build examples/kakeibo.flow.json -o examples/kakeibo.wireframe.html"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.37",
+    "typescript": "^5.4.0",
+    "vitest": "^4.1.4"
+  }
+}
