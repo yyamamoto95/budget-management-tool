@@ -8,6 +8,7 @@ import { VerifyRecoveryAnswerUseCase } from './application/use-cases/auth/Verify
 import { GetCategoriesUseCase } from './application/use-cases/category/GetCategoriesUseCase';
 import { CreateExpenseUseCase } from './application/use-cases/CreateExpenseUseCase';
 import { GetDashboardUseCase } from './application/use-cases/dashboard/GetDashboardUseCase';
+import { RegisterAutoFixedExpensesUseCase } from './application/use-cases/dashboard/RegisterAutoFixedExpensesUseCase';
 import { ExportUserDataUseCase } from './application/use-cases/export/ExportUserDataUseCase';
 import { ParseExpenseUseCase, RuleBasedExpenseParser } from './application/use-cases/parse/ParseExpenseUseCase';
 import { UpdateExpenseUseCase } from './application/use-cases/UpdateExpenseUseCase';
@@ -23,6 +24,7 @@ import { PrismaCategoryRepository } from './infrastructure/persistence/PrismaCat
 import { PrismaExpenseRepository } from './infrastructure/persistence/PrismaExpenseRepository';
 import { PrismaPasswordResetTokenRepository } from './infrastructure/persistence/PrismaPasswordResetTokenRepository';
 import { PrismaUserSettingsRepository } from './infrastructure/persistence/PrismaUserSettingsRepository';
+import { PrismaAutoFixedRegistrar } from './infrastructure/persistence/PrismaAutoFixedRegistrar';
 import { PrismaRefreshTokenRepository } from './infrastructure/persistence/PrismaRefreshTokenRepository';
 import { PrismaSecurityAnswerRepository } from './infrastructure/persistence/PrismaSecurityAnswerRepository';
 import { PrismaUserRepository } from './infrastructure/persistence/PrismaUserRepository';
@@ -49,6 +51,7 @@ export function buildDeps(): AppDeps {
         securityAnswerRepository: new PrismaSecurityAnswerRepository(prisma),
         passwordResetTokenRepository: new PrismaPasswordResetTokenRepository(prisma),
         userSettingsRepository: new PrismaUserSettingsRepository(prisma),
+        autoFixedRegistrar: new PrismaAutoFixedRegistrar(prisma),
     };
 }
 
@@ -92,6 +95,10 @@ export function buildServices(deps: AppDeps, tokenService: TokenService): RouteS
         upsertUserSettingsUseCase: new UpsertUserSettingsUseCase(deps.userSettingsRepository),
         // Dashboard
         getDashboardUseCase: new GetDashboardUseCase(deps.expenseRepository, deps.userSettingsRepository),
+        registerAutoFixedExpensesUseCase: new RegisterAutoFixedExpensesUseCase(
+            deps.userSettingsRepository,
+            deps.autoFixedRegistrar
+        ),
         // Receipt（#514）: claude CLI（ローカル・課金ゼロ）→ Claude API（キー設定時）→ OCR の順にフォールバック
         receiptScanService: new ReceiptScanService([
             new ClaudeCliReceiptAnalyzer(),

@@ -84,8 +84,21 @@ Table user_settings {
   fixedExpensesDetail Json
   savingsGoal Int [not null, default: 0]
   initialSetupCompleted Boolean [not null, default: false]
+  autoFixedEnabled Boolean [not null, default: false]
+  autoFixedDay Int [not null, default: 27]
   createdAt DateTime [default: `now()`, not null]
   updatedAt DateTime [not null]
+}
+
+Table auto_fixed_log {
+  id String [pk]
+  userId String [not null]
+  yearMonth String [not null]
+  createdAt DateTime [default: `now()`, not null]
+
+  indexes {
+    (userId, yearMonth) [unique]
+  }
 }
 
 Table password_reset_tokens {

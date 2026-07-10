@@ -1,3 +1,4 @@
+import { AUTO_FIXED_DAY_MAX, AUTO_FIXED_DAY_MIN } from '@budget/common';
 import type { FixedExpensesDetail, UserSettings } from '../../../domain/models/UserSettings';
 import type { IUserSettingsRepository } from '../../../domain/repositories/IUserSettingsRepository';
 import { ValidationError } from '../../../shared/errors/DomainException';
@@ -17,6 +18,10 @@ export type UpsertUserSettingsInput = {
     savingsGoal?: number;
     /** 初回設定完了フラグ（省略時は既存値を維持） */
     initialSetupCompleted?: boolean;
+    /** 固定費の毎月自動登録（#552。省略時は既存値を維持） */
+    autoFixedEnabled?: boolean;
+    /** 固定費の自動登録日（1〜28。省略時は既存値を維持） */
+    autoFixedDay?: number;
 };
 
 /** 給料日の有効範囲 */
@@ -62,6 +67,16 @@ export class UpsertUserSettingsUseCase {
         if (input.savingsGoal !== undefined && input.savingsGoal < 0) {
             return err(new ValidationError('貯蓄目標は0以上の値を入力してください'));
         }
+        if (
+            input.autoFixedDay !== undefined &&
+            (input.autoFixedDay < AUTO_FIXED_DAY_MIN || input.autoFixedDay > AUTO_FIXED_DAY_MAX)
+        ) {
+            return err(
+                new ValidationError(
+                    `自動登録日は${AUTO_FIXED_DAY_MIN}〜${AUTO_FIXED_DAY_MAX}の範囲で入力してください`
+                )
+            );
+        }
 
         const settings = await this.userSettingsRepository.upsert({
             userId: input.userId,
@@ -72,6 +87,8 @@ export class UpsertUserSettingsUseCase {
             fixedExpensesDetail: input.fixedExpensesDetail,
             savingsGoal: input.savingsGoal,
             initialSetupCompleted: input.initialSetupCompleted,
+            autoFixedEnabled: input.autoFixedEnabled,
+            autoFixedDay: input.autoFixedDay,
         });
         return ok(settings);
     }

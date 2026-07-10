@@ -76,6 +76,8 @@ export function createSettingsRoutes({
                 fixedExpensesDetail: settings?.fixedExpensesDetail ?? null,
                 savingsGoal: settings?.savingsGoal ?? 0,
                 initialSetupCompleted: settings?.initialSetupCompleted ?? false,
+                autoFixedEnabled: settings?.autoFixedEnabled ?? false,
+                autoFixedDay: settings?.autoFixedDay ?? 27,
             },
             200
         );
@@ -91,6 +93,8 @@ export function createSettingsRoutes({
             fixedExpensesDetail,
             savingsGoal,
             initialSetupCompleted,
+            autoFixedEnabled,
+            autoFixedDay,
         } = c.req.valid('json');
         const result = await upsertUserSettingsUseCase.execute({
             userId,
@@ -101,6 +105,8 @@ export function createSettingsRoutes({
             fixedExpensesDetail,
             savingsGoal,
             initialSetupCompleted,
+            autoFixedEnabled,
+            autoFixedDay,
         });
         if (!result.ok) {
             return c.json({ result: 'error' as const, message: result.error.message }, result.error.statusCode as 400);
@@ -114,6 +120,8 @@ export function createSettingsRoutes({
                 fixedExpensesDetail: result.value.fixedExpensesDetail,
                 savingsGoal: result.value.savingsGoal,
                 initialSetupCompleted: result.value.initialSetupCompleted,
+                autoFixedEnabled: result.value.autoFixedEnabled,
+                autoFixedDay: result.value.autoFixedDay,
             },
             200
         );

@@ -18,6 +18,8 @@ export default async function SettingsPage() {
     fixedExpensesDetail: null,
     savingsGoal: 0,
     initialSetupCompleted: false,
+    autoFixedEnabled: false,
+    autoFixedDay: 27,
   }));
 
   return (

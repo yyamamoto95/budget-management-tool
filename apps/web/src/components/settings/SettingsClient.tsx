@@ -71,6 +71,9 @@ export function SettingsClient({ settings }: Props) {
   const [savingsMode, setSavingsMode] = useState<SavingsMode>("monthly");
   const [savingsMonthly, setSavingsMonthly] = useState(settings.savingsGoal);
   const [savingsYearly, setSavingsYearly] = useState(settings.savingsGoal * 12);
+  // 固定費の毎月自動登録（#552）
+  const [autoFixedEnabled, setAutoFixedEnabled] = useState(settings.autoFixedEnabled);
+  const [autoFixedDay, setAutoFixedDay] = useState(settings.autoFixedDay);
 
   // 保存状態
   const [saving, setSaving] = useState(false);
@@ -122,6 +125,8 @@ export function SettingsClient({ settings }: Props) {
         fixedExpenses: totalFixed,
         fixedExpensesDetail: fixedDetail,
         savingsGoal: monthlySavings,
+        autoFixedEnabled,
+        autoFixedDay,
       });
       if (result.error) {
         throw new Error(result.error);
@@ -328,6 +333,81 @@ export function SettingsClient({ settings }: Props) {
                       />
                     </div>
                   ))}
+                </div>
+                {/* 毎月自動登録（#552）: オンなら登録日に固定費内訳を明細へ自動登録する */}
+                <div className="border-t px-4 py-3" style={{ borderColor: "var(--border-default)" }}>
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="text-xs font-bold" style={{ color: "var(--foreground)" }}>
+                        毎月自動で明細に登録
+                      </div>
+                      <div
+                        className="mt-0.5 text-[11px] leading-relaxed"
+                        style={{ color: "var(--foreground)", opacity: 0.5 }}
+                      >
+                        オンにすると毎月の登録日に、金額のある固定費が明細として自動登録されます
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={autoFixedEnabled}
+                      aria-label="固定費の毎月自動登録"
+                      onClick={() => setAutoFixedEnabled((v) => !v)}
+                      className="relative h-6 w-11 shrink-0 rounded-full transition-colors"
+                      style={{
+                        background: autoFixedEnabled
+                          ? "var(--color-brand-primary)"
+                          : "rgba(28,20,16,0.15)",
+                      }}
+                    >
+                      <motion.span
+                        className="absolute top-0.5 h-5 w-5 rounded-full bg-white"
+                        animate={{ left: autoFixedEnabled ? 22 : 2 }}
+                        transition={SPRING.snap}
+                        style={{ boxShadow: "0 1px 3px rgba(28,20,16,0.25)" }}
+                      />
+                    </button>
+                  </div>
+                  <AnimatePresence>
+                    {autoFixedEnabled && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={SPRING.quick}
+                        className="overflow-hidden"
+                      >
+                        <div className="mt-3 flex items-center gap-3">
+                          <span
+                            className="shrink-0 text-[11px] font-semibold"
+                            style={{ color: "var(--foreground)", opacity: 0.6 }}
+                          >
+                            毎月の登録日
+                          </span>
+                          <div className="w-40">
+                            <AmountField
+                              value={autoFixedDay}
+                              onChange={setAutoFixedDay}
+                              step={1}
+                              min={1}
+                              max={28}
+                              prefix=""
+                              suffix="日"
+                              thousandSeparator={false}
+                              label="固定費の自動登録日"
+                            />
+                          </div>
+                        </div>
+                        <p
+                          className="mt-2 text-[10px] leading-relaxed"
+                          style={{ color: "var(--foreground)", opacity: 0.5 }}
+                        >
+                          同じ支出を手動でも記録すると二重になります。自動登録された明細は通常どおり編集・削除できます。
+                        </p>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
                 {/* SectionCard は overflow-visible のため、背景付きフッターは角丸を自前で
                     合わせる（角丸を突き破って下角が欠けて見える問題の修正 #554）。
