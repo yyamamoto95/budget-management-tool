@@ -15,7 +15,6 @@ import {
   Check, TrendingUp, Zap, Car, ShoppingBag,
   Wallet, Heart, Calendar, Settings, PiggyBank,
   ChevronLeft, ChevronRight, ChevronDown, BookOpen, Home,
-  Lightbulb,
 } from 'lucide-react'
 import { SandboxLayout } from '../components/SandboxLayout'
 
@@ -865,24 +864,6 @@ export function PersonalSettingsPrototype() {
                 </div>
               </SectionCard>
             </div>
-
-            {/* 投資余力診断のしくみ（#543 — 知りたい人だけが読む「ちなみに」補足） */}
-            <SectionCard title="投資余力診断のしくみ" delay={0.18}>
-              <div className="px-4 py-3">
-                <div className="rounded-xl px-3.5 py-3" style={{ background: 'rgba(28,20,16,0.04)' }}>
-                  <p className="flex items-center gap-1.5 text-xs font-bold" style={{ color: 'rgba(28,20,16,0.75)' }}>
-                    <Lightbulb size={13} style={{ color: D.brand }} aria-hidden />
-                    ちなみに、どう計算している？
-                  </p>
-                  <ul className="mt-2 space-y-1.5 text-[11px] leading-relaxed" style={{ color: D.muted }}>
-                    <li>・まず「生活費 6 ヶ月分の備え」を最優先。備えが目標に届くまで、投資はおすすめしません</li>
-                    <li>・上限は毎月の黒字の半分まで。残りの半分は現金で手元に残す想定です</li>
-                    <li>・家計にゆとりがあるほどリスク許容度が上がり、検証ツールで比べられる戦略の幅が広がります</li>
-                    <li>・検証ツールに渡すのは「リスク許容度」と「上限額」の 2 つだけ。名前や記録の中身は渡しません</li>
-                  </ul>
-                </div>
-              </div>
-            </SectionCard>
 
             {/* 保存 */}
             <SandboxButton

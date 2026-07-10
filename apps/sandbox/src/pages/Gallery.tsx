@@ -30,7 +30,7 @@ const prototypes: PrototypeCard[] = [
   {
     path: '/personal-settings',
     title: '個人設定 — 現行',
-    description: '2カラムレイアウト。左:フォーム / 右:プレビューカード sticky。貯蓄目標・収入配分バー・投資余力診断のしくみ（#543）付き。',
+    description: '2カラムレイアウト。左:フォーム / 右:プレビューカード sticky。貯蓄目標・収入配分バー付き。',
     icon: Settings,
     issue: '#283',
     status: 'ready',
