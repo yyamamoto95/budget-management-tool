@@ -6,10 +6,10 @@ export const metadata: Metadata = {
 };
 
 type Props = {
-  searchParams: Promise<{ returnTo?: string }>;
+  searchParams: Promise<{ expired?: string }>;
 };
 
 export default async function LoginPage({ searchParams }: Props) {
-  const { returnTo } = await searchParams;
-  return <LoginForm returnTo={returnTo} />;
+  const { expired } = await searchParams;
+  return <LoginForm sessionExpired={expired === "1"} />;
 }
