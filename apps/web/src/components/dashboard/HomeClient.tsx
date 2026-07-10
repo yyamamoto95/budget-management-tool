@@ -2,10 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { calculateLivingMargin } from "@budget/common";
+import { calculateInvestmentCapacity, calculateLivingMargin } from "@budget/common";
 import { PAGE_VARIANTS, PAGE_ITEM_VARIANTS } from "@/lib/motion";
 import type { DashboardResponse, CategoryItem } from "@/lib/api/types";
 import { DailyBudgetHero } from "./DailyBudgetHero";
+import { DashboardCarousel, type CarouselSlide } from "./DashboardCarousel";
 import { InvestmentCapacityCard } from "./InvestmentCapacityCard";
 import { LivingMarginCard } from "./LivingMarginCard";
 import { useLivingMargin } from "@/components/providers/LivingMarginProvider";
@@ -22,6 +23,58 @@ type Props = {
   incomeCategories: CategoryItem[];
   allCategories: CategoryItem[];
 };
+
+/**
+ * SP カルーセルのスライド構成（sandbox HomePrototype 準拠）。
+ * ① 生活余力 + 今週の記録 ② 今月の貯蓄予測 ③ 今月のサマリー ④ 投資余力。
+ * 投資余力は算出不能（総資産未設定・記録不足）のときスライドごと出さない。
+ */
+function buildCarouselSlides(dashboard: DashboardResponse): CarouselSlide[] {
+  const slides: CarouselSlide[] = [
+    {
+      key: "margin-streak",
+      label: "生活余力・今週の記録",
+      node: (
+        <div className="flex flex-col gap-3">
+          <LivingMarginCard livingMargin={dashboard.livingMargin} />
+          <WeeklyStreak
+            weeklyRecord={dashboard.weeklyRecord}
+            dailyBudget={dashboard.dailyBudget?.amount ?? null}
+          />
+        </div>
+      ),
+    },
+    {
+      key: "savings-forecast",
+      label: "今月の貯蓄予測",
+      node: (
+        <SavingsForecastCard
+          monthSummary={dashboard.monthSummary}
+          todayExpense={dashboard.todayExpense}
+          savingsGoal={dashboard.savingsGoal}
+        />
+      ),
+    },
+    {
+      key: "monthly-summary",
+      label: "今月のサマリー",
+      node: (
+        <MonthlySummaryCard
+          monthSummary={dashboard.monthSummary}
+          lastMonthExpense={dashboard.lastMonthExpense}
+        />
+      ),
+    },
+  ];
+  if (calculateInvestmentCapacity(dashboard.livingMargin).status === "ok") {
+    slides.push({
+      key: "investment-capacity",
+      label: "投資余力",
+      node: <InvestmentCapacityCard livingMargin={dashboard.livingMargin} />,
+    });
+  }
+  return slides;
+}
 
 export function HomeClient({
   userId,
@@ -80,8 +133,15 @@ export function HomeClient({
           />
         </motion.div>
 
-        {/* PC: 2カラム / SP: 1カラム */}
-        <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+        {/* SP: スワイプカルーセル（#550 / sandbox 承認済みデザイン。DOM順 = 表示順） */}
+        <motion.div variants={PAGE_ITEM_VARIANTS} className="lg:hidden">
+          <DashboardCarousel
+            slides={buildCarouselSlides(dashboard)}
+          />
+        </motion.div>
+
+        {/* PC: 2カラムグリッド */}
+        <div className="hidden grid-cols-2 gap-3 lg:grid">
           {/* LivingMarginCard — 生活余力（#418） */}
           <motion.div variants={PAGE_ITEM_VARIANTS}>
             <LivingMarginCard livingMargin={dashboard.livingMargin} />
