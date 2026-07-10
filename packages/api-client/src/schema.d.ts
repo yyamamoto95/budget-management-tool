@@ -1631,6 +1631,146 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/imports/analyze": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 明細一覧スクショの解析（取り込み候補の抽出）
+         * @description マネーツリー等の明細一覧スクショから取り込み候補を抽出し、既存明細との重複疑いを付けて返す。画像は解析後に破棄され保存されない。
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ImportAnalyzeBody"];
+                };
+            };
+            responses: {
+                /** @description 取り込み候補列（skippedRows で部分成功を明示） */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ImportAnalyzeResponse"];
+                    };
+                };
+                /** @description バリデーションエラー・全手段で解析失敗 */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description 未認証 */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description AI 使用制限の超過 */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/imports/commit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 選択済み候補の一括登録
+         * @description 確認画面で選択・編集された候補を明細として一括登録する。登録後は通常の明細として編集・削除できる。
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ImportCommitBody"];
+                };
+            };
+            responses: {
+                /** @description 登録完了（登録件数） */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ImportCommitResponse"];
+                    };
+                };
+                /** @description バリデーションエラー */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description 未認証 */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description ユーザーが見つからない */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -2360,6 +2500,77 @@ export interface components {
              * @enum {string}
              */
             mimeType: "image/jpeg" | "image/png";
+        };
+        ImportCandidate: {
+            /**
+             * @description YYYY-MM-DD
+             * @example 2026-06-29
+             */
+            date: string;
+            /**
+             * @description 金額（正の整数・円）
+             * @example 17504
+             */
+            amount: number;
+            /**
+             * @description 0=支出, 1=収入
+             * @example 0
+             */
+            balanceType: 0 | 1;
+            /** @description 摘要（店名・振込元など） */
+            content: string;
+            /** @description 推定カテゴリ ID（0=その他） */
+            categoryId: number;
+            /**
+             * @description 解析の確からしさ。low は要確認
+             * @enum {string}
+             */
+            confidence: "high" | "low";
+            /** @description 読み取った元の行テキスト（監査用） */
+            raw: string;
+            /** @description 既存明細と同日・同額・同収支のとき true（登録済みの可能性） */
+            duplicateSuspect: boolean;
+        };
+        ImportAnalyzeResponse: {
+            candidates: components["schemas"]["ImportCandidate"][];
+            /** @description 解析器が出力したが検証で弾かれた行数（部分成功の明示） */
+            skippedRows: number;
+            /**
+             * @description 使用された解析手段
+             * @enum {string}
+             */
+            source: "claude-cli" | "claude-api";
+        };
+        ImportAnalyzeBody: {
+            /** @description base64 エンコード済み画像（data: プレフィックスなし・最大約7MB） */
+            image: string;
+            /**
+             * @description 画像の MIME タイプ
+             * @enum {string}
+             */
+            mimeType: "image/jpeg" | "image/png";
+        };
+        ImportCommitResponse: {
+            /**
+             * @description 登録した明細数
+             * @example 6
+             */
+            registered: number;
+        };
+        ImportCommitBody: {
+            /** @description 確認画面で選択・編集済みの登録対象行 */
+            rows: {
+                /** @description YYYY-MM-DD */
+                date: string;
+                /** @description 金額（円） */
+                amount: number;
+                /** @description 0=支出, 1=収入 */
+                balanceType: 0 | 1;
+                /** @description カテゴリ ID */
+                categoryId: number;
+                /** @description 摘要 */
+                content: string;
+            }[];
         };
     };
     responses: never;

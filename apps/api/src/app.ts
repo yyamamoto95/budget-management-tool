@@ -22,6 +22,8 @@ import type { GetUserSettingsUseCase } from './application/use-cases/settings/Ge
 import type { UpsertUserSettingsUseCase } from './application/use-cases/settings/UpsertUserSettingsUseCase';
 import type { GetDashboardUseCase } from './application/use-cases/dashboard/GetDashboardUseCase';
 import type { RegisterAutoFixedExpensesUseCase } from './application/use-cases/dashboard/RegisterAutoFixedExpensesUseCase';
+import type { AnalyzeImportUseCase } from './application/use-cases/import/AnalyzeImportUseCase';
+import type { CommitImportUseCase } from './application/use-cases/import/CommitImportUseCase';
 import type { ReceiptScanService } from './application/services/receipt/ReceiptScanService';
 import { buildServices } from './container';
 import type { ICategoryRepository } from './domain/repositories/ICategoryRepository';
@@ -35,6 +37,7 @@ import type { IUserRepository } from './domain/repositories/IUserRepository';
 import { createCategoryRoutes } from './presentation/routes/category';
 import { createDashboardRoutes } from './presentation/routes/dashboard';
 import { createReceiptRoutes } from './presentation/routes/receipt';
+import { createImportRoutes } from './presentation/routes/imports';
 import { createAuthRoutes } from './presentation/routes/auth';
 import { createSettingsRoutes } from './presentation/routes/settings';
 import { createBudgetRoutes } from './presentation/routes/budget';
@@ -94,6 +97,9 @@ export type RouteServices = {
     registerAutoFixedExpensesUseCase: RegisterAutoFixedExpensesUseCase;
     // Receipt（#514）
     receiptScanService: ReceiptScanService;
+    // Import（#564）
+    analyzeImportUseCase: AnalyzeImportUseCase;
+    commitImportUseCase: CommitImportUseCase;
 };
 
 /** Hono context の型変数定義（認証済みルートで userId を参照するために使用） */
@@ -137,6 +143,7 @@ export function createApp(deps: AppDeps) {
     app.route('/api', createExportRoutes(services));
     app.route('/api', createSettingsRoutes(services));
     app.route('/api', createReceiptRoutes(services));
+    app.route('/api', createImportRoutes(services));
 
     app.onError((err, c) => {
         if (err instanceof DomainException) {
