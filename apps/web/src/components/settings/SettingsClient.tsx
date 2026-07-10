@@ -7,8 +7,9 @@ import Link from "next/link";
 import {
   TrendingUp, Zap, Car, ShoppingBag,
   Wallet, Heart, Home, PiggyBank, Check,
-  User, ChevronRight,
+  User, ChevronRight, BookOpen, Settings as SettingsIcon,
 } from "lucide-react";
+import { GuideTab } from "./GuideTab";
 import { SPRING, PAGE_VARIANTS, PAGE_ITEM_VARIANTS } from "@/lib/motion";
 import { calcDailyBudget } from "@budget/common";
 import type { UserSettingsResponse, FixedExpensesDetail } from "@budget/api-client";
@@ -58,6 +59,8 @@ function getBudgetColor(dailyBudget: number): string {
 }
 
 export function SettingsClient({ settings }: Props) {
+  // 設定 / ガイドのタブ切替（#551 / sandbox PersonalSettingsPrototype 承認済み）
+  const [activeMenu, setActiveMenu] = useState<"settings" | "guide">("settings");
   // 設定フォーム状態
   const [salaryDay, setSalaryDay] = useState(settings.paydayDay);
   const [monthlyIncome, setMonthlyIncome] = useState(settings.monthlyIncome);
@@ -232,8 +235,59 @@ export function SettingsClient({ settings }: Props) {
             />
           </div>
 
-          {/* 右カラム: 設定フォーム */}
+          {/* 右カラム: 設定フォーム / ガイド */}
           <div className="space-y-4 lg:col-start-2 lg:row-start-1">
+            {/* 設定 / ガイドのタブ切替 */}
+            <div
+              className="flex gap-0.5 rounded-xl p-0.5"
+              style={{ background: "rgba(28,20,16,0.05)" }}
+              role="tablist"
+              aria-label="設定メニュー"
+            >
+              {(
+                [
+                  { key: "settings", label: "設定", icon: SettingsIcon },
+                  { key: "guide", label: "ガイド", icon: BookOpen },
+                ] as const
+              ).map((item) => {
+                const active = activeMenu === item.key;
+                return (
+                  <motion.button
+                    key={item.key}
+                    type="button"
+                    role="tab"
+                    id={`settings-tab-${item.key}`}
+                    aria-controls={`settings-panel-${item.key}`}
+                    aria-selected={active}
+                    onClick={() => setActiveMenu(item.key)}
+                    className="flex flex-1 items-center justify-center gap-1.5 rounded-[10px] py-2 text-[12px] font-bold transition-colors"
+                    style={{
+                      background: active ? "var(--color-surface-default)" : "transparent",
+                      color: active
+                        ? "var(--color-brand-primary)"
+                        : "rgba(28,20,16,0.45)",
+                      boxShadow: active ? "var(--shadow-card)" : "none",
+                    }}
+                    whileTap={{ scale: 0.97 }}
+                    transition={SPRING.snap}
+                  >
+                    <item.icon size={13} strokeWidth={active ? 2.3 : 2} />
+                    {item.label}
+                  </motion.button>
+                );
+              })}
+            </div>
+
+            <div
+              role="tabpanel"
+              id={`settings-panel-${activeMenu}`}
+              aria-labelledby={`settings-tab-${activeMenu}`}
+              className="space-y-4"
+            >
+            {activeMenu === "guide" ? (
+              <GuideTab />
+            ) : (
+              <>
             {/* 給与セクション */}
             <motion.div variants={PAGE_ITEM_VARIANTS}>
               <SectionCard title="給与">
@@ -476,6 +530,9 @@ export function SettingsClient({ settings }: Props) {
                 <ChevronRight size={14} style={{ color: "var(--foreground)", opacity: 0.3 }} />
               </Link>
             </motion.div>
+              </>
+            )}
+            </div>
           </div>
         </div>
       </motion.div>
@@ -543,7 +600,8 @@ function FieldRow({
 
 // ─── SectionCard ─────────────────────────────────────────────────────────────
 
-function SectionCard({
+// GuideTab（ガイドタブ）からも同じカードシェルを使うため export する
+export function SectionCard({
   title,
   children,
 }: {
