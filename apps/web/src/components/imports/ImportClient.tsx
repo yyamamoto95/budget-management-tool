@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { Camera, Check, ChevronDown, CircleAlert, CircleCheck, Pencil } from "lucide-react";
@@ -52,6 +52,13 @@ export function ImportClient({ expenseCategories, incomeCategories }: Props) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const phaseTimer = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  // アンマウント時に進捗タイマーを確実に破棄する（レビュー指摘対応）
+  useEffect(() => {
+    return () => {
+      if (phaseTimer.current) clearInterval(phaseTimer.current);
+    };
+  }, []);
+
   const categoryOf = (row: RowState): CategoryItem | undefined =>
     (row.balanceType === 0 ? expenseCategories : incomeCategories).find(
       (c) => c.id === row.categoryId,
@@ -93,8 +100,12 @@ export function ImportClient({ expenseCategories, incomeCategories }: Props) {
       setPhase("idle");
       return;
     }
+    // API 側で検証済みだが、金額が正の整数であることを state 反映前にも防衛的に確認する
+    const validCandidates = result.candidates.filter(
+      (candidate) => Number.isInteger(candidate.amount) && candidate.amount > 0,
+    );
     setRows(
-      result.candidates.map((candidate, index) => ({
+      validCandidates.map((candidate, index) => ({
         ...candidate,
         id: index,
         // 登録済みの可能性がある行は初期選択オフ（含め直しはユーザー判断）
