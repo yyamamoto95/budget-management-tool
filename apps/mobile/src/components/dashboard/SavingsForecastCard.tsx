@@ -35,13 +35,10 @@ export function SavingsForecastCard({ monthSummary, todayExpense, savingsGoal, t
   const ui = savingsForecastUi[forecast.state];
   const label = savingsForecastBadgeLabel(forecast, savingsGoal);
 
-  const income = Math.max(1, monthSummary.income);
-  const actualPct = Math.min(99, (monthSummary.expense / income) * 100);
-  const projectedPct = Math.min(
-    100 - actualPct,
-    Math.max(0, (forecast.projectedMonthEndExpense / income) * 100 - actualPct)
-  );
-  const targetLinePct = Math.min(99, ((income - savingsGoal) / income) * 100);
+  // バーの比率は common の計算済み値を使う（再計算しない・レビュー指摘対応）
+  const actualPct = forecast.actualExpensePct;
+  const projectedPct = Math.max(0, forecast.projectedExpensePct - forecast.actualExpensePct);
+  const targetLinePct = forecast.targetLinePct;
 
   const stats = [
     {
@@ -98,7 +95,7 @@ export function SavingsForecastCard({ monthSummary, todayExpense, savingsGoal, t
             { left: `${actualPct}%`, width: `${projectedPct}%`, backgroundColor: ui.barLight },
           ]}
         />
-        {savingsGoal > 0 && <View style={[styles.targetLine, { left: `${targetLinePct}%` }]} />}
+        {targetLinePct !== null && <View style={[styles.targetLine, { left: `${targetLinePct}%` }]} />}
       </View>
       <Text style={styles.elapsed}>
         {dayOfMonth}日経過 / {daysInMonth}日
