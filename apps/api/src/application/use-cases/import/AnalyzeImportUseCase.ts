@@ -39,6 +39,11 @@ export class AnalyzeImportUseCase {
             userId: input.userId,
         });
 
+        // 候補ゼロなら重複判定のクエリを省略して早期リターン（レビュー指摘対応）
+        if (scan.candidates.length === 0) {
+            return { candidates: [], skippedRows: scan.skippedRows, source: scan.source };
+        }
+
         // 既存明細（未削除）と同日・同額・同収支なら重複疑い
         const expenses = await this.expenseRepository.findByUserId(input.userId);
         const existingKeys = new Set(

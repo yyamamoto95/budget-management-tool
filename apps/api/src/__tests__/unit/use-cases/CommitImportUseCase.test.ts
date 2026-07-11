@@ -18,6 +18,7 @@ function makeDeps(userExists = true) {
         findByUserId: vi.fn(),
         findById: vi.fn(),
         save: vi.fn().mockImplementation(async (e) => e),
+        saveMany: vi.fn().mockResolvedValue(undefined),
         remove: vi.fn(),
     };
     const userRepository = {
@@ -35,7 +36,9 @@ describe('CommitImportUseCase', () => {
 
         expect(result.ok).toBe(true);
         if (result.ok) expect(result.value.registered).toBe(2);
-        expect(expenseRepository.save).toHaveBeenCalledTimes(2);
+        // 原子的な一括登録（saveMany 1回・個別 save は使わない）
+        expect(expenseRepository.saveMany).toHaveBeenCalledTimes(1);
+        expect(vi.mocked(expenseRepository.saveMany).mock.calls[0][0]).toHaveLength(2);
     });
 
     it('ユーザーが存在しないとき NotFoundError を返す', async () => {
@@ -72,6 +75,6 @@ describe('CommitImportUseCase', () => {
         });
 
         expect(result.ok).toBe(false);
-        expect(expenseRepository.save).not.toHaveBeenCalled();
+        expect(expenseRepository.saveMany).not.toHaveBeenCalled();
     });
 });

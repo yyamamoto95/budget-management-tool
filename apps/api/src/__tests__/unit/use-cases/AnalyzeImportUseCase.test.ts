@@ -39,6 +39,7 @@ function makeUseCase(candidates: ImportCandidate[], expenses: Expense[]) {
         findByUserId: vi.fn().mockResolvedValue(expenses),
         findById: vi.fn(),
         save: vi.fn(),
+        saveMany: vi.fn(),
         remove: vi.fn(),
     };
     return new AnalyzeImportUseCase(scanService, expenseRepository);
@@ -62,6 +63,24 @@ describe('AnalyzeImportUseCase', () => {
         );
         const result = await useCase.execute(input);
         expect(result.candidates[0].duplicateSuspect).toBe(false);
+    });
+
+    it('候補ゼロのときは既存明細を照会せず早期リターンする', async () => {
+        const scanService = {
+            scan: vi.fn().mockResolvedValue({ candidates: [], skippedRows: 2, source: 'claude-cli' }),
+        } as unknown as StatementScanService;
+        const expenseRepository: IExpenseRepository = {
+            findAll: vi.fn(),
+            findByUserId: vi.fn(),
+            findById: vi.fn(),
+            save: vi.fn(),
+            saveMany: vi.fn(),
+            remove: vi.fn(),
+        };
+        const result = await new AnalyzeImportUseCase(scanService, expenseRepository).execute(input);
+        expect(result.candidates).toEqual([]);
+        expect(result.skippedRows).toBe(2);
+        expect(expenseRepository.findByUserId).not.toHaveBeenCalled();
     });
 
     it('削除済みの既存明細は重複判定の対象にしない', async () => {

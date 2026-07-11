@@ -67,9 +67,8 @@ export class CommitImportUseCase {
             );
         }
 
-        for (const expense of expenses) {
-            await this.expenseRepository.save(expense);
-        }
+        // 原子的な一括登録（部分登録を防ぐ・レビュー指摘対応）
+        await this.expenseRepository.saveMany(expenses);
         return ok({ registered: expenses.length });
     }
 }
