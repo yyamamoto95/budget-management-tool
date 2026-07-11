@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useMemo, useCallback, useTransition } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { X } from "lucide-react";
+import { Camera, X } from "lucide-react";
 import { PAGE_VARIANTS, PAGE_ITEM_VARIANTS, SPRING } from "@/lib/motion";
 import type { ExpenseResponse, CategoryItem } from "@/lib/api/types";
 import { PeriodFilter, type Period } from "./PeriodFilter";
@@ -118,9 +119,21 @@ export function RecordsPage({
                 </span>
               </div>
             )}
-            {/* 期間フィルタ */}
-            <div className="flex items-center gap-2 pb-1.5 pt-1">
+            {/* 期間フィルタ + スクショ取り込み導線（#566） */}
+            <div className="flex items-center justify-between gap-2 pb-1.5 pt-1">
               <PeriodFilter value={period} onChange={handlePeriodChange} />
+              <Link
+                href="/imports"
+                className="inline-flex shrink-0 items-center gap-1 rounded-full border px-2.5 py-1 text-[11px] font-bold"
+                style={{
+                  borderColor: "var(--border-default)",
+                  background: "var(--color-surface-default)",
+                  color: "var(--color-brand-primary)",
+                }}
+              >
+                <Camera size={12} aria-hidden />
+                スクショ取り込み
+              </Link>
             </div>
             {/* 検索バー */}
             <SearchBar value={search} onChange={handleSearchChange} />
