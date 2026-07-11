@@ -4,7 +4,7 @@
  * CssVarName の keyof 型により、Web 側で変数が消えるとここが型エラーになり乖離を検知できる。
  * RN は CSS 変数・linear-gradient を使えないため、bar はグラデーションの主色を用いる。
  */
-import type { BudgetTone, SavingsInsightKind, SpendStatus } from '@budget/common';
+import type { BudgetTone, SavingsForecastState, SavingsInsightKind, SpendStatus } from '@budget/common';
 import { cssVars, type CssVarName } from './tokens.generated';
 
 function v(name: CssVarName): string {
@@ -80,6 +80,38 @@ export const spendStatusUi: Record<
   steady: forecast.safe,
   caution: forecast.caution,
   over: forecast.danger,
+};
+
+/** 貯蓄予測カードの4状態配色（Web SavingsForecastCard の STATE_TOKENS と同マッピング。#575）
+ *  RN はグラデーション不可のため bar は主色を使う */
+export const savingsForecastUi: Record<
+  SavingsForecastState,
+  { color: string; badgeBg: string; bar: string; barLight: string }
+> = {
+  excellent: {
+    color: v('--color-forecast-excellent'),
+    badgeBg: v('--color-forecast-excellent-badge-bg'),
+    bar: v('--color-forecast-excellent'),
+    barLight: v('--color-forecast-excellent-bar-light'),
+  },
+  safe: {
+    color: v('--color-forecast-safe'),
+    badgeBg: v('--color-forecast-safe-badge-bg'),
+    bar: v('--color-forecast-safe'),
+    barLight: v('--color-forecast-safe-bar-light'),
+  },
+  caution: {
+    color: v('--color-forecast-caution'),
+    badgeBg: v('--color-forecast-caution-badge-bg'),
+    bar: v('--color-forecast-caution'),
+    barLight: v('--color-forecast-caution-bar-light'),
+  },
+  danger: {
+    color: v('--color-forecast-danger'),
+    badgeBg: v('--color-forecast-danger-badge-bg'),
+    bar: v('--color-forecast-danger'),
+    barLight: v('--color-forecast-danger-bar-light'),
+  },
 };
 
 /** インサイト種別ごとの配色（Web DailyBudgetHero の INSIGHT_UI と同マッピング） */
