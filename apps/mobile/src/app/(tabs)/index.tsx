@@ -8,9 +8,15 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  calculateInvestmentCapacity,
+  HOME_CAROUSEL_SLIDES,
+  type HomeCarouselSlideKey,
+} from '@budget/common';
 import { useDashboard, type DashboardData } from '@/lib/api/use-dashboard';
 import { AppHeader } from '@/components/layout/AppHeader';
 import { InvestmentCapacityCard } from '@/components/dashboard/InvestmentCapacityCard';
+import { DashboardCarousel, type CarouselSlide } from '@/components/dashboard/DashboardCarousel';
 import { LivingMarginCard } from '@/components/dashboard/LivingMarginCard';
 import { MonthlySummaryCard } from '@/components/dashboard/MonthlySummaryCard';
 import { SavingsForecastCard } from '@/components/dashboard/SavingsForecastCard';
@@ -52,6 +58,46 @@ export default function HomeScreen() {
   );
 }
 
+/**
+ * スワイプビューのスライド構成（#576）。
+ * 順序・キー・ラベルは common の HOME_CAROUSEL_SLIDES（SSOT）に従い、Web SP と一致させる。
+ * 投資余力は算出不能のときスライドごと出さない（Web と同一ルール）。
+ */
+function buildCarouselSlides(data: DashboardData, today?: Date): CarouselSlide[] {
+  const nodes: Record<HomeCarouselSlideKey, React.ReactNode> = {
+    'margin-streak': (
+      <View style={styles.slideStack}>
+        <LivingMarginCard livingMargin={data.livingMargin} />
+        <WeeklyStreak
+          weeklyRecord={data.weeklyRecord}
+          dailyBudget={data.dailyBudget?.amount ?? null}
+          streak={data.streak}
+        />
+      </View>
+    ),
+    'savings-forecast': (
+      <SavingsForecastCard
+        monthSummary={data.monthSummary}
+        todayExpense={data.todayExpense}
+        savingsGoal={data.savingsGoal}
+        today={today}
+      />
+    ),
+    'monthly-summary': (
+      <MonthlySummaryCard
+        monthSummary={data.monthSummary}
+        lastMonthExpense={data.lastMonthExpense}
+        today={today}
+      />
+    ),
+    'investment-capacity': <InvestmentCapacityCard livingMargin={data.livingMargin} />,
+  };
+  const investable = calculateInvestmentCapacity(data.livingMargin).status === 'ok';
+  return HOME_CAROUSEL_SLIDES.filter(
+    (slide) => slide.key !== 'investment-capacity' || investable
+  ).map((slide) => ({ key: slide.key, label: slide.label, node: nodes[slide.key] }));
+}
+
 /** today はテスト・VRT で決定論的にレンダリングするための注入口（Web の DailyBudgetHero と同パターン） */
 function Dashboard({ data, today }: { data: DashboardData; today?: Date }) {
   return (
@@ -63,26 +109,8 @@ function Dashboard({ data, today }: { data: DashboardData; today?: Date }) {
         savingsGoal={data.savingsGoal}
         today={today}
       />
-      <LivingMarginCard livingMargin={data.livingMargin} />
-      <WeeklyStreak
-        weeklyRecord={data.weeklyRecord}
-        dailyBudget={data.dailyBudget?.amount ?? null}
-        streak={data.streak}
-      />
-      {/* 今月の貯蓄予測（#575 / Web #458 のパリティ） */}
-      <SavingsForecastCard
-        monthSummary={data.monthSummary}
-        todayExpense={data.todayExpense}
-        savingsGoal={data.savingsGoal}
-        today={today}
-      />
-      <MonthlySummaryCard
-        monthSummary={data.monthSummary}
-        lastMonthExpense={data.lastMonthExpense}
-        today={today}
-      />
-      {/* 投資余力（#543 / #545）。Web と同じく MonthlySummary の後・算出不能時は非表示 */}
-      <InvestmentCapacityCard livingMargin={data.livingMargin} />
+      {/* スワイプビュー（#576 / Web SP と同構成・SSOT: HOME_CAROUSEL_SLIDES） */}
+      <DashboardCarousel slides={buildCarouselSlides(data, today)} />
 
       <View style={styles.card}>
         <Text style={styles.cardTitle}>最近の記録</Text>
@@ -147,6 +175,9 @@ const styles = StyleSheet.create({
     color: colors.surface,
   },
   dashboard: {
+    gap: 12,
+  },
+  slideStack: {
     gap: 12,
   },
   card: {
