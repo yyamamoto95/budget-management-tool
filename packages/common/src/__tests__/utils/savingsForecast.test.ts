@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { calcSavingsForecast } from '../../utils/savingsForecast'
+import { calcSavingsForecast, savingsForecastBadgeLabel } from '../../utils/savingsForecast'
 
 /**
  * サンドボックス HomePrototype Block 3 のモック値に基づく検証。
@@ -98,5 +98,27 @@ describe('calcSavingsForecast', () => {
             todayExpense: 0,
         })
         expect(r.actualExpensePct).toBe(99)
+    })
+})
+
+describe('savingsForecastBadgeLabel', () => {
+    const base = { state: 'safe' as const, achievementRate: 1.2, projectedSavings: 36000 }
+
+    it('目標未設定・赤字見込みを最優先で表示する', () => {
+        expect(savingsForecastBadgeLabel(base, 0)).toBe('目標未設定')
+        expect(savingsForecastBadgeLabel({ ...base, projectedSavings: -5000 }, 30000)).toBe('赤字見込み')
+    })
+
+    it('4状態の文言を返す（Web SavingsForecastCard と同一）', () => {
+        expect(
+            savingsForecastBadgeLabel({ state: 'excellent', achievementRate: 2.49, projectedSavings: 74700 }, 30000)
+        ).toBe('目標 +149% 達成見込み！')
+        expect(savingsForecastBadgeLabel(base, 30000)).toBe('達成見込み ✓')
+        expect(
+            savingsForecastBadgeLabel({ state: 'caution', achievementRate: 0.7, projectedSavings: 21000 }, 30000)
+        ).toBe('目標まであと¥9,000')
+        expect(
+            savingsForecastBadgeLabel({ state: 'danger', achievementRate: 0.2, projectedSavings: 6000 }, 30000)
+        ).toBe('達成困難')
     })
 })

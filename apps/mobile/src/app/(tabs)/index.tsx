@@ -13,6 +13,7 @@ import { AppHeader } from '@/components/layout/AppHeader';
 import { InvestmentCapacityCard } from '@/components/dashboard/InvestmentCapacityCard';
 import { LivingMarginCard } from '@/components/dashboard/LivingMarginCard';
 import { MonthlySummaryCard } from '@/components/dashboard/MonthlySummaryCard';
+import { SavingsForecastCard } from '@/components/dashboard/SavingsForecastCard';
 import { TodayStatusCard } from '@/components/dashboard/TodayStatusCard';
 import { WeeklyStreak } from '@/components/dashboard/WeeklyStreak';
 import { colors } from '@/theme/tokens';
@@ -67,6 +68,13 @@ function Dashboard({ data, today }: { data: DashboardData; today?: Date }) {
         weeklyRecord={data.weeklyRecord}
         dailyBudget={data.dailyBudget?.amount ?? null}
         streak={data.streak}
+      />
+      {/* 今月の貯蓄予測（#575 / Web #458 のパリティ） */}
+      <SavingsForecastCard
+        monthSummary={data.monthSummary}
+        todayExpense={data.todayExpense}
+        savingsGoal={data.savingsGoal}
+        today={today}
       />
       <MonthlySummaryCard
         monthSummary={data.monthSummary}

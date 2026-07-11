@@ -2,7 +2,11 @@
 
 import { motion } from "framer-motion";
 import { formatYen } from "@budget/common";
-import { calcSavingsForecast, type SavingsForecastState } from "@budget/common";
+import {
+  calcSavingsForecast,
+  savingsForecastBadgeLabel,
+  type SavingsForecastState,
+} from "@budget/common";
 import { SPRING } from "@/lib/motion";
 
 type Props = {
@@ -47,27 +51,7 @@ const STATE_TOKENS: Record<
   },
 };
 
-/** 状態バッジの文言（SavingsForecastPalettePrototype 準拠） */
-function badgeLabel(params: {
-  state: SavingsForecastState;
-  achievementRate: number | null;
-  projectedSavings: number;
-  savingsGoal: number;
-}): string {
-  const { state, achievementRate, projectedSavings, savingsGoal } = params;
-  if (savingsGoal <= 0) return "目標未設定";
-  if (projectedSavings < 0) return "赤字見込み";
-  switch (state) {
-    case "excellent":
-      return `目標 +${Math.round(((achievementRate ?? 0) - 1) * 100)}% 達成見込み！`;
-    case "safe":
-      return "達成見込み ✓";
-    case "caution":
-      return `目標まであと${formatYen(savingsGoal - projectedSavings)}`;
-    default:
-      return "達成困難";
-  }
-}
+// バッジ文言は @budget/common の savingsForecastBadgeLabel に共通化（モバイルとのパリティ #575）
 
 /**
  * 今月の貯蓄予測カード（サンドボックス HomePrototype Block 3 準拠 / #458）
@@ -93,12 +77,7 @@ export function SavingsForecastCard({
     daysInMonth,
   });
   const tokens = STATE_TOKENS[forecast.state];
-  const label = badgeLabel({
-    state: forecast.state,
-    achievementRate: forecast.achievementRate,
-    projectedSavings: forecast.projectedSavings,
-    savingsGoal,
-  });
+  const label = savingsForecastBadgeLabel(forecast, savingsGoal);
 
   const stats = [
     {

@@ -1,3 +1,4 @@
+import { formatYen } from './format';
 /**
  * 今月の貯蓄予測（spec: サンドボックス HomePrototype Block 3 / #458）
  *
@@ -103,4 +104,26 @@ export function calcSavingsForecast(inputs: SavingsForecastInputs): SavingsForec
         projectedExpensePct: toPct(projectedMonthEndExpense, monthIncome),
         targetLinePct: hasGoal ? toPct(monthIncome - savingsGoal, monthIncome) : null,
     };
+}
+
+/**
+ * 状態バッジの文言（Web / モバイル共通 SSOT）。
+ * 事実のみのトーン（煽らない・断定しない）を保つ。
+ */
+export function savingsForecastBadgeLabel(
+    forecast: Pick<SavingsForecastResult, 'state' | 'achievementRate' | 'projectedSavings'>,
+    savingsGoal: number
+): string {
+    if (savingsGoal <= 0) return '目標未設定';
+    if (forecast.projectedSavings < 0) return '赤字見込み';
+    switch (forecast.state) {
+        case 'excellent':
+            return `目標 +${Math.round(((forecast.achievementRate ?? 0) - 1) * 100)}% 達成見込み！`;
+        case 'safe':
+            return '達成見込み ✓';
+        case 'caution':
+            return `目標まであと${formatYen(savingsGoal - forecast.projectedSavings)}`;
+        default:
+            return '達成困難';
+    }
 }
