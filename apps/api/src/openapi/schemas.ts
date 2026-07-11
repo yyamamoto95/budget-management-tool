@@ -569,6 +569,81 @@ export const DashboardResponseSchema = z
 
 // ── レシート読取（#514） ─────────────────────────────────────────
 
+// ─── スクショ一括取り込み（#564）─────────────────────────────────
+
+export const ImportAnalyzeBodySchema = z
+    .object({
+        image: z
+            .string()
+            .min(1)
+            .max(10_000_000)
+            .openapi({ description: 'base64 エンコード済み画像（data: プレフィックスなし・最大約7MB）' }),
+        mimeType: z.enum(['image/jpeg', 'image/png']).openapi({ description: '画像の MIME タイプ' }),
+    })
+    .openapi('ImportAnalyzeBody');
+
+export const ImportCandidateSchema = z
+    .object({
+        date: z.string().openapi({ description: 'YYYY-MM-DD', example: '2026-06-29' }),
+        amount: z.number().int().min(1).openapi({ description: '金額（正の整数・円）', example: 17504 }),
+        balanceType: z
+            .union([z.literal(0), z.literal(1)])
+            .openapi({ description: '0=支出, 1=収入', example: 0 }),
+        content: z.string().openapi({ description: '摘要（店名・振込元など）' }),
+        categoryId: z.number().int().min(0).openapi({ description: '推定カテゴリ ID（0=その他）' }),
+        confidence: z.enum(['high', 'low']).openapi({ description: '解析の確からしさ。low は要確認' }),
+        raw: z.string().openapi({ description: '読み取った元の行テキスト（監査用）' }),
+        duplicateSuspect: z
+            .boolean()
+            .openapi({ description: '既存明細と同日・同額・同収支のとき true（登録済みの可能性）' }),
+    })
+    .openapi('ImportCandidate');
+
+export const ImportAnalyzeResponseSchema = z
+    .object({
+        candidates: z.array(ImportCandidateSchema),
+        skippedRows: z
+            .number()
+            .int()
+            .min(0)
+            .openapi({ description: '解析器が出力したが検証で弾かれた行数（部分成功の明示）' }),
+        source: z.enum(['claude-cli', 'claude-api']).openapi({ description: '使用された解析手段' }),
+    })
+    .openapi('ImportAnalyzeResponse');
+
+export const ImportCommitBodySchema = z
+    .object({
+        rows: z
+            .array(
+                z.object({
+                    date: z
+                        .string()
+                        .regex(/^\d{4}-\d{2}-\d{2}$/, '日付は YYYY-MM-DD 形式で入力してください')
+                        .openapi({ description: 'YYYY-MM-DD' }),
+                    amount: z
+                        .number({ invalid_type_error: '金額は数値で入力してください' })
+                        .int()
+                        .min(1, '金額は1以上の値を入力してください')
+                        .openapi({ description: '金額（円）' }),
+                    balanceType: z
+                        .union([z.literal(0), z.literal(1)])
+                        .openapi({ description: '0=支出, 1=収入' }),
+                    categoryId: z.number().int().min(0).openapi({ description: 'カテゴリ ID' }),
+                    content: z.string().max(255).openapi({ description: '摘要' }),
+                })
+            )
+            .min(1, '登録対象の明細が選択されていません')
+            .max(100, '一度に登録できるのは 100 件までです')
+            .openapi({ description: '確認画面で選択・編集済みの登録対象行' }),
+    })
+    .openapi('ImportCommitBody');
+
+export const ImportCommitResponseSchema = z
+    .object({
+        registered: z.number().int().min(0).openapi({ description: '登録した明細数', example: 6 }),
+    })
+    .openapi('ImportCommitResponse');
+
 export const ReceiptScanBodySchema = z
     .object({
         image: z

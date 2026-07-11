@@ -44,6 +44,21 @@ export class PrismaExpenseRepository implements IExpenseRepository {
         return record ? toDomain(record) : null;
     }
 
+    async saveMany(expenses: Expense[]): Promise<void> {
+        // createMany は単一ステートメントのため原子的（途中失敗による部分登録が起きない）
+        await this.prisma.budgetList.createMany({
+            data: expenses.map((expense) => ({
+                id: expense.id,
+                amount: expense.amount,
+                balanceType: expense.balanceType,
+                userId: expense.userId,
+                categoryId: expense.categoryId,
+                content: expense.content,
+                date: expense.date,
+            })),
+        });
+    }
+
     async save(expense: Expense): Promise<Expense> {
         const record = await this.prisma.budgetList.upsert({
             where: { id: expense.id },

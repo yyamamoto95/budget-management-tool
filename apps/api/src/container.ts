@@ -9,6 +9,11 @@ import { GetCategoriesUseCase } from './application/use-cases/category/GetCatego
 import { CreateExpenseUseCase } from './application/use-cases/CreateExpenseUseCase';
 import { GetDashboardUseCase } from './application/use-cases/dashboard/GetDashboardUseCase';
 import { RegisterAutoFixedExpensesUseCase } from './application/use-cases/dashboard/RegisterAutoFixedExpensesUseCase';
+import { AnalyzeImportUseCase } from './application/use-cases/import/AnalyzeImportUseCase';
+import { CommitImportUseCase } from './application/use-cases/import/CommitImportUseCase';
+import { ClaudeApiStatementAnalyzer } from './application/services/import/ClaudeApiStatementAnalyzer';
+import { ClaudeCliStatementAnalyzer } from './application/services/import/ClaudeCliStatementAnalyzer';
+import { StatementScanService } from './application/services/import/StatementScanService';
 import { ExportUserDataUseCase } from './application/use-cases/export/ExportUserDataUseCase';
 import { ParseExpenseUseCase, RuleBasedExpenseParser } from './application/use-cases/parse/ParseExpenseUseCase';
 import { UpdateExpenseUseCase } from './application/use-cases/UpdateExpenseUseCase';
@@ -100,6 +105,15 @@ export function buildServices(deps: AppDeps, tokenService: TokenService): RouteS
             deps.autoFixedRegistrar
         ),
         // Receipt（#514）: claude CLI（ローカル・課金ゼロ）→ Claude API（キー設定時）→ OCR の順にフォールバック
+        // Import（#564）: 明細一覧スクショ → 候補抽出 → 一括登録
+        analyzeImportUseCase: new AnalyzeImportUseCase(
+            new StatementScanService([
+                new ClaudeCliStatementAnalyzer(),
+                new ClaudeApiStatementAnalyzer(new LlmClient(), new LlmUsageGuard(new PrismaLlmUsageRepository(prisma))),
+            ]),
+            deps.expenseRepository
+        ),
+        commitImportUseCase: new CommitImportUseCase(deps.expenseRepository, deps.userRepository),
         receiptScanService: new ReceiptScanService([
             new ClaudeCliReceiptAnalyzer(),
             new ClaudeApiReceiptAnalyzer(new LlmClient(), new LlmUsageGuard(new PrismaLlmUsageRepository(prisma))),
