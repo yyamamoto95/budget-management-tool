@@ -2,7 +2,12 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { calculateInvestmentCapacity, calculateLivingMargin } from "@budget/common";
+import {
+  calculateInvestmentCapacity,
+  calculateLivingMargin,
+  HOME_CAROUSEL_SLIDES,
+  type HomeCarouselSlideKey,
+} from "@budget/common";
 import { PAGE_VARIANTS, PAGE_ITEM_VARIANTS } from "@/lib/motion";
 import type { DashboardResponse, CategoryItem } from "@/lib/api/types";
 import { DailyBudgetHero } from "./DailyBudgetHero";
@@ -25,55 +30,40 @@ type Props = {
 };
 
 /**
- * SP カルーセルのスライド構成（sandbox HomePrototype 準拠）。
- * ① 生活余力 + 今週の記録 ② 今月の貯蓄予測 ③ 今月のサマリー ④ 投資余力。
+ * SP カルーセルのスライド構成。順序・キー・ラベルは common の
+ * HOME_CAROUSEL_SLIDES（SSOT）に従い、モバイルアプリと機械的に一致させる（#576）。
  * 投資余力は算出不能（総資産未設定・記録不足）のときスライドごと出さない。
  */
 function buildCarouselSlides(dashboard: DashboardResponse): CarouselSlide[] {
-  const slides: CarouselSlide[] = [
-    {
-      key: "margin-streak",
-      label: "生活余力・今週の記録",
-      node: (
-        <div className="flex flex-col gap-3">
-          <LivingMarginCard livingMargin={dashboard.livingMargin} />
-          <WeeklyStreak
-            weeklyRecord={dashboard.weeklyRecord}
-            dailyBudget={dashboard.dailyBudget?.amount ?? null}
-          />
-        </div>
-      ),
-    },
-    {
-      key: "savings-forecast",
-      label: "今月の貯蓄予測",
-      node: (
-        <SavingsForecastCard
-          monthSummary={dashboard.monthSummary}
-          todayExpense={dashboard.todayExpense}
-          savingsGoal={dashboard.savingsGoal}
+  const nodes: Record<HomeCarouselSlideKey, React.ReactNode> = {
+    "margin-streak": (
+      <div className="flex flex-col gap-3">
+        <LivingMarginCard livingMargin={dashboard.livingMargin} />
+        <WeeklyStreak
+          weeklyRecord={dashboard.weeklyRecord}
+          dailyBudget={dashboard.dailyBudget?.amount ?? null}
         />
-      ),
-    },
-    {
-      key: "monthly-summary",
-      label: "今月のサマリー",
-      node: (
-        <MonthlySummaryCard
-          monthSummary={dashboard.monthSummary}
-          lastMonthExpense={dashboard.lastMonthExpense}
-        />
-      ),
-    },
-  ];
-  if (calculateInvestmentCapacity(dashboard.livingMargin).status === "ok") {
-    slides.push({
-      key: "investment-capacity",
-      label: "投資余力",
-      node: <InvestmentCapacityCard livingMargin={dashboard.livingMargin} />,
-    });
-  }
-  return slides;
+      </div>
+    ),
+    "savings-forecast": (
+      <SavingsForecastCard
+        monthSummary={dashboard.monthSummary}
+        todayExpense={dashboard.todayExpense}
+        savingsGoal={dashboard.savingsGoal}
+      />
+    ),
+    "monthly-summary": (
+      <MonthlySummaryCard
+        monthSummary={dashboard.monthSummary}
+        lastMonthExpense={dashboard.lastMonthExpense}
+      />
+    ),
+    "investment-capacity": <InvestmentCapacityCard livingMargin={dashboard.livingMargin} />,
+  };
+  const investable = calculateInvestmentCapacity(dashboard.livingMargin).status === "ok";
+  return HOME_CAROUSEL_SLIDES.filter(
+    (slide) => slide.key !== "investment-capacity" || investable,
+  ).map((slide) => ({ key: slide.key, label: slide.label, node: nodes[slide.key] }));
 }
 
 export function HomeClient({

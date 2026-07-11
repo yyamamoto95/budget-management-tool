@@ -33,3 +33,16 @@ export type PeriodValue = keyof typeof PERIOD_LABELS;
 /** レポート画面で選択できる期間（表示順） */
 export const REPORT_PERIODS = ['week', 'month', 'lastMonth'] as const;
 export type ReportPeriodValue = (typeof REPORT_PERIODS)[number];
+
+/**
+ * SP ホームのスワイプビュー構成（#576）。
+ * Web（SP）とモバイルアプリの両方がこの定義を参照して描画し、構成のズレを防ぐ。
+ * investment-capacity スライドは投資余力が算出不能のとき両プラットフォームとも非表示にする。
+ */
+export const HOME_CAROUSEL_SLIDES = [
+    { key: 'margin-streak', label: '生活余力・今週の記録' },
+    { key: 'savings-forecast', label: '今月の貯蓄予測' },
+    { key: 'monthly-summary', label: '今月のサマリー' },
+    { key: 'investment-capacity', label: '投資余力' },
+] as const;
+export type HomeCarouselSlideKey = (typeof HOME_CAROUSEL_SLIDES)[number]['key'];
