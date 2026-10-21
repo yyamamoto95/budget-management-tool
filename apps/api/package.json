@@ -7,6 +7,7 @@
 		"build": "tsc",
 		"start": "node build/index.js",
 		"type-check": "tsc --noEmit",
+		"test:unit": "vitest run src/__tests__/unit",
 		"lint": "biome lint .",
 		"format": "biome format . --write",
 		"check": "biome check .",

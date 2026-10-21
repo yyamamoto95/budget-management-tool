@@ -260,7 +260,6 @@ apps/
   api/src/__tests__/
     unit/         ← UseCase・ドメインロジック（Vitest）
     integration/  ← API エンドポイント（Supertest + 実 DB）
-    e2e/          ← API 全行程（Supertest）
 packages/
   common/src/__tests__/
     schemas/      ← Zod スキーマ（Vitest）
