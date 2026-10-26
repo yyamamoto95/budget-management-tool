@@ -12,7 +12,7 @@
 		"format": "biome format . --write",
 		"check": "biome check .",
 		"db:docs": "prisma generate",
-		"db:share": "prisma generate && dbdocs build ../../docs/database/schema.dbml --public",
+		"db:share": "prisma generate && pnpm dlx dbdocs@1.7.0 build ../../docs/database/schema.dbml --public",
 		"migration:create": "prisma migrate dev --create-only",
 		"migration:run": "prisma migrate deploy",
 		"seed": "tsx scripts/seed.ts",
@@ -40,13 +40,12 @@
 		"@biomejs/biome": "^2.4.10",
 		"@types/bcrypt": "^6.0.0",
 		"@types/node": "^20.19.37",
-		"dbdocs": "1.1.0",
 		"prisma": "^6.0.0",
 		"prisma-dbml-generator": "^0.12.0",
-		"tsx": "^4.21.0",
+		"tsx": "^4.23.15",
 		"typescript": "^5.4.0",
-		"vitest": "^4.1.4",
-		"wait-on": "^9.0.4"
+		"vitest": "^4.1.12",
+		"wait-on": "^9.5.1"
 	},
 	"engines": {
 		"node": ">=20"
