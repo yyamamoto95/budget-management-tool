@@ -378,7 +378,7 @@ pnpm db:docs
 事前に `dbdocs` でログイン（またはトークン）を準備してください。
 
 ```bash
-pnpm --filter @budget/api exec -- dbdocs login
+pnpm dlx dbdocs@1.7.0 login
 ```
 
 共有（`--public` で URL 共有）:
@@ -392,3 +392,4 @@ pnpm db:share
 - デフォルトでは `apps/api` の `db:share` は `--public` でアップロードします。
 - `dbdocs build` は `--project` を指定することで、プロジェクト名（例: `yourname/budget-management-tool`）に紐づけられます。
 - 初回は `dbdocs login`（または `dbdocs token`）が必要です。
+- `dbdocs` は依存に含めず、実行のたびに `pnpm dlx` で取得します（脆弱性を含む依存ツリーを常時インストールしないため）。バージョンは `apps/api` の `db:share` と揃えてください。
