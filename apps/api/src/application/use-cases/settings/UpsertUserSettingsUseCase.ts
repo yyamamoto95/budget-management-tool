@@ -72,9 +72,7 @@ export class UpsertUserSettingsUseCase {
             (input.autoFixedDay < AUTO_FIXED_DAY_MIN || input.autoFixedDay > AUTO_FIXED_DAY_MAX)
         ) {
             return err(
-                new ValidationError(
-                    `自動登録日は${AUTO_FIXED_DAY_MIN}〜${AUTO_FIXED_DAY_MAX}の範囲で入力してください`
-                )
+                new ValidationError(`自動登録日は${AUTO_FIXED_DAY_MIN}〜${AUTO_FIXED_DAY_MAX}の範囲で入力してください`)
             );
         }
 

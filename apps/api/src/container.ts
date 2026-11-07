@@ -109,7 +109,10 @@ export function buildServices(deps: AppDeps, tokenService: TokenService): RouteS
         analyzeImportUseCase: new AnalyzeImportUseCase(
             new StatementScanService([
                 new ClaudeCliStatementAnalyzer(),
-                new ClaudeApiStatementAnalyzer(new LlmClient(), new LlmUsageGuard(new PrismaLlmUsageRepository(prisma))),
+                new ClaudeApiStatementAnalyzer(
+                    new LlmClient(),
+                    new LlmUsageGuard(new PrismaLlmUsageRepository(prisma))
+                ),
             ]),
             deps.expenseRepository
         ),

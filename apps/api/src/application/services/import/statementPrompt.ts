@@ -1,8 +1,4 @@
-import {
-    getCategoriesByType,
-    type ImportCandidate,
-    type ImportConfidence,
-} from '@budget/common';
+import { getCategoriesByType, type ImportCandidate, type ImportConfidence } from '@budget/common';
 import { normalizeDate } from '../receipt/receiptTextParser';
 
 /** 明細一覧解析（#563）のプロンプト定義。CLI / API で同一の抽出仕様を保つ */

@@ -77,11 +77,7 @@ const commitImportRoute = createRoute({
     },
 });
 
-export function createImportRoutes({
-    tokenService,
-    analyzeImportUseCase,
-    commitImportUseCase,
-}: RouteServices) {
+export function createImportRoutes({ tokenService, analyzeImportUseCase, commitImportUseCase }: RouteServices) {
     const auth = createAuthMiddleware(tokenService);
     const app = createOpenAPIApp();
 

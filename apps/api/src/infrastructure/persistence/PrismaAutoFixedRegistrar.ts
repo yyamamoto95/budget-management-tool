@@ -6,11 +6,7 @@ import type { IAutoFixedRegistrar } from '../../domain/repositories/IAutoFixedRe
 export class PrismaAutoFixedRegistrar implements IAutoFixedRegistrar {
     constructor(private readonly prisma: PrismaClient) {}
 
-    async registerOnce(
-        userId: string,
-        yearMonth: string,
-        entries: AutoFixedEntry[]
-    ): Promise<boolean> {
+    async registerOnce(userId: string, yearMonth: string, entries: AutoFixedEntry[]): Promise<boolean> {
         try {
             // ログ作成（一意制約が冪等キー）と明細登録を同一トランザクションで行う。
             // ログ作成が P2002 で失敗 = 他リクエストが登録済み → 全体をロールバックして何もしない
