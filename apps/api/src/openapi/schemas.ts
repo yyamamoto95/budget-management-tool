@@ -586,9 +586,7 @@ export const ImportCandidateSchema = z
     .object({
         date: z.string().openapi({ description: 'YYYY-MM-DD', example: '2026-06-29' }),
         amount: z.number().int().min(1).openapi({ description: '金額（正の整数・円）', example: 17504 }),
-        balanceType: z
-            .union([z.literal(0), z.literal(1)])
-            .openapi({ description: '0=支出, 1=収入', example: 0 }),
+        balanceType: z.union([z.literal(0), z.literal(1)]).openapi({ description: '0=支出, 1=収入', example: 0 }),
         content: z.string().openapi({ description: '摘要（店名・振込元など）' }),
         categoryId: z.number().int().min(0).openapi({ description: '推定カテゴリ ID（0=その他）' }),
         confidence: z.enum(['high', 'low']).openapi({ description: '解析の確からしさ。low は要確認' }),
@@ -625,9 +623,7 @@ export const ImportCommitBodySchema = z
                         .int()
                         .min(1, '金額は1以上の値を入力してください')
                         .openapi({ description: '金額（円）' }),
-                    balanceType: z
-                        .union([z.literal(0), z.literal(1)])
-                        .openapi({ description: '0=支出, 1=収入' }),
+                    balanceType: z.union([z.literal(0), z.literal(1)]).openapi({ description: '0=支出, 1=収入' }),
                     categoryId: z.number().int().min(0).openapi({ description: 'カテゴリ ID' }),
                     content: z.string().max(255).openapi({ description: '摘要' }),
                 })

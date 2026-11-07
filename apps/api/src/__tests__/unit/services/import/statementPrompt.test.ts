@@ -78,9 +78,7 @@ describe('parseClaudeStatementJson', () => {
     });
 
     it('カテゴリが「その他」のときは常に要確認にする', () => {
-        const { candidates } = parseClaudeStatementJson(
-            payload([{ ...validRow, categoryId: 0, confidence: 'high' }])
-        );
+        const { candidates } = parseClaudeStatementJson(payload([{ ...validRow, categoryId: 0, confidence: 'high' }]));
         expect(candidates[0].confidence).toBe('low');
     });
 

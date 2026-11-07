@@ -47,16 +47,12 @@ export class AnalyzeImportUseCase {
         // 既存明細（未削除）と同日・同額・同収支なら重複疑い
         const expenses = await this.expenseRepository.findByUserId(input.userId);
         const existingKeys = new Set(
-            expenses
-                .filter((e) => !e.deletedDate)
-                .map((e) => `${e.date}:${e.amount}:${e.balanceType}`)
+            expenses.filter((e) => !e.deletedDate).map((e) => `${e.date}:${e.amount}:${e.balanceType}`)
         );
 
         const candidates = scan.candidates.map((candidate) => ({
             ...candidate,
-            duplicateSuspect: existingKeys.has(
-                `${candidate.date}:${candidate.amount}:${candidate.balanceType}`
-            ),
+            duplicateSuspect: existingKeys.has(`${candidate.date}:${candidate.amount}:${candidate.balanceType}`),
         }));
 
         return { candidates, skippedRows: scan.skippedRows, source: scan.source };

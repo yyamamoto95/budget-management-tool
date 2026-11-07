@@ -1,8 +1,4 @@
-import {
-    autoFixedYearMonth,
-    buildAutoFixedEntries,
-    shouldRegisterAutoFixed,
-} from '@budget/common';
+import { autoFixedYearMonth, buildAutoFixedEntries, shouldRegisterAutoFixed } from '@budget/common';
 import type { IAutoFixedRegistrar } from '../../../domain/repositories/IAutoFixedRegistrar';
 import type { IUserSettingsRepository } from '../../../domain/repositories/IUserSettingsRepository';
 

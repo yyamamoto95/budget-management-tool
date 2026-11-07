@@ -15,7 +15,9 @@ const candidate: ImportCandidate = {
     raw: '29日 ニホンガクセイシエンキ -¥17,504',
 };
 
-function expense(over: Partial<{ date: string; amount: number; balanceType: number; deletedDate: Date | null }>): Expense {
+function expense(
+    over: Partial<{ date: string; amount: number; balanceType: number; deletedDate: Date | null }>
+): Expense {
     return {
         id: 'ulid-1',
         amount: over.amount ?? 17504,

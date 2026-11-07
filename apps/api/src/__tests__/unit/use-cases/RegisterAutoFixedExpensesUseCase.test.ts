@@ -79,18 +79,18 @@ describe('RegisterAutoFixedExpensesUseCase', () => {
     it('設定未作成・固定費内訳が空のときは何もしない', async () => {
         const noSettings = makeDeps(null);
         expect(
-            await new RegisterAutoFixedExpensesUseCase(
-                noSettings.settingsRepo,
-                noSettings.registrar
-            ).execute('user-1', today)
+            await new RegisterAutoFixedExpensesUseCase(noSettings.settingsRepo, noSettings.registrar).execute(
+                'user-1',
+                today
+            )
         ).toBe(false);
 
         const emptyDetail = makeDeps({ ...baseSettings, fixedExpensesDetail: null });
         expect(
-            await new RegisterAutoFixedExpensesUseCase(
-                emptyDetail.settingsRepo,
-                emptyDetail.registrar
-            ).execute('user-1', today)
+            await new RegisterAutoFixedExpensesUseCase(emptyDetail.settingsRepo, emptyDetail.registrar).execute(
+                'user-1',
+                today
+            )
         ).toBe(false);
         expect(emptyDetail.registrar.registerOnce).not.toHaveBeenCalled();
     });

@@ -32,9 +32,7 @@ export class CommitImportUseCase {
         private readonly userRepository: IUserRepository
     ) {}
 
-    async execute(
-        input: CommitImportInput
-    ): Promise<Result<{ registered: number }, NotFoundError | ValidationError>> {
+    async execute(input: CommitImportInput): Promise<Result<{ registered: number }, NotFoundError | ValidationError>> {
         const user = await this.userRepository.findById(input.userId);
         if (!user) {
             return err(new NotFoundError(`ユーザーが見つかりません: ${input.userId}`));
@@ -60,11 +58,7 @@ export class CommitImportUseCase {
                 })
             );
         } catch (error) {
-            return err(
-                new ValidationError(
-                    error instanceof Error ? error.message : '明細の内容が不正です'
-                )
-            );
+            return err(new ValidationError(error instanceof Error ? error.message : '明細の内容が不正です'));
         }
 
         // 原子的な一括登録（部分登録を防ぐ・レビュー指摘対応）
